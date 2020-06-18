@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load  static %}
+{% block title %}产品配置{% endblock %}
+{% block css %}{% endblock %}
+
+{% block breadcrumb %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            产品配置
+            <small>ProductModel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="#">主页</a></li>
+            <li class="active">产品配置</li>
+        </ol>
+    </section>
+{% endblock %}
+
+{% block content %}
+    <section class="content">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box">
+                        <div class="box-header">
+                            <h3 class="box-title">产品配置</h3>
+                        </div>
+                        <!-- /.box-header -->
+                        <div class="box-body">
+                            <table id="assets_table" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>产品名称</th>
+                                        <th>产品型号</th>
+                                        <th>产品分类</th>
+                                        <th>物料号</th>
+                                        <th>创建日期</th>
+                                        <th>更新日期</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pm in product_model %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>{{ pm.product_name }}</td>
+                                            <td>{{ pm.model_name}}</td>
+                                            <td>{{ pm.category.category_name }}</td>
+                                            <td>{{ pm.erp_no }}</td>
+                                            <td>{{ pm.c_time|date:'Y/m/d [H:m:s]' }}</td>
+                                            <td>{{ pm.m_time }}</td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>没有数据！</tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+{% endblock %}
+
+{% block script %}
+
+{% endblock %}

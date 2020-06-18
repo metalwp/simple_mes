@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8">
+
+    <title>修改 产品分类 | Django 站点管理员</title>
+    <link rel="stylesheet" type="text/css" href="/static/admin/css/base.css">
+    <link rel="stylesheet" type="text/css" href="/static/admin/css/forms.css">
+
+    <script type="text/javascript" src="/admin/jsi18n/"></script>
+    <script type="text/javascript" src="/static/admin/js/vendor/jquery/jquery.js"></script>
+    <script type="text/javascript" src="/static/admin/js/jquery.init.js"></script>
+    <script type="text/javascript" src="/static/admin/js/core.js"></script>
+    <script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
+    <script type="text/javascript" src="/static/admin/js/actions.js"></script>
+    <script type="text/javascript" src="/static/admin/js/urlify.js"></script>
+    <script type="text/javascript" src="/static/admin/js/prepopulate.js"></script>
+    <script type="text/javascript" src="/static/admin/js/vendor/xregexp/xregexp.js"></script>
+
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="/static/admin/css/responsive.css">
+
+    <meta name="robots" content="NONE,NOARCHIVE">
+</head>
+
+
+<body class=" app-product_manager model-productcategory change-form" data-admin-utc-offset="28800">
+
+<!-- Container -->
+<div id="container">
+    <!-- Header -->
+    <div id="header">
+        <div id="branding">
+        
+            <h1 id="site-name"><a href="/admin/">Django 管理</a></h1>
+        </div>
+        <div id="user-tools">欢迎，<strong>admin</strong>.
+                <a href="/">查看站点</a>
+                <a href="/admin/password_change/">修改密码</a>
+                <a href="/admin/logout/">注销</a>
+        </div>
+    </div>
+    <!-- END Header -->
+    <div class="breadcrumbs">
+    <a href="/admin/">首页</a>
+    &rsaquo; <a href="/admin/product_manager/">Product_Manager</a>
+    &rsaquo; <a href="/admin/product_manager/productcategory/">产品分类</a>
+    &rsaquo; 高速乘用车
+    </div>
+
+
+    <!-- Content -->
+    <div id="content" class="colM">
+        <h1>修改 产品分类</h1>
+    <div id="content-main">
+        <ul class="object-tools">
+            <li>
+                <a href="/admin/product_manager/productcategory/5/history/" class="historylink">历史</a>
+            </li>
+        </ul>
+        <form action="" method="post" id="productcategory_form" novalidate>
+            <input type="hidden" name="csrfmiddlewaretoken" value="HlAAGIXvWddhWiyHUz00QYGJB35arQRfukY5xkDc5RETQ4uEdWickiAL49RbVxvJ">
+            <div>
+                <fieldset class="module aligned ">
+                    <div class="form-row field-category_name">
+                        <div>
+                            <label class="required" for="id_category_name">分类名称:</label>
+                            <input type="text" name="category_name" value="高速乘用车" class="vTextField" maxlength="30" required id="id_category_name">
+                        </div>
+                    </div>
+                    <div class="form-row field-parent_category">
+                        <div>
+                            <label for="id_parent_category">父类:</label>
+                            <div class="related-widget-wrapper">
+                                <select name="parent_category" id="id_parent_category">
+                                    <option value="">---------</option>
+                                    <option value="1">低速车</option>
+                                    <option value="2">低速清扫车</option>
+                                    <option value="3">低速快递车</option>
+                                    <option value="4" selected>高速车</option>
+                                    <option value="5">高速乘用车</option>
+                                </select>
+                                <a class="related-widget-wrapper-link change-related" id="change_id_parent_category"
+                                    data-href-template="/admin/product_manager/productcategory/__fk__/change/?_to_field=id&amp;_popup=1"
+                                    title="更改选中的产品分类"><img src="/static/admin/img/icon-changelink.svg" alt="修改"></a>
+                                <a class="related-widget-wrapper-link add-related" id="add_id_parent_category"
+                                    href="/admin/product_manager/productcategory/add/?_to_field=id&amp;_popup=1"
+                                    title="增加另一个 产品分类"><img src="/static/admin/img/icon-addlink.svg" alt="增加"></a>
+                                <a class="related-widget-wrapper-link delete-related" id="delete_id_parent_category"
+                                    data-href-template="/admin/product_manager/productcategory/__fk__/delete/?_to_field=id&amp;_popup=1"
+                                    title="取消选中 产品分类"><img src="/static/admin/img/icon-deletelink.svg" alt="删除"></a>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="submit-row">
+                    <input type="submit" value="保存" class="default" name="_save">
+                    <p class="deletelink-box"><a href="/admin/product_manager/productcategory/5/delete/" class="deletelink">删除</a></p>
+                    <input type="submit" value="保存并增加另一个" name="_addanother">
+                    <input type="submit" value="保存并继续编辑" name="_continue">
+                </div>
+                <script type="text/javascript"
+                    id="django-admin-form-add-constants"
+                    src="/static/admin/js/change_form.js">
+                </script>
+                <script type="text/javascript"
+                id="django-admin-prepopulated-fields-constants"
+                src="/static/admin/js/prepopulate_init.js"
+                data-prepopulated-fields="[]">
+                </script>
+            </div>
+        </form>
+
+    </div>
+        <br class="clear">
+    </div>
+    <!-- END Content -->
+
+    <div id="footer">
+
+    </div>
+</div>
+    <!-- END Container -->
+</body>
+</html>

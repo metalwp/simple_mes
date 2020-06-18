@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}产品类别创建{% endblock %}
+
+{% block breadcrumb %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            产品类别创建
+            <small>CategoryCreate</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="#">主页</a></li>
+            <li><a href="#">产品分类</a></li>
+            <li class="active">创建</li>
+        </ol>
+    </section>
+{% endblock %}
+
+
+{% block content %}
+    <section class="content">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box box-warning">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">创建</h3>
+                        </div>
+                        <!-- /.box-header -->
+                        <div class="box-body" >
+
+                            <form action="" method="post" id="productcategory_form" novalidate role="form">
+{#                                <input type="hidden" name="csrfmiddlewaretoken" value="HlAAGIXvWddhWiyHUz00QYGJB35arQRfukY5xkDc5RETQ4uEdWickiAL49RbVxvJ">#}
+                                {% csrf_token %}
+
+                                <div class="form-group">
+                                  <label class="required" for="id_category_name">分类名称:</label>
+                                  <input type="text" name="category_name" class="form-control" placeholder="Enter ..."
+                                         required id="id_category_name" value="">
+                                </div>
+
+                                <div class="form-group">
+                                  <label>父类</label>
+                                  <select class="form-control" name="parent_category" id="id_parent_category" onchange="">
+                                    <option value="" selected>---------</option>
+                                    {% for cate in product_category_now %}
+                                        <option value="{{ cate.category_name }}" >{{ cate.category_name }}</option>
+                                    {% empty %}
+                                    {% endfor %}
+                                  </select>
+                                </div>
+                                 <div class="form-group">
+                                    <input type="submit" value="保存" class="btn btn-info" name="submit_btn">
+                                    <input type="submit" value="取消" class="btn btn-warning" name="submit_btn">
+                                 </div>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+{% endblock %}
+
+{% block script %}
+    <script>
+        function checkName(data){
+            var values="";
+            $(".t").each(function(i,item){
+                var value=$(this).val();
+                values+=value; //获取所有的名称
+            });
+            var val=$(data).val(); //获得当前输入框的值
+            var newValue=values.replace(val,""); //去除当前输入框的值
+            if(newValue==""){
+                return false;
+            }else{
+                if(newValue.indexOf(val)>-1){  //当前值和newValue作比较
+                    alert("名称已存在，请重新输入!");
+                    $(data).val("");
+                    }
+                }
+             }
+    </script>
+{% endblock %}
