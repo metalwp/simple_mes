@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}产品分类{% endblock %}
+{% block css %}{% endblock %}
+
+{% block breadcrumb %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            产品分类
+            <small>ProductCategory</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="#">主页</a></li>
+            <li class="active">产品分类</li>
+        </ol>
+    </section>
+{% endblock %}
+
+{% block content %}
+    <section class="content">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box">
+                        <div class="box-header">
+                            <h3 class="box-title">产品分类</h3>
+                        </div>
+                            <div class="btn-group" >
+                                <button type="button" onclick="window.location.href='{% url "product_manager:pc_create" %}'" class="btn btn-info">创建</button>
+                                <button type="button" id="remove" onclick="test()" class="btn btn-warning">刪除</button>
+                            </div>
+                        <!-- /.box-header -->
+                        <div class="box-body" >
+
+
+                            <table id="example1" class="table table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th><input type="checkbox" id="allboxs" onclick="allcheck()"></th>
+                                        <th>产品类型</th>
+                                        <th>父类</th>
+                                        <th>创建日期</th>
+                                        <th>更新日期</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pc in product_category %}
+                                        <tr>
+                                            <td class="sorting">{{ forloop.counter }}</td>
+                                            <td><input type="checkbox" name="boxs" value="{{ pc.id }}"></td>
+                                            <td><a href="{% url "product_manager:pc_detail" pc.id%}">{{ pc.category_name }}</a></td>
+                                            {% if pc.parent_category %}
+                                                <td><a href="{% url "product_manager:pc_detail" pc.parent_category.id%}">{{ pc.parent_category.category_name}}</a></td>
+                                            {% else %}
+                                                <td>--</td>
+                                            {% endif %}
+                                            <td>{{ pc.c_time|date:'Y/m/d [H:m:s]' }}</td>
+                                            <td>{{ pc.m_time }}</td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>没有数据！</tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+
+                                </tfoot>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+<script type="text/javascript">
+      {#$(function () {#}
+      {#  $('#example1').DataTable({#}
+      {#    'paging'      : true,#}
+      {#    'lengthChange': false,#}
+      {#    'searching'   : false,#}
+      {#    'ordering'    : true,#}
+      {#    'info'        : true,#}
+      {#    'autoWidth'   : false})#}
+      {#//})#}
+      {#function test(){             //$('input:checkbox:checked') 等同于 $('input[type=checkbox]:checked') //意思是选择被选中的checkbox#}
+      {#           $.each($('input:checkbox:checked'),function(){#}
+      {#              window.alert("你选了："+ $('input[type=checkbox]:checked').length+"个，其中有："+$(this).val());#}
+      {#               });#}
+      {#               }#}
+    function test(){
+        var c_list = $("input[name='boxs']:checked").map(function(){return $(this).val();}).get();
+        console.log(c_list);
+         }
+    {#$("button #remove").click(function () {#}
+    {#    var c_list = $("input[name^='boxs']:checked").map(function(){return $(this).val();}).get();#}
+    {#    console.log(c_list);#}
+    {#//});#}
+
+    function allcheck() {
+         var nn = $("#allboxs").is(":checked"); //判断th中的checkbox是否被选中，如果被选中则nn为true，反之为false
+             if(nn == true) {
+                 var namebox = $("input[name^='boxs']");  //获取name值为boxs的所有input
+                 for(i = 0; i < namebox.length; i++) {
+                     namebox[i].checked=true;    //js操作选中checkbox
+                 }
+             }
+             if(nn == false) {
+                 var namebox = $("input[name^='boxs']");
+                 for(i = 0; i < namebox.length; i++) {
+                     namebox[i].checked=false;
+                 }
+             }
+
+
+         }
+</script>
+
+
+{% endblock %}
+
+{% block script %}
+    <!-- DataTables -->
+
+
+{% endblock %}

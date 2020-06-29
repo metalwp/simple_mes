@@ -1,18 +1,18 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}产品类别创建{% endblock %}
+{% block title %}产品类别修改{% endblock %}
 
 {% block breadcrumb %}
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <h1>
-            产品类别创建
+            产品类别修改
             <small>CategoryCreate</small>
         </h1>
         <ol class="breadcrumb">
             <li><a href="#">主页</a></li>
             <li><a href="#">产品分类</a></li>
-            <li class="active">创建</li>
+            <li class="active">修改</li>
         </ol>
     </section>
 {% endblock %}
@@ -24,26 +24,25 @@
                 <div class="col-xs-12">
                     <div class="box box-warning">
                         <div class="box-header with-border">
-                            <h3 class="box-title">创建</h3>
+                            <h3 class="box-title">修改</h3>
                         </div>
                         <!-- /.box-header -->
                         <div class="box-body" >
 
-                            <form id="c_cateForm" action="#" method="post" id="productcategory_form" novalidate role="form" onsubmit="return checkForm()">
+                            <form id="c_cateForm" action="" method="post" id="productcategory_form" novalidate role="form" onsubmit="return checkForm()">
                                 {% csrf_token %}
-
                                 <div class="form-group">
                                   <label class="required" for="id_category_name">分类名称:</label>
                                   <input id='c_name' type="text" name="category_name" class="form-control" placeholder="Enter ..."
-                                         required id="id_category_name" value="">
+                                         required id="id_category_name" value={{ category.category_name }}>
                                 </div>
 
                                 <div class="form-group">
                                   <label>父类</label>
-                                  <select id="p_name" class="form-control" name="parent_category_id" id="id_parent_category" onchange="">
-                                    <option value="" selected>---------</option>
-                                    {% for cate in product_category_now %}
-                                        <option value="{{ cate.id }}">{{ cate.category_name }}</option>
+                                  <select id="p_name" class="form-control" name="parent_category_id" id="id_parent_category" >
+                                    <option value="" >---------</option>
+                                    {% for cate in parent %}
+                                        <option value="{{ cate.id }}" >{{ cate.category_name }}</option>
                                     {% empty %}
                                     {% endfor %}
                                   </select>
@@ -64,21 +63,28 @@
 {% block script %}
     <script>
     $(document).ready(function (){
+        var parent_id = {{ category.parent_category.id }};
+        $('#p_name').val(parent_id);
     });
+    var category_name = $('#c_name').val();
+    var c_list = $("#p_name option").map(function(){return $(this).text();}).get();
+    var _index = c_list.indexOf(category_name);
 
-    var c_list = $("#p_name option").map(function(){return $(this).text();}).get()
-    console.log(c_list)
     function checkForm(){
         var val = $('#c_name').val();
         var index = c_list.indexOf(val);
-        console.log(index);
         if(index < 0){
             return true;
         }
         else{
-            alert("输入的名称已经存在，请重新输入！");
-            $('#c_name').val("");
-            return false;
+            if(index ===_index){
+                return true;
+            }
+            else {
+                alert("输入的名称已经存在，请重新输入！");
+                $('#c_name').val("");
+                return false;
+            }
         }
     }
 
