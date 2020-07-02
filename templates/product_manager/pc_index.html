@@ -198,6 +198,13 @@
         hideMethod: "fadeOut"
     };
 
+    $("#myaddModal").on("hidden.bs.modal", function() {
+        document.getElementById("add_data").reset();
+        });
+    $("#updateModal").on("hidden.bs.modal", function() {
+        document.getElementById("update_data").reset();
+        });
+
     function closeModal() {
         $("#update_p_name option:selected").each(function () {
             $(this).attr("selected", false);
@@ -212,7 +219,9 @@
                 cache:false,
                 type: "POST",//方法类型
                 dataType: "json",//预期服务器返回的数据类型
-                url: "/product_category/pc_index/updatePcData/" ,//url
+                //url: "/product_category/pc_index/updatePcData/" ,//url
+                url: "{% url 'product_manager:updatePcData' %}" ,//url
+
                 data: $('#update_data').serialize(), //将模态框的form表单数据序列化，以便提交到后台
                 processData: false,// 不加会报错
                 //contentType: false,// 不加会报错
@@ -245,14 +254,14 @@
             cache:false,
             type: "POST",//方法类型
             dataType: "json",//预期服务器返回的数据类型
-            url: "/product_category/pc_index/addPcData/" ,//url
+            //url: "/product_category/pc_index/addPcData/" ,//url
+            url: "{% url 'product_manager:addPcData' %}" ,//url
             data: $('#add_data').serialize(), //将模态框的form表单数据序列化，以便提交到后台
             async:false,  //必须要为false,必须必须
 
             success: function (data) {
                 console.log(data);//打印服务端返回的数据(调试用)
                 if(data.status == "success"){
-
                     {#关闭模态框并清除框内数据，否则下次打开还是上次的数据#}
                     //document.getElementById("add-smoke-form").reset();
                     $('#myaddModal').modal('hide');
@@ -331,7 +340,8 @@
                 }
 
     $('#mytab').bootstrapTable({
-        url:'/product_category/pc_index/getPcData/',    //请求后台的URL（*）
+        url:"{% url 'product_manager:getPcData' %}",    //请求后台的URL（*）
+        //url:'/product_category/pc_index/getPcData/',    //请求后台的URL（*）
         method: 'GET',   //请求方式（*）
         dataType: "json",
         uniqueId: 'id',
@@ -349,8 +359,8 @@
         clickToSelect: true,
         pagination: true,
         pageNumber: 1,
-        pageSize: 10,
-        pageList: [10, 20, 50, 100],
+        pageSize: 20,
+        pageList: [20, 50, 100],
         paginationPreText: "上一页",
         paginationNextText: "下一页",
         queryParamsType: "",
@@ -362,7 +372,6 @@
                 sortName: params.sortName,
                 sortOrder: params.sortOrder,
                 search_kw: $('#search_keyword').val(), // 请求时向服务端传递的参数
-
             };
             return temp;
         },
@@ -495,7 +504,8 @@
     function DeleteByIds(id) {
         $.ajax({
             type: "POST",
-            url: '/product_category/pc_index/deleteData/',
+            url: "{% url 'product_manager:deletePcData' %}",
+            //url: '/product_category/pc_index/deletePcData/',
             data: {id: id},
             dataType: "json",
             success: function (data) {
@@ -509,7 +519,6 @@
             }
         });
     }
-
 
 </script>
 

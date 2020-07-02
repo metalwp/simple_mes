@@ -84,7 +84,7 @@ def updatePcData(request):
 
 
 @csrf_exempt
-def deleteData(request):
+def deletePcData(request):
     return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
     _id = request.POST.get('id')
     catagory = ProductCategory.objects.get(id=_id)
@@ -92,6 +92,97 @@ def deleteData(request):
     catagory.delete()
     return HttpResponse(json.dumps(return_dict))
 
+
+def pm_index(request):
+    products = ProductModel.objects.all()
+    categorys = ProductCategory.objects.all()
+    return render(request, 'product_manager/pm_index.html', locals())
+
+
+@csrf_exempt
+def getPmData(request):
+    if request.method == 'GET':
+        pageSize = int(request.GET.get('pageSize'))
+        pageNumber = int(request.GET.get('pageNumber'))
+        sortName = request.GET.get('sortName')
+        sortOrder = request.GET.get('sortOrder')
+        search_kw = request.GET.get('search_kw')
+        if not search_kw:
+            total = ProductModel.objects.all().count()
+            products = ProductModel.objects.order_by('id')[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+        else:
+            products = ProductModel.objects.filter(Q(product_name__contains=search_kw)) \
+                        [(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+            # 获取查询结果的总条数
+            total = ProductModel.objects.filter(Q(product_name__contains=search_kw)) \
+                        [(pageNumber - 1) * pageSize:(pageNumber) * pageSize].count()
+        rows = []
+        data = {"total": total, "rows": rows}
+        for product in products:
+            if product.category:
+                rows.append({'id': product.id, 'erp_no': product.erp_no, 'name': product.product_name, 'model': product.model_name,
+                             'category': product.category.category_name,
+                             'c_time': str(product.c_time), 'm_time': str(product.m_time)})
+            else:
+                rows.append({'id': product.id, 'erp_no': product.erp_no, 'name': product.product_name, 'model': product.model_name,
+                             'category': None,
+                             'c_time': str(product.c_time), 'm_time': str(product.m_time)})
+        return HttpResponse(json.dumps(data), content_type="application/json")
+    else:
+        return HttpResponse('Error!')
+
+
+@csrf_exempt
+def addPmData(request):
+    if request.method == "POST":
+        name = request.POST.get('nameInput')
+        modal = request.POST.get('modalInput')
+        erp_no = request.POST.get('erpInput')
+        category_id = request.POST.get('categorySelect')
+
+        if category_id:
+            category = ProductCategory.objects.get(id=category_id)
+            product = ProductModel(product_name=name, model_name=modal, erp_no=erp_no, category=category)
+            product.save()
+        else:
+            product = ProductModel(product_name=name, model_name=modal, erp_no=erp_no, category=None)
+            product.save()
+
+        return HttpResponse(json.dumps({'status': 'success'}))
+
+
+@csrf_exempt
+def updatePmData(request):
+    if request.method == "POST":
+        id = request.POST.get('idInputUpdate')
+        name = request.POST.get('nameInputUpdate')
+        model = request.POST.get('modelInputUpdate')
+        erp_no = request.POST.get('erpInputUpdate')
+        category_id = request.POST.get('categorySelectUpdate')
+        print(erp_no)
+
+        if category_id:
+            category = get_object_or_404(ProductCategory, id=category_id)
+            pc, created = ProductModel.objects.update_or_create(id=id, defaults={'product_name': name,
+                                                                                 'model_name': model,
+                                                                                 'category': category,
+                                                                                 'erp_no': erp_no})
+        else:
+            pc, created = ProductModel.objects.update_or_create(id=id, defaults={'product_name': name,
+                                                                                 'model_name': model,
+                                                                                 'category': None,
+                                                                                 'erp_no': erp_no})
+        return HttpResponse(json.dumps({'status': 'success'}))
+
+
+@csrf_exempt
+def deletePmData(request):
+    return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
+    _id = request.POST.get('id')
+    product = ProductModel.objects.get(id=_id)
+    # category = get_object_or_404(ProductCategory, id=_id)
+    product.delete()
+    return HttpResponse(json.dumps(return_dict))
 
 # def pc_create(request):
 #     if request.method == "GET":
@@ -147,7 +238,3 @@ def deleteData(request):
 #             return redirect('/product_category/pc_index/')
 
 
-
-def pm_index(request):
-    product_model = ProductModel.objects.all()
-    return render(request, 'product_manager/pm_index.html', locals())

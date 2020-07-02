@@ -9,7 +9,10 @@ urlpatterns = [
     path('pc_index/getPcData/', views.getPcData, name='getPcData'),
     path('pc_index/addPcData/', views.addPcData, name='addPcData'),
     path('pc_index/updatePcData/', views.updatePcData, name='updatePcData'),
-    path('pc_index/deleteData/', views.deleteData, name='deleteData'),
+    path('pc_index/deletePcData/', views.deletePcData, name='deletePcData'),
     path('pm_index/', views.pm_index, name='pm_index'),
-
+    path('pm_index/getPmData/', views.getPmData, name='getPmData'),
+    path('pm_index/addPmData/', views.addPmData, name='addPmData'),
+    path('pm_index/updatePmData/', views.updatePmData, name='updatePmData'),
+    path('pm_index/deletePmData/', views.deletePmData, name='deletePmData'),
 ]
