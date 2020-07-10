@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}BOM管理{% endblock %}
+{% block css %}{% endblock %}
+
+{% block breadcrumb %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>BOM管理<small>BOMManager</small></h1>
+        <ol class="breadcrumb">
+            <li><a href="#">主页</a></li>
+            <li class="active">BOM管理</li>
+        </ol>
+    </section>
+{% endblock %}
+
+{% block content %}
+    <section class="content">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box">
+                        <div class="box-header">
+                            <h3 class="box-title">BOM管理</h3>
+                        </div>
+
+
+                        <!-- /.box-header -->
+                        <div class="box-body" >
+                            {#        自定义搜索条件区域#}
+                            <div class="fixed-table-toolbar">
+                                <div class="pull-left search">
+                                    <input id="search_keyword" class="form-control" placeholder="请输入名称以查询">
+                                </div>
+
+                                <div class="columns columns-left btn-group pull-left">
+                                    <button id="search_button" type="button" class="btn btn-primary">查询</button>
+                                </div>
+                                <div class="columns columns-left btn-group pull-left">
+                                    <button id="reset-button" type="button" class="btn btn-primary" onclick="clean()">重置</button>
+                                </div>
+
+                               {#        bootstrap table自动渲染区域#}
+                                <table id="productTable" class="table table-bordered table-hover"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+{% endblock %}
+
+{% block script %}
+<link href="{% static 'css/bootstrap-table.min.css' %}" rel="stylesheet">
+<script src="{% static 'js/bootstrap-table.min.js' %}"></script>
+<script src="{% static 'js/bootstrap-table-zh-CN.min.js' %}"></script>
+<link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
+<script src="{% static 'js/toastr.min.js' %}"></script>s
+
+
+<script>
+    toastr.options = {
+        closeButton: true,
+        debug: true,
+        progressBar: true,
+        positionClass: "toast-top-center",
+        onclick: null,
+        showDuration: "300",
+        hideDuration: "1000",
+        timeOut: "2000",
+        extendedTimeOut: "1000",
+        showEasing: "swing",
+        hideEasing: "linear",
+        showMethod: "fadeIn",
+        hideMethod: "fadeOut"
+    };
+
+    // 搜索查询按钮触发事件
+    $(function() {
+        $("#search_button").click(function () {
+            $('#mytab').bootstrapTable(('refresh')); // 很重要的一步，刷新url！
+        })
+    });
+
+    // 重置按钮触发事件
+    function clean(){
+                    //先清空
+                    $('#search_keyword').val('');
+                    //清空后查询条件为空了，再次刷新页面，就是全部数据了
+                    $('#mytab').bootstrapTable(('refresh')); // 很重要的一步，刷新url！
+                }
+
+    $('#productTable').bootstrapTable({
+        url: "{% url 'product_manager:getPmData' %}",    //请求后台的URL（*）
+        method: 'GET',   //请求方式（*）
+        dataType: "json",
+        uniqueId: 'id',
+        striped: false,
+        cache: false,
+        sortName: 'id',
+        sortable: false,
+        sortOrder: 'desc',
+        sidePagination: "server",
+        undefinedText: '--',
+        singleSelect: false,
+        toolbar: '#soft-toolbar',
+        search: false,
+        strictSearch: true,
+        clickToSelect: true,
+        pagination: true,
+        pageNumber: 1,
+        pageSize: 20,
+        pageList: [20, 50, 100],
+        paginationPreText: "上一页",
+        paginationNextText: "下一页",
+        queryParamsType: "",
+        queryParams : function (params){
+            var temp = {
+                pageSize : params.pageSize,
+                pageNumber : params.pageNumber,
+                searchText: params.searchText,
+                sortName: params.sortName,
+                sortOrder: params.sortOrder,
+                search_kw: $('#search_keyword').val(), // 请求时向服务端传递的参数
+            };
+            return temp;
+        },
+
+        columns: [
+            //{
+                //checkbox: true
+            //},
+            {
+                field: 'no',
+                title: '序号',
+                sortable: true,
+                align: "center",
+                width: "10%",
+                formatter: function (value, row, index) {
+                    //获取每页显示的数量
+                    var pageSize=$('#productTable').bootstrapTable('getOptions').pageSize;
+                    //获取当前是第几页
+                    var pageNumber=$('#productTable').bootstrapTable('getOptions').pageNumber;
+                    //返回序号，注意index是从0开始的，所以要加上1
+                    return pageSize * (pageNumber - 1) + index + 1;
+                }
+            },
+            {
+                field: 'erp_no',
+                title:'物料号',
+                width: '20%',
+                formatter: function (value, row, index) {
+                    res = '<a href="../detail/' +row.id+ '"> '+ row.erp_no +'</a>';
+
+                    {#res = '<a href="{% url 'bom_manager:detail' row.id %}"> '+ row.erp_no +'</a>';#}
+                    return res;
+                },
+            },
+            {
+                field: 'name',
+                title:'名称',
+                width: '20%'
+            },
+            {
+                field: 'model',
+                title:'型号',
+                width: '20%'
+            },
+            {
+                field: 'bom_version',
+                title:'BOM版本',
+                width: '20%'
+            },
+        ],
+        onLoadSuccess: function(data) {
+           },
+        onLoadError: function () {
+            toastr.error("数据加载失败！", "错误提示");
+        },
+        onClickRow: function (row, $element) {
+            //    EditViewById(id, 'view');
+        }
+    });
+
+
+</script>
+
+{% endblock %}

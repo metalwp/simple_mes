@@ -82,6 +82,13 @@
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
+                                                    <label for="bomversionInput" class="col-sm-3 control-label" >BOM版本</label>
+                                                    <div class="col-sm-7">
+                                                        <input type="text" class="form-control"  name="bomversionInput" id="bomversionInput" required="required"
+                                                            placeholder="请输入BOM版本" style="text-align: left">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
                                                     <label for="categorySelect" class="col-sm-3 control-label" >类型</label>
                                                     <div class="col-sm-7">
                                                         <select class="form-control" name="categorySelect" id="categorySelect" required="required">
@@ -145,6 +152,13 @@
                                                     <div class="col-sm-7">
                                                         <input type="text" class="form-control"  name="erpInputUpdate" id="erpInputUpdate" required="required"
                                                             placeholder="请输入erp号" style="text-align: left">
+                                                    </div>
+                                                </div>
+                                                 <div class="form-group">
+                                                    <label for="bomversionUpdate" class="col-sm-3 control-label" >BOM版本</label>
+                                                    <div class="col-sm-7">
+                                                        <input type="text" class="form-control"  name="bomversionUpdate" id="bomversionUpdate" required="required"
+                                                            placeholder="请输入BOM版本" style="text-align: left">
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
@@ -316,6 +330,7 @@
         $("#nameInputUpdate").val(data_json[index].name);
         $("#modelInputUpdate").val(data_json[index].model);
         $("#erpInputUpdate").val(data_json[index].erp_no);
+        $("#bomversionUpdate").val(data_json[index].bom_version)
         var category = data_json[index].category;
         console.log(category);
         if(parent){
@@ -416,6 +431,11 @@
             {
                 field: 'model',
                 title:'型号',
+                width: '10%'
+            },
+            {
+                field: 'bom_version',
+                title:'BOM版本',
                 width: '10%'
             },
                         {

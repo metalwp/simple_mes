@@ -112,20 +112,20 @@ def getPmData(request):
             products = ProductModel.objects.order_by('id')[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
         else:
             products = ProductModel.objects.filter(Q(product_name__contains=search_kw)) \
-                        [(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+                        [(pageNumber - 1) * pageSize: pageNumber * pageSize]
             # 获取查询结果的总条数
             total = ProductModel.objects.filter(Q(product_name__contains=search_kw)) \
-                        [(pageNumber - 1) * pageSize:(pageNumber) * pageSize].count()
+                        [(pageNumber - 1) * pageSize: pageNumber * pageSize].count()
         rows = []
         data = {"total": total, "rows": rows}
         for product in products:
             if product.category:
                 rows.append({'id': product.id, 'erp_no': product.erp_no, 'name': product.product_name, 'model': product.model_name,
-                             'category': product.category.category_name,
+                             'category': product.category.category_name, 'bom_version': product.bom_version,
                              'c_time': str(product.c_time), 'm_time': str(product.m_time)})
             else:
                 rows.append({'id': product.id, 'erp_no': product.erp_no, 'name': product.product_name, 'model': product.model_name,
-                             'category': None,
+                             'category': None, 'bom_version': product.bom_version,
                              'c_time': str(product.c_time), 'm_time': str(product.m_time)})
         return HttpResponse(json.dumps(data), content_type="application/json")
     else:
@@ -139,13 +139,16 @@ def addPmData(request):
         modal = request.POST.get('modalInput')
         erp_no = request.POST.get('erpInput')
         category_id = request.POST.get('categorySelect')
+        bom_version = request.POST.get('bomversionInput')
 
         if category_id:
             category = ProductCategory.objects.get(id=category_id)
-            product = ProductModel(product_name=name, model_name=modal, erp_no=erp_no, category=category)
+            product = ProductModel(product_name=name, model_name=modal, erp_no=erp_no, category=category,
+                                   bom_version=bom_version)
             product.save()
         else:
-            product = ProductModel(product_name=name, model_name=modal, erp_no=erp_no, category=None)
+            product = ProductModel(product_name=name, model_name=modal, erp_no=erp_no, category=None,
+                                   bom_version=bom_version)
             product.save()
 
         return HttpResponse(json.dumps({'status': 'success'}))
@@ -159,19 +162,21 @@ def updatePmData(request):
         model = request.POST.get('modelInputUpdate')
         erp_no = request.POST.get('erpInputUpdate')
         category_id = request.POST.get('categorySelectUpdate')
-        print(erp_no)
+        bom_version = request.POST.get('bomversionUpdate')
 
         if category_id:
             category = get_object_or_404(ProductCategory, id=category_id)
             pc, created = ProductModel.objects.update_or_create(id=id, defaults={'product_name': name,
                                                                                  'model_name': model,
                                                                                  'category': category,
-                                                                                 'erp_no': erp_no})
+                                                                                 'erp_no': erp_no,
+                                                                                 'bom_version': bom_version})
         else:
             pc, created = ProductModel.objects.update_or_create(id=id, defaults={'product_name': name,
                                                                                  'model_name': model,
                                                                                  'category': None,
-                                                                                 'erp_no': erp_no})
+                                                                                 'erp_no': erp_no,
+                                                                                 'bom_version': bom_version})
         return HttpResponse(json.dumps({'status': 'success'}))
 
 
@@ -180,9 +185,28 @@ def deletePmData(request):
     return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
     _id = request.POST.get('id')
     product = ProductModel.objects.get(id=_id)
-    # category = get_object_or_404(ProductCategory, id=_id)
     product.delete()
     return HttpResponse(json.dumps(return_dict))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # def pc_create(request):
 #     if request.method == "GET":

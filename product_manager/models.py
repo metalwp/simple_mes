@@ -8,6 +8,7 @@ class ProductModel(models.Model):
     model_name = models.CharField('型号名称', max_length=30)
     category = models.ForeignKey("ProductCategory", on_delete=models.SET_NULL, blank=True, null=True, verbose_name='产品分类')
     erp_no = models.CharField('物料号', max_length=100, unique=True,)
+    bom_version = models.CharField('BOM版本', max_length=10, default='V1.00')
     c_time = models.DateTimeField('创建时间', auto_now_add=True)
     m_time = models.DateTimeField('修改时间', auto_now=True)
 
