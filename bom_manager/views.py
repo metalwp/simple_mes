@@ -98,14 +98,15 @@ def writeToDB(filename, product_id):
             materials_list.append([erp_no, name, model, category, is_traced, quantity])
     for mat in materials_list:
         try:
-            material, created = MaterialModel.objects.update_or_create(erp_no=erp_no,
+            material, created = MaterialModel.objects.update_or_create(erp_no=mat[0],
                                                                defaults={"product_model": product, "bom_version": '-',
                                                                          "name": mat[1], "model": mat[2],
                                                                         "category": mat[3], "quantity": mat[5],
                                                                         "is_traced": mat[4]})
+
         except Exception as e:
             print(e)
-            return HttpResponse(e)
+            raise e
 
 
 def upload(request, product_id):
@@ -122,13 +123,11 @@ def upload(request, product_id):
             for i in file.readlines():
                 f.write(i)
         writeToDB(file.name, product_id)
+        return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
+        return HttpResponse(json.dumps(return_dict))
     except Exception as e:
-        print(e)
         return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
         return HttpResponse(json.dumps(return_dict))
-
-    return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
-    return HttpResponse(json.dumps(return_dict))
 
 
 @csrf_exempt
@@ -138,3 +137,109 @@ def delete(request, product_id):
     material = MaterialModel.objects.get(id=_id)
     material.delete()
     return HttpResponse(json.dumps(return_dict))
+
+
+@csrf_exempt
+def add(request, product_id):
+    if request.method == "POST":
+        name = request.POST.get('nameInput')
+        model = request.POST.get('modelText')
+        if request.POST.get('categorySelect'):
+            category = int(request.POST.get('categorySelect'))
+        else:
+            category = 0
+        erp_no = request.POST.get('erpInput')
+        quantity = float(request.POST.get('quantityInput'))
+        if request.POST.get('traceInput') == 'on':
+            is_traced = True
+        else:
+            is_traced = False
+        product = ProductModel.objects.get(pk=product_id)
+        try:
+            MaterialModel.objects.create(name=name, model=model, category=category, erp_no=erp_no,
+                                        quantity=quantity, is_traced=is_traced, product_model=product)
+        except Exception as e:
+            return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
+            return HttpResponse(json.dumps(return_dict))
+        return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
+        return HttpResponse(json.dumps(return_dict))
+
+
+@csrf_exempt
+def update(request, product_id):
+    if request.method == "POST":
+        id = request.POST.get('idUpdateInput')
+        name = request.POST.get('nameUpdateInput')
+        model = request.POST.get('modelUpdateText')
+        if request.POST.get('categoryUpdateSelect'):
+            category = int(request.POST.get('categoryUpdateSelect'))
+        else:
+            category = 0
+        erp_no = request.POST.get('erpUpdateInput')
+        quantity = float(request.POST.get('quantityUpdateInput'))
+        if request.POST.get('traceUpdateInput') == 'on':
+            is_traced = True
+        else:
+            is_traced = False
+
+        try:
+            mat, created = MaterialModel.objects.update_or_create(id=id, defaults={"name": name, "model": model,
+                                                                               "erp_no": erp_no, "category": category,
+                                                                               "quantity": quantity, "is_traced": is_traced})
+        except Exception as e:
+            return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
+            return HttpResponse(json.dumps(return_dict))
+
+        return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
+        return HttpResponse(json.dumps(return_dict))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

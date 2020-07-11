@@ -10,5 +10,7 @@ urlpatterns = [
     path('detail/<int:product_id>/upload/', views.upload, name='upload'),
     path('detail/getMaterials/<int:product_id>/', views.getMaterials, name='getMaterials'),
     path('detail/<int:product_id>/delete/', views.delete, name='delete'),
+    path('detail/<int:product_id>/add/', views.add, name='add'),
+    path('detail/<int:product_id>/update/', views.update, name='update'),
 
 ]
