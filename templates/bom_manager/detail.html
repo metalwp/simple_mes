@@ -275,6 +275,9 @@
                     $('#materialTable').bootstrapTable('refresh');
                     $("#uploadFile");
                     }
+                else {
+                    toastr.error("错误：" + data.errMsg);
+                }
                 },
             error: function(data){
                 console.log(data);

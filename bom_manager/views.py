@@ -58,6 +58,7 @@ def getMaterials(request, product_id):
 
 
 def writeToDB(filename, product_id):
+    print(product_id)
     product = ProductModel.objects.get(pk=product_id)
     excel = xlrd.open_workbook(settings.UPLOAD_ROOT + "/" + filename)
     sheet = excel.sheet_by_name('部件清单')
@@ -98,14 +99,13 @@ def writeToDB(filename, product_id):
             materials_list.append([erp_no, name, model, category, is_traced, quantity])
     for mat in materials_list:
         try:
-            material, created = MaterialModel.objects.update_or_create(erp_no=mat[0],
-                                                               defaults={"product_model": product, "bom_version": '-',
+            material, created = MaterialModel.objects.update_or_create(erp_no=mat[0], product_model=product,
+                                                               defaults={"bom_version": '-',
                                                                          "name": mat[1], "model": mat[2],
                                                                         "category": mat[3], "quantity": mat[5],
                                                                         "is_traced": mat[4]})
 
         except Exception as e:
-            print(e)
             raise e
 
 

@@ -19,7 +19,7 @@ class MaterialModel(models.Model):
     bom_version = models.CharField('BOM版本', max_length=30)
     name = models.CharField('物料名称', max_length=100)
     model = models.CharField('型号描述', max_length=150, blank=True, null=True)
-    erp_no = models.CharField('物料号', max_length=30, unique=True)
+    erp_no = models.CharField('物料号', max_length=30)
     category = models.SmallIntegerField('类别', choices=category_choice, default=0)
     quantity = models.FloatField('用量')
     is_traced = models.BooleanField("是否追溯", default=False)
