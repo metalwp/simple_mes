@@ -41,7 +41,8 @@
 
                             <!-- 按钮触发模态框 -->
                             <div class="columns columns-right btn-group pull-right">
-                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addOrderModal">新增记录</button>
+{#                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addOrderModal">新增记录</button>#}
+                                <button type="button" class="btn btn-primary" onclick="showAddModal()">新增记录</button>
                             </div>
 
                             <!-- 新增模态框（Modal） -->
@@ -61,8 +62,8 @@
                                                 <div class="form-group">
                                                     <label for="orderNoInput" class="col-sm-3 control-label" >订单号</label>
                                                     <div class="input-group col-sm-7">
-                                                        <input type="text" class="form-control"  name="orderNoInput" id="orderNoInput" required="required"
-                                                            placeholder="请输入订单号" style="text-align: left">
+                                                        <input type="text" class="form-control"  name="orderNoInput" id="orderNoInput" required="required" disabled="disabled"
+                                                             style="text-align: left">
                                                     </div>
                                                 </div>
 
@@ -132,7 +133,7 @@
                                      <div class="form-group">
                                         <label for="orderNoUpdateInput" class="col-sm-3 control-label" >订单号</label>
                                         <div class="input-group col-sm-7">
-                                            <input type="text" class="form-control"  name="orderNoUpdateInput" id="orderNoUpdateInput" required="required"
+                                            <input type="text" class="form-control"  name="orderNoUpdateInput" id="orderNoUpdateInput" required="required" disabled="disabled"
                                                 placeholder="请输入订单号" style="text-align: left">
                                         </div>
                                     </div>
@@ -290,6 +291,36 @@
         $("#updateOrderModal option:selected").each(function () {
             $(this).attr("selected", false);
         })
+    }
+
+    function showAddModal() {
+        $.ajax(
+            {
+                //几个参数需要注意一下
+                cache:false,
+                type: "GET",//方法类型
+                dataType: "json",//预期服务器返回的数据类型
+                url: "{% url 'order_manager:getOrderNo' %}" ,//url
+                //headers:{"X-CSRFToken":$.cookie("csrftoken")},
+                //data: $('#updateOrderForm').serialize(), //将模态框的form表单数据序列化，以便提交到后台
+                processData: false,// 不加会报错
+                //contentType: false,// 不加会报错
+                async:true,  //必须要为false,必须必须
+
+                success: function (data) {
+                    $('#updateOrderModal').modal('hide');
+                    document.getElementById("updateOrderForm").reset();
+                    $("#mytab").bootstrapTable('refresh');
+                    if(data.ret){
+                        toastr.success('提交数据成功');
+                     }else {
+                    toastr.error('错误：' + ret.data);
+                        }
+                     },
+                error : function(data) {
+                        toastr.error("输入数据有误！");
+                     }
+                    });
     }
 
     function update(){
