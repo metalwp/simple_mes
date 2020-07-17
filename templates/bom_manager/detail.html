@@ -236,7 +236,9 @@
 <script src="{% static 'js/bootstrap-table.min.js' %}"></script>
 <script src="{% static 'js/bootstrap-table-zh-CN.min.js' %}"></script>
 <link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
-<script src="{% static 'js/toastr.min.js' %}"></script>s
+<script src="{% static 'js/toastr.min.js' %}"></script>
+<script src="{% static 'js/jquery.cookie.js' %}"></script>
+
 
 
 <script>
@@ -308,10 +310,11 @@
                 type: "POST",//方法类型
                 dataType: "json",//预期服务器返回的数据类型
                 url: "{% url 'bom_manager:update' product_id %}" ,//url
+                headers:{"X-CSRFToken":$.cookie("csrftoken")},
                 data: $('#updateMaterialForm').serialize(), //将模态框的form表单数据序列化，以便提交到后台
                 processData: false,// 不加会报错
                 //contentType: false,// 不加会报错
-                async:false,  //必须要为false,必须必须
+                async:true,  //必须要为false,必须必须
 
                 success: function (data) {
                     console.log(data);//打印服务端返回的数据(调试用)
@@ -344,8 +347,9 @@
             type: "POST",//方法类型
             dataType: "json",//预期服务器返回的数据类型
             url: "{% url 'bom_manager:add' product_id %}" ,//url
+            headers:{"X-CSRFToken":$.cookie("csrftoken")},
             data: $('#addMaterialForm').serialize(), //将模态框的form表单数据序列化，以便提交到后台
-            async:false,  //必须要为false,必须必须
+            async:true,  //必须要为false,必须必须
 
             success: function (data) {
                 if(data.ret){
@@ -573,7 +577,7 @@
         $.ajax({
             type: "POST",
             url: "{% url 'bom_manager:delete' product_id %}",
-            //url: '/product_category/pc_index/deletePcData/',
+            headers:{"X-CSRFToken":$.cookie("csrftoken")},
             data: {id: id},
             dataType: "json",
             success: function (data) {

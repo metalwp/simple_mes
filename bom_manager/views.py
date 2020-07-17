@@ -51,14 +51,14 @@ def getMaterials(request, product_id):
                              'model': material.model,  'erp_no': material.erp_no,
                              'category': material.category, 'quantity': material.quantity,
                              'is_traced': material.is_traced,
-                             'c_time': str(material.c_time), 'm_time': str(material.m_time)})
+                             'c_time': material.c_time.strftime("%Y-%m-%d %H:%M:%S"),
+                             'm_time': material.m_time.strftime("%Y-%m-%d %H:%M:%S")})
         return HttpResponse(json.dumps(data), content_type="application/json")
     else:
         return HttpResponse('Error!')
 
 
 def writeToDB(filename, product_id):
-    print(product_id)
     product = ProductModel.objects.get(pk=product_id)
     excel = xlrd.open_workbook(settings.UPLOAD_ROOT + "/" + filename)
     sheet = excel.sheet_by_name('部件清单')
@@ -130,7 +130,6 @@ def upload(request, product_id):
         return HttpResponse(json.dumps(return_dict))
 
 
-@csrf_exempt
 def delete(request, product_id):
     return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
     _id = request.POST.get('id')
@@ -139,7 +138,6 @@ def delete(request, product_id):
     return HttpResponse(json.dumps(return_dict))
 
 
-@csrf_exempt
 def add(request, product_id):
     if request.method == "POST":
         name = request.POST.get('nameInput')
@@ -165,7 +163,6 @@ def add(request, product_id):
         return HttpResponse(json.dumps(return_dict))
 
 
-@csrf_exempt
 def update(request, product_id):
     if request.method == "POST":
         id = request.POST.get('idUpdateInput')

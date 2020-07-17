@@ -17,7 +17,6 @@ def pc_index(request):
     return render(request, 'product_manager/pc_index.html', locals())
 
 
-@csrf_exempt
 def getPcData(request):
     if request.method == 'GET':
         pageSize = int(request.GET.get('pageSize'))
@@ -40,17 +39,16 @@ def getPcData(request):
         for category in categorys:
             if category.parent_category:
                 rows.append({'id': category.id, 'name': category.category_name, 'parent': category.parent_category.category_name,
-                             'c_time': str(category.c_time), 'm_time': str(category.m_time)})
+                             'c_time': category.c_time.strftime("%Y-%m-%d %H:%M:%S"), 'm_time': category.m_time.strftime("%Y-%m-%d %H:%M:%S")})
             else:
                 rows.append({'id': category.id, 'name': category.category_name,
                              'parent': None,
-                             'c_time': str(category.c_time), 'm_time': str(category.m_time)})
+                             'c_time': category.c_time.strftime("%Y-%m-%d %H:%M:%S"), 'm_time': category.m_time.strftime("%Y-%m-%d %H:%M:%S")})
         return HttpResponse(json.dumps(data), content_type="application/json")
     else:
         return HttpResponse('Error!')
 
 
-@csrf_exempt
 def addPcData(request):
     if request.method == "POST":
         c_name = request.POST.get('c_name')
@@ -66,7 +64,6 @@ def addPcData(request):
         return HttpResponse(json.dumps({'status': 'success'}))
 
 
-@csrf_exempt
 def updatePcData(request):
     if request.method == "POST":
         id = request.POST.get('update_id')
@@ -83,7 +80,6 @@ def updatePcData(request):
         return HttpResponse(json.dumps({'status': 'success'}))
 
 
-@csrf_exempt
 def deletePcData(request):
     return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
     _id = request.POST.get('id')
@@ -99,7 +95,6 @@ def pm_index(request):
     return render(request, 'product_manager/pm_index.html', locals())
 
 
-@csrf_exempt
 def getPmData(request):
     if request.method == 'GET':
         pageSize = int(request.GET.get('pageSize'))
@@ -122,17 +117,16 @@ def getPmData(request):
             if product.category:
                 rows.append({'id': product.id, 'erp_no': product.erp_no, 'name': product.product_name, 'model': product.model_name,
                              'category': product.category.category_name, 'bom_version': product.bom_version,
-                             'c_time': str(product.c_time), 'm_time': str(product.m_time)})
+                             'c_time': product.c_time.strftime("%Y-%m-%d %H:%M:%S"), 'm_time': product.m_time.strftime("%Y-%m-%d %H:%M:%S")})
             else:
                 rows.append({'id': product.id, 'erp_no': product.erp_no, 'name': product.product_name, 'model': product.model_name,
                              'category': None, 'bom_version': product.bom_version,
-                             'c_time': str(product.c_time), 'm_time': str(product.m_time)})
+                             'c_time': product.c_time.strftime("%Y-%m-%d %H:%M:%S"), 'm_time': product.m_time.strftime("%Y-%m-%d %H:%M:%S")})
         return HttpResponse(json.dumps(data), content_type="application/json")
     else:
         return HttpResponse('Error!')
 
 
-@csrf_exempt
 def addPmData(request):
     if request.method == "POST":
         name = request.POST.get('nameInput')
@@ -154,7 +148,6 @@ def addPmData(request):
         return HttpResponse(json.dumps({'status': 'success'}))
 
 
-@csrf_exempt
 def updatePmData(request):
     if request.method == "POST":
         id = request.POST.get('idInputUpdate')
@@ -180,7 +173,6 @@ def updatePmData(request):
         return HttpResponse(json.dumps({'status': 'success'}))
 
 
-@csrf_exempt
 def deletePmData(request):
     return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
     _id = request.POST.get('id')

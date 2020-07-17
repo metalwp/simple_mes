@@ -11,14 +11,14 @@ class Order(models.Model):
                             (2, '已完成'),
                             (3, '已挂起'),)
 
-    order_no = models.CharField('订单编号', max_length=100, null=True, blank=True)
+    order_no = models.CharField('订单编号', max_length=100, unique=True)
     order_status = models.SmallIntegerField('订单状态', choices=order_status_choice, default=0)
     product_model = models.ForeignKey(ProductModel, on_delete=models.SET_NULL, blank=True, null=True, verbose_name='产品')
     quantity = models.SmallIntegerField('数量', default=1)
     delivery_time = models.DateField('交付时间')
     c_time = models.DateTimeField('创建时间', auto_now_add=True)
-    start_time = models.DateTimeField('开始时间')
-    end_time = models.DateTimeField('结束时间')
+    start_time = models.DateTimeField('开始时间', null=True, blank=True)
+    end_time = models.DateTimeField('结束时间', null=True, blank=True)
 
     def __str__(self):
         return self.order_no + ' ' + self.product_model.model_name
