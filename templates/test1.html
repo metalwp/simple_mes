@@ -1,293 +1,90 @@
-
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-    {% load static %}
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-    <link rel="stylesheet" href="{% static 'libs/bootstrap/css/bootstrap.min.css' %}">
-    <link rel="stylesheet" href="{% static 'libs/toastr/css/toastr.css' %}">
-    <link rel="stylesheet" href="{% static 'libs/bootstrap-table-master/bootstrap-table.css' %}">
-    <script src="{% static 'libs/jquery/jquery-1.11.2.min.js' %}"></script>
-    <script src="{% static 'libs/bootstrap/js/bootstrap.min.js' %}"></script>
-    <script src="{% static 'libs/toastr/js/toastr.min.js' %}"></script>
-    <script src="{% static 'libs/bootstrap-table-master/bootstrap-table.js' %}"></script>
-    <script src="{% static 'libs/bootstrap-table-master/locale/bootstrap-table-zh-CN.js' %}"></script>
+    <meta name="viewport" content="width=device-width" />
+    <title>datetimpicker测试</title>
+    <!--图标样式-->
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcss.com/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdn.bootcss.com/moment.js/2.24.0/moment-with-locales.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
 </head>
 
+
 <body>
-    <div class="botton-panel">
-        <a class="btn btn-success" href="#" role="button" style="color:#ffffff;" id="add-article-button">
-            <i class="glyphicon glyphicon-plus"></i>
-            <span>添加</span>
-        </a>
-    </div>
+<div class="row">
+    <div class='col-sm-6'>
 
-    <div style="padding-left: 20px; padding-right: 20px;">
-        <table id="articles-table" data-toggle="table" class="table table-bordered table-striped"></table>
-    </div>
+        <div class="form-group">
 
-    <!--modal begin-->
-    <div class="modal fade" id="add-article-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                        ×
-                    </button>
-                    <h4 class="modal-title"> 添加文章 </h4>
-                </div>
-                <form id="add-modal-form" class="form-horizontal" action="">
-                    <div class="modal-body">
-                        <input type="hidden" id="modify-modal-id" />
-                        <div class="form-group row">
-                            <label
-                                class="col-sm-3 col-md-3 col-lg-3 col-xl-3 control-label font-normal align-right">标题：</label>
-                            <div class="col-sm-7 col-md-7 col-lg-7 col-xl-7">
-                                <div class="file-input-container">
-                                    <input type="text" id="title" class="form-control" />
-                                </div>
-                            </div>
-                        </div>
+            <label>选择日期：</label>
 
-                        <div class="form-group row">
-                            <label
-                                class="col-sm-3 col-md-3 col-lg-3 col-xl-3 control-label font-normal align-right">内容：</label>
-                            <div class="col-sm-7 col-md-7 col-lg-7 col-xl-7">
-                                <div class="file-input-container">
-                                    <textarea id="content" class="form-control"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                        <button type="submit" class="btn btn-success" id="submit-button">发送</button>
-                    </div>
-                </form>
+            <!--指定 date标记-->
+
+            <div class='input-group date' id='datetimepicker1'>
+
+                <input type='text' class="form-control" />
+
+                <span class="input-group-addon">
+
+                    <span class="glyphicon glyphicon-calendar"></span>
+
+                </span>
+
             </div>
+
         </div>
+
     </div>
 
-    <div class="modal fade" id="modify-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                        ×
-                    </button>
-                    <h4 class="modal-title"> 修改文章 </h4>
-                </div>
-                <form id="modify-modal-form" class="form-horizontal" action="">
-                    <div class="modal-body">
-                        <input type="hidden" id="modify-modal-id" />
-                        <div class="form-group row">
-                            <label
-                                class="col-sm-3 col-md-3 col-lg-3 col-xl-3 control-label font-normal align-right">标题：</label>
-                            <div class="col-sm-7 col-md-7 col-lg-7 col-xl-7">
-                                <div class="file-input-container">
-                                    <input type="text" class="form-control" id="modify-modal-title" />
-                                </div>
-                            </div>
-                        </div>
+    <div class='col-sm-6'>
 
-                        <div class="form-group row">
-                            <label
-                                class="col-sm-3 col-md-3 col-lg-3 col-xl-3 control-label font-normal align-right">内容：</label>
-                            <div class="col-sm-7 col-md-7 col-lg-7 col-xl-7">
-                                <div class="file-input-container">
-                                    <textarea class="form-control" id="modify-modal-content"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                        <button type="submit" class="btn btn-success" id="modify-modal-form-submit">发送</button>
-                    </div>
-                </form>
+        <div class="form-group">
+
+            <label>选择日期+时间：</label>
+
+            <!--指定 date标记-->
+
+            <div class='input-group date' id='datetimepicker2'>
+
+                <input type='text' class="form-control" />
+
+                <span class="input-group-addon">
+
+                    <span class="glyphicon glyphicon-calendar"></span>
+
+                </span>
+
             </div>
+
         </div>
+
     </div>
-    <!--modal end-->
 
-    <script>
-        $("#add-article-button").click(function(){
-            $("#add-article-modal").modal("show");
-        })
+</div>
+<script type="text/javascript">
 
-        function getCurrentDate() {
-            var timeStr = '-';
-            var curDate = new Date();
-            var curYear = curDate.getFullYear();  //获取完整的年份(4位,1970-????)
-            var curMonth = curDate.getMonth() + 1 < 10 ? "0" + (curDate.getMonth() + 1) : curDate.getMonth() + 1;  //获取当前月份(0-11,0代表1月)
-            var curDay = curDate.getDate() < 10 ? "0" + curDate.getDate() : curDate.getDate();       //获取当前日(1-31)
-            var curWeekDay = curDate.getDay();    //获取当前星期X(0-6,0代表星期天)
-            var curHour = curDate.getHours() < 10 ? "0" + curDate.getHours() : curDate.getHours();      //获取当前小时数(0-23)
-            var curMinute = curDate.getMinutes() < 10 ? "0" + curDate.getMinutes() : curDate.getMinutes();   // 获取当前分钟数(0-59)
-            var curSec = curDate.getSeconds() < 10 ? "0" + curDate.getSeconds() : curDate.getSeconds();      //获取当前秒数(0-59)
-            var Current = curYear + timeStr + curMonth + timeStr + curDay + ' ' + curHour + ':' + curMinute + ':' + curSec;
-            console.log(Current);
-            // this.datetime=Current;
-            return Current;
-        }
 
-        $("#submit-button").click(function (e) {
-            e.preventDefault();
+    $(function () {
 
-            $.ajax({
-                cache: false,
-                type: "POST",
-                url: "/blog/add_article/",
-                //traditional: true, //加上此项可以传数组
-                dataType: 'json',
-                data: { title: $("#title").val(), content: $("#content").val() },
-                success: function (data) {
-                    if (data.ret) {
-                        toastr.success("数据添加成功！", "成功提示！");
-                        $articlesTable.bootstrapTable("refresh");
-                        $("#add-article-modal").modal("hide");
-                    }
-                }
-            });
-        })
+        $('#datetimepicker1').datetimepicker({
+            format: 'YYYY-MM-DD',
+            locale: moment.locale('zh-cn'),
+            defaultDate: "2020-02-08",
 
-        var $articlesTable = $('#articles-table').bootstrapTable('destroy').bootstrapTable({
-            url: '/blog/all/',
-            method: 'GET',
-            dataType: "json",
-            uniqueId: 'id',
-            striped: false,
-            cache: false,
-            sortName: 'id',
-            sortable: false,
-            sortOrder: 'desc',
-            sidePagination: "server",
-            undefinedText: '--',
-            singleSelect: false,
-            toolbar: '#soft-toolbar',
-            search: false,
-            strictSearch: true,
-            clickToSelect: true,
-            pagination: true,
-            pageNumber: 1,
-            pageSize: 5,
-            pageList: [5, 10, 20, 50, 100],
-            paginationPreText: "上一页",
-            paginationNextText: "下一页",
-            queryParamsType: "",
-            queryParams: function (params) {
-                var temp = {
-                    'pageSize': params.pageSize,
-                    'pageNumber': params.pageNumber,
-                    'searchText': params.searchText,
-                    'sortName': params.sortName,
-                    'sortOrder': params.sortOrder
-                };
-                return temp;
-            },
-            columns: [
-                {
-                    checkbox: true
-                }, {
-                    field: 'id',
-                    title: 'ID'
-                }, {
-                    field: 'title',
-                    title: '标题',
-                    width: '12%'
-                }, {
-                    field: 'content',
-                    title: '内容',
-                    width: '62%'
-                }, {
-                    field: 'create_time',
-                    title: '创建时间',
-                    width: '10%',
-                    formatter(value, row, index) {
-                        return value.replace(/\"/g, "");
-                    }
-                }, {
-                    title: '操作',
-                    formatter: function (value, row, index) {
-                        //return `<a class="btn btn-primary btn-xs" οnclick="alert(123);">aaa删除</a>`;
-                        return `<a class="btn btn-primary btn-xs" onclick="deleteData(${row.id});">删除</a>
-                                <a class="btn btn-primary btn-xs" onclick="modifyData(${row.id});">修改</a>
-                                `;
-                    }
-                }
-            ],
-            onLoadError: function () {
-                toastr.error("数据加载失败！", "错误提示");
-            },
-            onClickRow: function (row, $element) {
-                //    EditViewById(id, 'view');
-            }
         });
 
-        // 删除
-        function deleteData(id) {
-            $.ajax({
-                cache: false,
-                type: "POST",
-                url: "/blog/delete_article/",
-                //traditional: true, //加上此项可以传数组
-                dataType: 'json',
-                data: { id },
-                success: function (data) {
-                    if (data.ret) {
-                        toastr.success(data.msg, "成功提示！");
-                        $articlesTable.bootstrapTable("refresh");
-                    }
-                }
-            });
-        }
+        $('#datetimepicker2').datetimepicker({
+            format: 'YYYY-MM-DD hh:mm',
+            locale: moment.locale('zh-cn')
 
-        // 修改
-        function modifyData(id) {
-            $("#modify-modal").modal("show");
-            $("#modify-modal-id").val(id);
+        });
 
-            $.ajax({
-                cache: false,
-                type: "POST",
-                url: "/blog/query_article/",
-                //traditional: true, //加上此项可以传数组
-                dataType: 'json',
-                data: { id },
-                success: function (data) {
-                    if (data.ret) {
-                        $("#modify-modal-title").val(data.data.title);
-                        $("#modify-modal-content").val(data.data.content);
-                    }
-                }
-            });
-        }
+    });
 
-        $("#modify-modal-form-submit").click(function (e) {
-            e.preventDefault();
-            $.ajax({
-                cache: false,
-                type: "POST",
-                url: "/blog/modify_article/",
-                //traditional: true, //加上此项可以传数组
-                dataType: 'json',
-                data: { id: $("#modify-modal-id").val(), title: $("#modify-modal-title").val(), content: $("#modify-modal-content").val(), datetime: getCurrentDate() },
-                success: function (data) {
-                    if (data.ret) {
-                        toastr.success(data.msg, "成功提示");
-                        $("#modify-modal").modal("hide");
-                        $articlesTable.bootstrapTable("refresh");
-                    }
-                }
-            });
-        })
-    </script>
+
+</script>
 </body>
-
 </html>

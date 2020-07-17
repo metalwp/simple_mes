@@ -179,6 +179,7 @@
 <script src="{% static 'js/bootstrap-table-zh-CN.min.js' %}"></script>
 <link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
 <script src="{% static 'js/toastr.min.js' %}"></script>s
+<script src="{% static 'js/jquery.cookie.js' %}"></script>s
 
 
 <script>
@@ -221,11 +222,12 @@
                 dataType: "json",//预期服务器返回的数据类型
                 //url: "/product_category/pc_index/updatePcData/" ,//url
                 url: "{% url 'product_manager:updatePcData' %}" ,//url
+                headers:{"X-CSRFToken":$.cookie("csrftoken")},
 
                 data: $('#update_data').serialize(), //将模态框的form表单数据序列化，以便提交到后台
                 processData: false,// 不加会报错
                 //contentType: false,// 不加会报错
-                async:false,  //必须要为false,必须必须
+                async:true,  //必须要为false,必须必须
 
                 success: function (data) {
                     console.log(data);//打印服务端返回的数据(调试用)
@@ -256,8 +258,9 @@
             dataType: "json",//预期服务器返回的数据类型
             //url: "/product_category/pc_index/addPcData/" ,//url
             url: "{% url 'product_manager:addPcData' %}" ,//url
+            headers:{"X-CSRFToken":$.cookie("csrftoken")},
             data: $('#add_data').serialize(), //将模态框的form表单数据序列化，以便提交到后台
-            async:false,  //必须要为false,必须必须
+            async:true,  //必须要为false,必须必须
 
             success: function (data) {
                 console.log(data);//打印服务端返回的数据(调试用)
@@ -506,6 +509,8 @@
             type: "POST",
             url: "{% url 'product_manager:deletePcData' %}",
             //url: '/product_category/pc_index/deletePcData/',
+            headers:{"X-CSRFToken":$.cookie("csrftoken")},
+
             data: {id: id},
             dataType: "json",
             success: function (data) {
