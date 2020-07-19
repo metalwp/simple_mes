@@ -5,6 +5,8 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import ListView, View
+from django.views import View
 
 from product_manager.models import ProductModel
 from .models import Order
@@ -68,7 +70,6 @@ def addOrderData(request):
         quantity = request.POST.get('quantityInput')
         dilivery_str = request.POST.get('diliveryInput')
         dilivery_time = datetime.datetime.strptime(dilivery_str, '%Y-%m-%d').date()
-
         try:
             Order.objects.create(order_no=order_no, product_model=product, quantity=quantity, delivery_time=dilivery_time)
         except Exception as e:
@@ -111,9 +112,16 @@ def updateOrderData(request):
     return JsonResponse(return_dict)
 
 
-def getOrderNo(request):
+class GetOrderNum(View):
 
-    return JsonResponse({})
+    def __init__(self):
+        super().__init__()
+        self.number = AutoSerialNumber()
+        self.number.timed_clear_serial_number()
+
+    def get(self, request):
+        print(self.number, self.number())
+        return JsonResponse({})
 
 
 class AutoSerialNumber(object):
@@ -121,12 +129,17 @@ class AutoSerialNumber(object):
 
     def __init__(self):
         # J201906120001
-        # self.fd_apply_no = ApplicationBasicFormModel.delete_objects.filter(fd_apply_no__contains="J").order_by(
-        #     "-fd_apply_no").first().fd_apply_no
-        self.fd_apply_no = "J20196120001"
-        self.date_str = self.fd_apply_no[1: 9]  # 日期字符串
-        self._serial_number = self.fd_apply_no[9:]  # 流水号字符串
-        self._serial_number = 0  # 流水号
+        self.fd_apply_no = ''
+        self.order = Order.objects.filter(order_no__contains="J").order_by("-order_no").first()
+        if self.order:
+            self.fd_apply_no = self.order.order_no
+            #self.fd_apply_no = "J20196120001"
+            self.date_str = self.fd_apply_no[1: 9]  # 日期字符串
+            self._serial_number = self.fd_apply_no[9:]  # 流水号字符串
+            self._serial_number = 0  # 流水号
+        else:
+            self.timed_clear_serial_number()
+            
 
     @property
     def serial_number(self):

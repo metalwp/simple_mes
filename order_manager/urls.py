@@ -9,7 +9,9 @@ urlpatterns = [
     path('index/getOrderData/', views.getOrderData, name='getOrderData'),
     path('index/deleteOrderData/', views.deleteOrderData, name='deleteOrderData'),
     path('index/addOrderData/', views.addOrderData, name='addOrderData'),
-    path('index/getOrderNo/', views.getOrderNo, name='getOrderNo'),
+    # path('index/getOrderNo/', views.getOrderNo, name='getOrderNo'),
+    path('index/getOrderNo/', views.GetOrderNum.as_view(), name='getOrderNo'),
+
     path('index/updateOrderData/', views.updateOrderData, name='updateOrderData'),
 
 ]
