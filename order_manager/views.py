@@ -89,8 +89,6 @@ def updateOrderData(request):
         quantity = request.POST.get('quantityUpdateInput')
         status = request.POST.get('statusUpdateSelect')
 
-
-
         try:
             dilivery_time = None
             dilivery_str = request.POST.get('diliveryUpdateInput')
@@ -111,7 +109,6 @@ def updateOrderData(request):
                                                                            "delivery_time": dilivery_time, "start_time": start_time,
                                                                            "end_time": end_time})
         except Exception as e:
-            print(e)
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
             return JsonResponse(return_dict)
 

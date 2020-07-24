@@ -26,5 +26,6 @@ urlpatterns = [
     path('product_category/', include('product_manager.urls')),
     path('bom_manager/', include('bom_manager.urls')),
     path('order_manager/', include('order_manager.urls')),
+    path('station_manager/', include('station_manager.urls')),
 
 ]
