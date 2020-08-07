@@ -37,9 +37,7 @@
                             <div class="columns columns-left btn-group pull-left">
                                 <button id="reset-button" type="button" class="btn btn-primary" onclick="clean()">重置</button>
                             </div>
-
                          <!-- 按钮触发模态框 -->
-
                             <div class="columns columns-right btn-group pull-right">
                                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addModal">新增记录</button>
                             </div>
@@ -53,28 +51,22 @@
                                                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                                                 <h4 class="modal-title" id="myModalLabel">新增记录</h4>
                                             </div>
+
                                             {# 模态框body #}
                                             <div class="modal-body" style="height: 100%;">
 
                                                 <div class="form-group">
-                                                    <label for="nameInput" class="col-sm-3 control-label" >物料名称</label>
+                                                    <label for="nameInput" class="col-sm-3 control-label" >工站名称</label>
                                                     <div class="col-sm-7">
                                                         <input type="text" class="form-control"  name="nameInput" id="nameInput" required="required"
                                                             placeholder="请输入物料名称..." style="text-align: left">
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="modelText" class="col-sm-3 control-label" >型号规格</label>
-                                                    <div class="col-sm-7">
-                                                        <textarea class="form-control" name="modelText" id="modelText" required="required"
-                                                                  placeholder="请输入型号规格..." style="text-align: left"></textarea>
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="categorySelect" class="col-sm-3 control-label" >物料类别</label>
+                                                    <label for="categorySelect" class="col-sm-3 control-label" >工站类别</label>
                                                     <div class="col-sm-7">
                                                         <select class="form-control" name="categorySelect" id="categorySelect" required="required">
-                                                            <option value="">请选择项目</option>
+                                                            <option value="">请选择类型</option>
                                                             {% for category in categorys %}
                                                             <option value="{{ category.0 }}" hassubinfo="true">{{ category.1 }}</option>
                                                             {% endfor %}
@@ -82,40 +74,12 @@
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="erpInput" class="col-sm-3 control-label" >物料号</label>
+                                                    <label for="remarksText" class="col-sm-3 control-label" >备注</label>
                                                     <div class="col-sm-7">
-                                                        <input type="text" class="form-control"  name="erpInput" id="erpInput" required="required"
-                                                            placeholder="请输入物料号..." style="text-align: left">
+                                                        <textarea class="form-control" name="remarksText" id="remarksText" required="required"
+                                                                  placeholder="请输入备注信息..." style="text-align: left"></textarea>
                                                     </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="quantityInput" class="col-sm-3 control-label" >用量</label>
-                                                    <div class="col-sm-7">
-                                                        <input type="number" class="form-control"  name="quantityInput" id="quantityInput" required="required"
-                                                            placeholder="请输入数量..." style="text-align: left">
-                                                    </div>
-                                                </div>
-
-                                                <div class="form-group">
-                                                    <label for="traceInput" class="col-sm-3 control-label" >是否追溯</label>
-                                                    <div class="col-sm-7">
-                                                        <input type="checkbox" class="checkbox checkbox-inline" name="traceInput" id="traceInput" required="required"
-                                                            style="text-align: left">
-                                                    </div>
-                                                </div>
-
-{#                                              <div class="form-group">#}
-{#                                                   <label for="firstname" class="col-sm-3 control-label">转测时间</label>#}
-{#                                                   <div class='input-group col-sm-7 date' id='datetimepicker2'>#}
-{#                                                        <div class="col-sm-7" id='datetimepicker2'>#}
-{#                                                             <input type='text' class="form-control" name="submit_test_time" id="submit_test_time" required="required">#}
-{#                                                             <span class="input-group-addon">#}
-{#                                                                 <span class="glyphicon glyphicon-calendar"></span>#}
-{#                                                             </span>#}
-{#                                                         </div>#}
-{#                                                     </div>#}
-{#                                              </div>#}
-
                                             </div>
                                 {#            模态框底部#}
                                             <div class="modal-footer">
@@ -127,10 +91,9 @@
                                 </div>
                             </form>
 
-
                             <!-- 修改数据模态框（Modal） -->
-                            <form id="updateMaterialForm" action="#" method="post" class="form-horizontal" role="form">
-                                <div class="modal fade" id="updateMaterialModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
+                            <form id="updateForm" action="#" method="post" class="form-horizontal" role="form">
+                                <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
@@ -150,50 +113,35 @@
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="nameUpdateInput" class="col-sm-3 control-label" >物料名称</label>
+                                                    <label for="staNoUpdateInput" class="col-sm-3 control-label" >工站编号</label>
+                                                    <div class="col-sm-7">
+                                                        <input type="text" class="form-control"  name="staNoUpdateInput" id="staNoUpdateInput" required="required" disabled="disabled"
+                                                            style="text-align: left;">
+                                                    </div>
+                                                </div>
+                                                 <div class="form-group">
+                                                    <label for="nameUpdateInput" class="col-sm-3 control-label" >工站名称</label>
                                                     <div class="col-sm-7">
                                                         <input type="text" class="form-control"  name="nameUpdateInput" id="nameUpdateInput" required="required"
                                                             placeholder="请输入物料名称..." style="text-align: left">
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="modelUpdateText" class="col-sm-3 control-label" >型号规格</label>
-                                                    <div class="col-sm-7">
-                                                        <textarea class="form-control" name="modelUpdateText" id="modelUpdateText" required="required"
-                                                                  placeholder="请输入型号规格..." style="text-align: left"></textarea>
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="categoryUpdateSelect" class="col-sm-3 control-label" >物料类别</label>
+                                                    <label for="categoryUpdateSelect" class="col-sm-3 control-label" >工站类别</label>
                                                     <div class="col-sm-7">
                                                         <select class="form-control" name="categoryUpdateSelect" id="categoryUpdateSelect" required="required">
-                                                            <option value="">请选择项目</option>
+                                                            <option value="">请选择类型</option>
                                                             {% for category in categorys %}
-                                                            <option value="{{ category.0 }}" hassubinfo="true">{{ category.1 }}</option>
+                                                                <option value="{{ category.0 }}" hassubinfo="true">{{ category.1 }}</option>
                                                             {% endfor %}
                                                         </select>
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="erpUpdateInput" class="col-sm-3 control-label" >物料号</label>
+                                                    <label for="remarksUpdateText" class="col-sm-3 control-label" >备注</label>
                                                     <div class="col-sm-7">
-                                                        <input type="text" class="form-control"  name="erpUpdateInput" id="erpUpdateInput" required="required"
-                                                            placeholder="请输入物料号..." style="text-align: left">
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="quantityUpdateInput" class="col-sm-3 control-label" >用量</label>
-                                                    <div class="col-sm-7">
-                                                        <input type="number" class="form-control"  name="quantityUpdateInput" id="quantityUpdateInput" required="required"
-                                                            placeholder="请输入数量..." style="text-align: left">
-                                                    </div>
-                                                </div>
-
-                                                <div class="form-group">
-                                                    <label for="traceUpdateInput" class="col-sm-3 control-label" >是否追溯</label>
-                                                    <div class="col-sm-7">
-                                                        <input type="checkbox" class="checkbox checkbox-inline" name="traceUpdateInput" id="traceUpdateInput" required="required"
-                                                            style="text-align: left">
+                                                        <textarea class="form-control" name="remarksUpdateText" id="remarksUpdateText" required="required"
+                                                                  placeholder="请输入备注信息..." style="text-align: left"></textarea>
                                                     </div>
                                                 </div>
 
@@ -247,50 +195,17 @@
         hideMethod: "fadeOut"
     };
 
-    $("#uploadSubmit").click(function(){
-        var formdata = new FormData(); //ajax上传文件的时候，需要这个类型，它会将添加给它的键值对加工成formdata的类型
-        var token = $("[name='csrfmiddlewaretoken']").val();
-     　　formdata.append("csrfmiddlewaretoken", token); //别忘了csrf_token
-        formdata.append("uploadFile",$("#uploadFile")[0].files[0]);
-        $.ajax({
-            url:"#",
-            type:"post",
-            data:formdata, //将添加好数据的formdata放到data这里
-            processData: false,    // 不处理数据
-            contentType: false,    // 不设置内容类型
-            dataType: "json",
-            success:function(data){
-                console.log(data.ret);
-                if (data.ret){
-                    toastr.success("导入成功！");
-                    $('#materialTable').bootstrapTable('refresh');
-                    $("#uploadFile");
-                    }
-                else {
-                    toastr.error("错误：" + data.errMsg);
-                }
-                },
-            error: function(data){
-                console.log(data);
-
-                toastr.error('导入异常！')
-                }
-        })
-    });
-
-    $("#addMaterialModal").on("hidden.bs.modal", function() {
-        document.getElementById("addMaterialForm").reset();
+    $("#addModal").on("hidden.bs.modal", function() {
+        document.getElementById("addForm").reset();
         });
-    $("#updateMaterialModal").on("hidden.bs.modal", function() {
-        document.getElementById("updateMaterialForm").reset();
+    $("#updateModal").on("hidden.bs.modal", function() {
+        document.getElementById("updateForm").reset();
         });
-
     function closeModal() {
-        $("#update_p_name option:selected").each(function () {
+        $("#updateModal option:selected").each(function(){
             $(this).attr("selected", false);
         })
     }
-
     function updateSubmit() {
         $.ajax(
             {
@@ -298,9 +213,9 @@
                 cache:false,
                 type: "POST",//方法类型
                 dataType: "json",//预期服务器返回的数据类型
-                url: "#" ,//url
+                url: "{% url 'station_manager:updateData' %}" , //url
                 headers:{"X-CSRFToken":$.cookie("csrftoken")},
-                data: $('#updateMaterialForm').serialize(), //将模态框的form表单数据序列化，以便提交到后台
+                data: $('#updateForm').serialize(), //将模态框的form表单数据序列化，以便提交到后台
                 processData: false,// 不加会报错
                 //contentType: false,// 不加会报错
                 async:true,  //必须要为false,必须必须
@@ -308,47 +223,44 @@
                 success: function (data) {
                     console.log(data);//打印服务端返回的数据(调试用)
                     if(data.ret){
-
                         {#关闭模态框并清除框内数据，否则下次打开还是上次的数据#}
-                        $('#updateMaterialModal').modal('hide');
-
+                        $('#updateModal').modal('hide');
                         {# 判断确实正确入库之后提示#}
                         toastr.success('提交数据成功');
-
                         {#刷新表格数据#}
-                        $("#materialTable").bootstrapTable('refresh');
-
+                        $("#myTab").bootstrapTable('refresh');
                      }
                     else {
+                        $('#updateModal').modal('hide');
                         toastr.error('Error: ' + data.errMsg)
                     }
                  },
                 error : function() {
+
                     toastr.error("输入数据有误！");
                  }
             });
     }
-    
     function addSubmit() {
         $.ajax({
         //几个参数需要注意一下
             cache:false,
             type: "POST",//方法类型
             dataType: "json",//预期服务器返回的数据类型
-            url: "#" ,//url
+            url: "{% url 'station_manager:addData' %}" ,//url
             headers:{"X-CSRFToken":$.cookie("csrftoken")},
-            data: $('#addMaterialForm').serialize(), //将模态框的form表单数据序列化，以便提交到后台
+            data: $('#addForm').serialize(), //将模态框的form表单数据序列化，以便提交到后台
             async:true,  //必须要为false,必须必须
 
             success: function (data) {
                 if(data.ret){
                     {#关闭模态框并清除框内数据，否则下次打开还是上次的数据#}
                     //document.getElementById("add-smoke-form").reset();
-                    $('#addMaterialModal').modal('hide');
+                    $('#addModal').modal('hide');
                     {# 判断确实正确入库之后提示#}
                     toastr.success('提交数据成功');
                     {#刷新表格数据#}
-                    $("#materialTable").bootstrapTable('refresh');
+                    $("#myTab").bootstrapTable('refresh');
                  }
                 else {
                     toastr.error('错误：'+ data.errMsg);
@@ -359,48 +271,34 @@
              }
         });
     }
-
     function actionFormatter(value, row, index) {
         var id = row.id;
         var data = JSON.stringify(row);
         var result = "";
         {#result += "<a href='javascript:;' class='btn btn-xs green' onclick=\"EditViewById('" + id + "', view='view')\" title='查看'><span class='glyphicon glyphicon-search'></span></a>";#}
         {#result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"EditViewById('" + JSON.stringify(row) + "','" + id + "')\" title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";#}
-        result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"EditViewById('" + id + "','" + index + "')\" title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";
+        result += "<a href='javascript:;' class='btn btn-xs blue' onclick=" + "EditViewById(" + index + "," + data + ")" + " title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";
         {#result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"edit()\" title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";#}
-        result += "<a href='javascript:;' class='btn btn-xs red' onclick=\"deleteconfirm('" + id + "')\" title='删除'><span class='glyphicon glyphicon-remove'></span></a>";
+        result += "<a href='javascript:;' class='btn btn-xs red' onclick=" + "deleteconfirm(" + id + ")" + " title='删除'><span class='glyphicon glyphicon-remove'></span></a>";
         return result;
         }
 
      // getData方法获取全部页面数据后，将data转为json对象，使用index当前行号作为下标获取对应数据
-    function EditViewById(id, index){
+    function EditViewById(index, data){
         $("#categoryUpdateSelect option").removeAttr("selected");
-        $("#traceUpdateInput").attr('checked', false);
-
-        var data = JSON.stringify($("#materialTable").bootstrapTable('getData')); //获取全部数据
-        var data_json = JSON.parse(data); //data_json和data_json2一样都是json对象
-        //由于data2已经是对象了，alert不能显示对象只能显示为[object Object],需要控制台打印
-        {#alert(data_json[0]); #}
-        //根据index找到对应行数据，填充数据到修改模态框
-        $("#idUpdateInput").val(data_json[index].id);
-        $("#nameUpdateInput").val(data_json[index].name);
-        $("#modelUpdateText").val(data_json[index].model);
-        $("#erpUpdateInput").val(data_json[index].erp_no);
-        $("#quantityUpdateInput").val(data_json[index].quantity);
-        if (data_json[index].is_traced){
-            $("#traceUpdateInput").attr('checked', true);
-        }
-        var tmp = data_json[index].category;
-        $("#categoryUpdateSelect").val(tmp);
-
+        $("#idUpdateInput").val(data.id);
+        $("#staNoUpdateInput").val(data.station_no);
+        $("#categoryUpdateSelect").val(data.station_category);
+        $("#nameUpdateInput").val(data.station_name);
+        $("#remarksUpdateText").val(data.remarks);
         //弹出修改模态框，非新增模态框
-        $('#updateMaterialModal').modal('show');
+        $('#updateModal').modal('show');
     }
 
     // 搜索查询按钮触发事件
     $(function() {
         $("#search_button").click(function () {
-            $('#materialTable').bootstrapTable(('refresh')); // 很重要的一步，刷新url！
+            $('#myTab').bootstrapTable(('refresh')); // 很重要的一步，刷新url！
         })
     });
 
@@ -409,18 +307,18 @@
                         //先清空
                         $('#search_keyword').val('');
                         //清空后查询条件为空了，再次刷新页面，就是全部数据了
-                        $('#materialTable').bootstrapTable(('refresh')); // 很重要的一步，刷新url！
+                        $('#myTab').bootstrapTable(('refresh')); // 很重要的一步，刷新url！
                     }
 
     $('#myTab').bootstrapTable({
-        url:"{% url 'station_manager:getdata' %}",    //请求后台的URL（*）
+        url:"{% url 'station_manager:getData' %}",    //请求后台的URL（*）
         method: 'GET',   //请求方式（*）
         dataType: "json",
         uniqueId: 'id',
-        striped: false,
+        striped: true,
         cache: false,
         sortName: 'id',
-        sortable: false,
+        sortable: true,
         sortOrder: 'desc',
         sidePagination: "server",
         undefinedText: '--',
@@ -455,67 +353,48 @@
             {
                 field: 'no',
                 title: '序号',
-                sortable: true,
                 align: "center",
                 valign: 'middle',
                 width: "5%",
                 formatter: function (value, row, index) {
                     //获取每页显示的数量
-                    var pageSize=$('#materialTable').bootstrapTable('getOptions').pageSize;
+                    var pageSize=$('#myTab').bootstrapTable('getOptions').pageSize;
                     //获取当前是第几页
-                    var pageNumber=$('#materialTable').bootstrapTable('getOptions').pageNumber;
+                    var pageNumber=$('#myTab').bootstrapTable('getOptions').pageNumber;
                     //返回序号，注意index是从0开始的，所以要加上1
                     return pageSize * (pageNumber - 1) + index + 1;
                 }
             },
             {
-                field: 'name',
+                field: 'station_no',
+                title:'工站号',
+                width: '10%',
+                align: 'center',
+                valign: 'middle',
+                sortable: true,
+            },
+            {
+                field: 'station_name',
                 title:'名称',
                 width: '10%',
                 align: 'center',
                 valign: 'middle',
+                sortable: true,
             },
             {
-                field: 'model',
-                title:'型号规格',
-                width: '10%',
-                align: 'center',
-                valign: 'middle',
-            },
-            {
-                field: 'erp_no',
-                title:'物料号',
+                field: 'station_category',
+                title:'分类',
                 width: '15%',
                 align: 'center',
+                sortable: true,
                 valign: 'middle',
-            },
-            {
-                field: 'category',
-                title:'类型',
-                width: '10%',
-                align: 'center',
-                valign: 'middle',
-                formatter:function (value, row, index) {
-                    var category_obj = {};
+                formatter: function (value, row, index) {
+                    var obj = {};
                     {% for category in categorys %}
-                        category_obj["{{category.0}}"]= "{{ category.1 }}";
+                        obj["{{category.0}}"]= "{{ category.1 }}";
                     {% endfor %}
-                    return category_obj[value];
-                },
-            },
-            {
-                field: 'is_traced',
-                title:'是否追溯',
-                width: '5%',
-                align: 'center',
-                valign: 'middle',
-            },
-            {
-                field: 'quantity',
-                title:'用量',
-                width: '5%',
-                align: 'center',
-                valign: 'middle',
+                    return obj[value];
+                }
             },
             {
                 field: 'c_time',
@@ -523,12 +402,21 @@
                 width: '15%',
                 align: 'center',
                 valign: 'middle',
+                sortable: true,
             },
             {   field: 'm_time',
                 title:'修改时间',
                 width: '15%',
                 align: 'center',
                 valign: 'middle',
+                sortable: true,
+            },
+            {   field: 'remarks',
+                title:'备注',
+                width: '15%',
+                align: 'center',
+                valign: 'middle',
+                sortable: true,
             },
             {
                 field: 'operate',
@@ -538,7 +426,7 @@
                 formatter: actionFormatter,
             },
         ],
-        onLoadSuccess: function(data) {
+        onLoadSuccess: function() {
             //toastr.success("数据加载成功！", "错误提示");
 
            },
@@ -562,20 +450,20 @@
     function DeleteByIds(id) {
         $.ajax({
             type: "POST",
-            url: "#",
+            url: "{% url 'station_manager:deleteData' %}",
             headers:{"X-CSRFToken":$.cookie("csrftoken")},
             data: {id: id},
             dataType: "json",
             success: function (data) {
                 if (data.ret) {
                     toastr.success("数据删除成功！");
-                    $('#materialTable').bootstrapTable('refresh');
+                    $('#myTab').bootstrapTable('refresh');
                 }
             },
             error: function (data) {
                 toastr.error("数据删除失败！")
-            }
-        });
+                }
+            });
     }
 
 </script>

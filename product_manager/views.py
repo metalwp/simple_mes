@@ -25,24 +25,28 @@ def getPcData(request):
         sortName = request.GET.get('sortName')
         sortOrder = request.GET.get('sortOrder')
         search_kw = request.GET.get('search_kw')
+        if sortOrder == 'asc':
+            sort_str = sortName
+        else:
+            sort_str = '-' + sortName
         if not search_kw:
             total = ProductCategory.objects.all().count()
-            categorys = ProductCategory.objects.order_by('id')[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+            categorys = ProductCategory.objects.order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
         else:
-            categorys = ProductCategory.objects.filter(Q(category_name__contains=search_kw)) \
+            categorys = ProductCategory.objects.filter(Q(category_name__contains=search_kw)).order_by(sort_str) \
                         [(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
             # 获取查询结果的总条数
-            total = ProductCategory.objects.filter(Q(category_name__contains=search_kw)) \
+            total = ProductCategory.objects.filter(Q(category_name__contains=search_kw)).order_by(sort_str) \
                         [(pageNumber - 1) * pageSize:(pageNumber) * pageSize].count()
         rows = []
         data = {"total": total, "rows": rows}
         for category in categorys:
             if category.parent_category:
-                rows.append({'id': category.id, 'name': category.category_name, 'parent': category.parent_category.category_name,
+                rows.append({'id': category.id, 'category_name': category.category_name, 'parent_category': category.parent_category.category_name,
                              'c_time': category.c_time.strftime("%Y-%m-%d %H:%M:%S"), 'm_time': category.m_time.strftime("%Y-%m-%d %H:%M:%S")})
             else:
-                rows.append({'id': category.id, 'name': category.category_name,
-                             'parent': None,
+                rows.append({'id': category.id, 'category_name': category.category_name,
+                             'parent_category': None,
                              'c_time': category.c_time.strftime("%Y-%m-%d %H:%M:%S"), 'm_time': category.m_time.strftime("%Y-%m-%d %H:%M:%S")})
         return HttpResponse(json.dumps(data), content_type="application/json")
     else:
@@ -102,20 +106,24 @@ def getPmData(request):
         sortName = request.GET.get('sortName')
         sortOrder = request.GET.get('sortOrder')
         search_kw = request.GET.get('search_kw')
+        if sortOrder == 'asc':
+            sort_str = sortName
+        else:
+            sort_str = '-' + sortName
         if not search_kw:
             total = ProductModel.objects.all().count()
-            products = ProductModel.objects.order_by('id')[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+            products = ProductModel.objects.order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
         else:
-            products = ProductModel.objects.filter(Q(product_name__contains=search_kw)) \
+            products = ProductModel.objects.filter(Q(product_name__contains=search_kw)).order_by(sort_str) \
                         [(pageNumber - 1) * pageSize: pageNumber * pageSize]
             # 获取查询结果的总条数
-            total = ProductModel.objects.filter(Q(product_name__contains=search_kw)) \
+            total = ProductModel.objects.filter(Q(product_name__contains=search_kw)).order_by(sort_str) \
                         [(pageNumber - 1) * pageSize: pageNumber * pageSize].count()
         rows = []
         data = {"total": total, "rows": rows}
         for product in products:
             if product.category:
-                rows.append({'id': product.id, 'erp_no': product.erp_no, 'name': product.product_name, 'model': product.model_name,
+                rows.append({'id': product.id, 'erp_no': product.erp_no, 'product_name': product.product_name, 'model_name': product.model_name,
                              'category': product.category.category_name, 'bom_version': product.bom_version,
                              'c_time': product.c_time.strftime("%Y-%m-%d %H:%M:%S"), 'm_time': product.m_time.strftime("%Y-%m-%d %H:%M:%S")})
             else:

@@ -15,11 +15,239 @@
             <li class="active">仪表盘</li>
         </ol>
     </section>
+
 {% endblock %}
 
 {% block content %}
+    <section class="content">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-solid">
+                <div class="box-header">
+                    <i class="fa fa-bar-chart-o"></i>
+                    <h3 class="box-title">设备状态<small>(%)</small></h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-default btn-sm" data-widget="collapse">
+                            <i class="fa fa-minus"></i></button>
+                        <button type="button" class="btn btn-default btn-sm" data-widget="remove">
+                            <i class="fa fa-times"></i></button>
+                    </div>
+                </div>
+
+                <div class="box-body">
+                  <div class="row">
+                    <div class="col-xs-6 col-md-2 col-md-offset-1 text-center">
+                      <input type="text" class="knob" value="80" data-width="90" data-height="90" data-fgColor="#00a65a" data-readonly="true">
+                      <div class="knob-label">在线</div>
+                    </div>
+                    <!-- ./col -->
+
+                    <div class="col-xs-6 col-md-2 text-center">
+                      <input type="text" class="knob" value="10" data-width="90" data-height="90" data-fgColor="#f56954" data-readonly="true">
+                      <div class="knob-label">下线</div>
+                    </div>
+                    <!-- ./col -->
+
+                    <div class="col-xs-6 col-md-2 text-center">
+                      <input type="text" class="knob" value="0" data-width="90" data-height="90" data-fgColor="#932ab6" data-readonly="true">
+                      <div class="knob-label">故障</div>
+                    </div>
+                    <!-- ./col -->
+
+                    <div class="col-xs-6 col-md-2 text-center">
+                      <input type="text" class="knob" value="10" data-width="90" data-height="90" data-fgColor="#3c8dbc" data-readonly="true">
+                      <div class="knob-label">备用</div>
+                    </div>
+                      <!-- ./col -->
+
+                    <div class="col-xs-6 col-md-2 text-center">
+                      <input type="text" class="knob" value="0" data-width="90" data-height="90" data-fgColor="#cccccc" data-readonly="true">
+                      <div class="knob-label">未知</div>
+                    </div>
+                    <!-- ./col -->
+
+                  </div>
+                  <!-- /.row -->
+                </div>
+            </div>
+          <!-- /.box -->
+        </div>
+        <!-- /.col -->
+        <div class="col-md-6">
+            <div class="box box-success">
+                <div class="box-header with-border">
+                    <h3 class="box-title">XX产品月生产数量：</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                        </div>
+                </div>
+                <div class="box-body">
+                    {# 百度Echarts实现柱状图 #}
+                    <div id="barChart" style="width:600px;height: 400px;"></div>
+                </div>
+            </div>
+
+            </div>
+              <div class="col-md-6">
+              <!-- DONUT CHART -->
+              <div class="box box-danger">
+                <div class="box-header with-border">
+                  <h3 class="box-title">当前订单完成情况：</h3>
+
+                  <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                  </div>
+                </div>
+                <div class="box-body">
+                    {# 百度Echarts实现饼状图#}
+                  <div id="donutChart" style="width: 600px;height:400px;"></div>
+                </div>
+              </div>
+
+            </div>
+        </div>
+    </section>
 {% endblock %}
 
 {% block script %}
+    <script src="{% static 'js/echarts.min.js' %}"></script>
+    <!-- AdminLTE App -->
+    <script src="{% static 'AdminLTE-2.4.10/bower_components/jquery-knob/js/jquery.knob.js' %}"></script>
+    <!-- page script -->
 
+    <script type="text/javascript">
+    // 顶部服务器状态百分率圆图
+    $(function () {
+        /* jQueryKnob */
+
+        $(".knob").knob({
+             /*change : function (value) {
+       //console.log("change : " + value);
+       },
+       release : function (value) {
+       console.log("release : " + value);
+       },
+       cancel : function () {
+       console.log("cancel : " + this.value);
+       },*/
+      draw: function () {
+             // "tron" case
+        if (this.$.data('skin') == 'tron') {
+          var a = this.angle(this.cv)         // Angle
+              , sa = this.startAngle          // Previous start angle
+              , sat = this.startAngle         // Start angle
+              , ea                            // Previous end angle
+              , eat = sat + a                 // End angle
+              , r = true;
+          this.g.lineWidth = this.lineWidth;
+
+          this.o.cursor && (sat = eat - 0.3) && (eat = eat + 0.3);
+
+          if (this.o.displayPrevious) {
+            ea = this.startAngle + this.angle(this.value);
+            this.o.cursor && (sa = ea - 0.3) && (ea = ea + 0.3);
+            this.g.beginPath();
+            this.g.strokeStyle = this.previousColor;
+            this.g.arc(this.xy, this.xy, this.radius - this.lineWidth, sa, ea, false);
+            this.g.stroke();
+          }
+
+          this.g.beginPath();
+          this.g.strokeStyle = r ? this.o.fgColor : this.fgColor;
+          this.g.arc(this.xy, this.xy, this.radius - this.lineWidth, sat, eat, false);
+          this.g.stroke();
+
+          this.g.lineWidth = 2;
+          this.g.beginPath();
+          this.g.strokeStyle = this.o.fgColor;
+          this.g.arc(this.xy, this.xy, this.radius - this.lineWidth + 1 + this.lineWidth * 2 / 3, 0, 2 * Math.PI, false);
+          this.g.stroke();
+
+          return false;
+        }
+      }
+    });
+    /* END JQUERY KNOB */
+    });
+
+    //不同状态资产数量统计 柱状图
+    $(function () {
+        // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('barChart'));
+
+        // 指定图表的配置项和数据
+        var option = {
+            color: ['#3398DB'],
+            title: {
+                text: '数量'
+            },
+            tooltip: {},
+            legend: { data:['']
+            },
+            xAxis: {
+                data: ["1月", "2月","3月","4月","5月", "6月", "7月"]},
+            yAxis: {
+            },
+            series:
+                [{
+                name: '数量',
+                type: 'bar',
+                barWidth: '50%',
+                data: [200, 220, 300, 300, 350, 400, 350]
+            }]
+        };
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+    });
+
+    //资产类型数量统计 饼图
+    $(function () {
+        // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('donutChart'));
+
+        // 指定图表的配置项和数据
+        option = {
+            title : {
+                x:'center'
+            },
+            tooltip : {
+                trigger: 'item',
+                formatter: "{a} <br/>{b} : {c} ({d}%)"
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left',
+                data: ['未开始','进行中','已完成','不良']
+            },
+            series : [
+                {
+                    name: '资产类型',
+                    type: 'pie',
+                    radius : '55%',
+                    center: ['50%', '60%'],
+                    data:[
+                        {value:50, name:'未开始'},
+                        {value:20, name:'进行中'},
+                        {value:150, name:'已完成'},
+                        {value:10, name:'不良'},
+                    ],
+                    itemStyle: {
+                        emphasis: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }
+            ]
+        };
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+    });
+
+    </script>
 {% endblock %}

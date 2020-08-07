@@ -33,15 +33,19 @@ def getMaterials(request, product_id):
         sortName = request.GET.get('sortName')
         sortOrder = request.GET.get('sortOrder')
         search_kw = request.GET.get('search_kw')
+        if sortOrder == 'asc':
+            sort_str = sortName
+        else:
+            sort_str = '-' + sortName
         product = ProductModel.objects.get(pk=product_id)
         if not search_kw:
             total = product.materialmodel_set.all().count()
-            materials = product.materialmodel_set.order_by('id')[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+            materials = product.materialmodel_set.order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
         else:
             # 获取查询结果的总条数
-            total = product.materialmodel_set.filter(Q(name__contains=search_kw)) \
+            total = product.materialmodel_set.filter(Q(name__contains=search_kw)).order_by(sort_str) \
                         [(pageNumber - 1) * pageSize:(pageNumber) * pageSize].count()
-            materials = product.materialmodel_set.filter(Q(name__contains=search_kw)) \
+            materials = product.materialmodel_set.filter(Q(name__contains=search_kw)).order_by(sort_str) \
                         [(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
         rows = []
         data = {"total": total, "rows": rows}

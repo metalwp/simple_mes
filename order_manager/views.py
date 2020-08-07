@@ -27,14 +27,18 @@ def getOrderData(request):
         sortName = request.GET.get('sortName')
         sortOrder = request.GET.get('sortOrder')
         search_kw = request.GET.get('search_kw')
+        if sortOrder == 'asc':
+            sort_str = sortName
+        else:
+            sort_str = '-' + sortName
         if not search_kw:
             total = Order.objects.all().count()
-            orders = Order.objects.order_by('id')[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+            orders = Order.objects.order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
         else:
-            orders = Order.objects.filter(Q(product_model__product_name__contains=search_kw)) \
+            orders = Order.objects.filter(Q(product_model__product_name__contains=search_kw)).order_by(sort_str) \
                         [(pageNumber - 1) * pageSize: pageNumber * pageSize]
             # 获取查询结果的总条数
-            total = Order.objects.filter(Q(product_model__product_name__contains=search_kw)) \
+            total = Order.objects.filter(Q(product_model__product_name__contains=search_kw)).order_by(sort_str) \
                         [(pageNumber - 1) * pageSize: pageNumber * pageSize].count()
         rows = []
         data = {"total": total, "rows": rows}

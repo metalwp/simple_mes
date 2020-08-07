@@ -431,10 +431,10 @@
         method: 'GET',   //请求方式（*）
         dataType: "json",
         uniqueId: 'id',
-        striped: false,
+        striped: true,
         cache: false,
         sortName: 'id',
-        sortable: false,
+        sortable: true,
         sortOrder: 'desc',
         sidePagination: "server",
         undefinedText: '--',
@@ -469,7 +469,6 @@
             {
                 field: 'no',
                 title: '序号',
-                sortable: true,
                 align: "center",
                 valign: 'middle',
                 width: "5%",
@@ -488,6 +487,7 @@
                 width: '10%',
                 align: 'center',
                 valign: 'middle',
+                sortable: true,
             },
             {
                 field: 'model',
@@ -495,6 +495,7 @@
                 width: '10%',
                 align: 'center',
                 valign: 'middle',
+                sortable: true,
             },
             {
                 field: 'erp_no',
@@ -502,12 +503,14 @@
                 width: '15%',
                 align: 'center',
                 valign: 'middle',
+                sortable: true,
             },
             {
                 field: 'category',
                 title:'类型',
                 width: '10%',
                 align: 'center',
+                sortable: true,
                 valign: 'middle',
                 formatter:function (value, row, index) {
                     var category_obj = {};
@@ -523,6 +526,7 @@
                 width: '5%',
                 align: 'center',
                 valign: 'middle',
+                sortable: true,
             },
             {
                 field: 'quantity',
@@ -530,6 +534,7 @@
                 width: '5%',
                 align: 'center',
                 valign: 'middle',
+                sortable: true,
             },
             {
                 field: 'c_time',
@@ -537,12 +542,14 @@
                 width: '15%',
                 align: 'center',
                 valign: 'middle',
+                sortable: true,
             },
             {   field: 'm_time',
                 title:'修改时间',
                 width: '15%',
                 align: 'center',
                 valign: 'middle',
+                sortable: true,
             },
             {
                 field: 'operate',

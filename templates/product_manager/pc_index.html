@@ -352,7 +352,7 @@
         striped: false,
         cache: false,
         sortName: 'id',
-        sortable: false,
+        sortable: true,
         sortOrder: 'desc',
         sidePagination: "server",
         undefinedText: '--',
@@ -387,7 +387,6 @@
             {
                 field: 'no',
                 title: '序号',
-                sortable: true,
                 align: "center",
                 width: "5%",
                 formatter: function (value, row, index) {
@@ -400,23 +399,28 @@
                 }
             },
             {
-                field: 'name',
+                field: 'category_name',
                 title:'名称',
-                width: '15%'
+                width: '15%',
+                sortable: true,
             },
             {
-                field: 'parent',
+                field: 'parent_category',
                 title:'父类',
-                width: '15%'
+                width: '15%',
+                sortable: true,
             },
             {
                 field: 'c_time',
                 title:'创建时间',
-                width: '25%'
+                width: '25%',
+                sortable: true,
             },
             {   field: 'm_time',
                 title:'修改时间',
-                width: '25%'},
+                width: '25%',
+                sortable: true,
+            },
             {
                 field: 'operate',
                 title: '操作',
