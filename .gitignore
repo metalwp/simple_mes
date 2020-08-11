@@ -1,5 +1,6 @@
-/venv
-/.idea
-/upload
+venv/
+.idea/
+upload/
 */__pycache__
-/*/migrations/*
+*/migrations/*
+.vscode/
