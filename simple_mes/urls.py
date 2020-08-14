@@ -27,5 +27,6 @@ urlpatterns = [
     path('bom_manager/', include('bom_manager.urls')),
     path('order_manager/', include('order_manager.urls')),
     path('station_manager/', include('station_manager.urls')),
+    path('process_manager/', include('process_manager.urls')),
 
 ]

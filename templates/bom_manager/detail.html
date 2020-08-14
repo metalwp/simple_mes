@@ -527,6 +527,15 @@
                 align: 'center',
                 valign: 'middle',
                 sortable: true,
+                formatter:function(value, row, index){
+                    console.log(value)
+                    if (value === true){
+                        return '是'
+                    }
+                    else{
+                        return '否'
+                    }
+                }
             },
             {
                 field: 'quantity',

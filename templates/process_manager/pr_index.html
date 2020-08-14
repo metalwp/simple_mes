@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}BOM管理{% endblock %}
+{% block title %}工艺路线{% endblock %}
 {% block css %}{% endblock %}
 
 {% block breadcrumb %}
     <!-- Content Header (Page header) -->
     <section class="content-header">
-        <h1>BOM管理<small>BOMManager</small></h1>
+        <h1>工艺路线<small>Process Route</small></h1>
         <ol class="breadcrumb">
             <li><a href="#">主页</a></li>
-            <li class="active">BOM管理</li>
+            <li class="active">工艺路线</li>
         </ol>
     </section>
 {% endblock %}
@@ -20,7 +20,7 @@
                 <div class="col-xs-12">
                     <div class="box">
                         <div class="box-header">
-                            <h3 class="box-title">BOM管理</h3>
+                            <h3 class="box-title">工艺路线</h3>
                         </div>
 
 
@@ -152,7 +152,7 @@
                 formatter: function (value, row, index) {
                     res = '<a href="../detail/' +row.id+ '"> '+ row.erp_no +'</a>';
 
-                    {#res = '<a href="{% url 'bom_manager:detail' row.id %}"> '+ row.erp_no +'</a>';#}
+                    {#res = '<a href="{% url 'process_manager:pr_detail' row.id %}"> '+ row.erp_no +'</a>';#}
                     return res;
                 },
             },

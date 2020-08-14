@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}工艺路线{% endblock %}
+{% block css %}
+    	<link rel="stylesheet" type="text/css" href="/static/css/home.css"/>
+{% endblock %}
+
+{% block breadcrumb %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>工艺路线<small>Process Route</small></h1>
+        <ol class="breadcrumb">
+            <li><a href="#">主页</a></li>
+            <li class="active">工艺路线</li>
+        </ol>
+    </section>
+{% endblock %}
+
+{% block content %}
+    <section class="content">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box">
+                        <div class="box-header">
+                            <h3 class="box-title">{{ product.product_name}} {{ product.erp_no }}</h3>
+                        </div>
+                                
+
+                            <!-- /.box-header -->
+                            <div class="box-body" >
+
+                                    <div id="homeConfigDiv">
+                                        <div class="col-xs-1"></div>
+                                        <div class="list-tran flex flex-row ">
+                                            <div class="list-box flex-child col-xs-5">
+                                                <div class="list-header">待选工站</div>
+                                                <ul id="leftUl">
+                                                    {% for station in stations %}
+                                                        <li>{{ station.station_no }} {{station.station_name}}</li>
+                                                    
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                            <div class="list-tool flex-child ">
+                                                <div class="list-tool-indiv">
+                                                    <div class="flex flex-lie">
+                                                        <i class="fa fa-angle-double-right right"></i>
+                                                        <i class="fa fa-angle-double-up up"></i>
+                                                        <i class="fa fa-angle-double-down down"></i>
+                                                        <i class="fa fa-angle-double-left left"></i>
+                                                        <!--<i class="icon right">⇒</i>-->
+                                                        <!--<i class="icon up">⇑</i>-->
+                                                        <!--<i class="icon down">⇓</i>-->
+                                                        <!--<i class="icon left">⇐</i>-->
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                            <div class="list-box flex-child col-xs-5">
+                                                <div class="list-header">已选工站</div>
+                                                <ul id="rightUl">
+                                                </ul>
+                                            </div>
+                                            
+                                        </div>
+
+
+                                    </div>
+                                    <div style="margin-top:50px;text-align:right;" class="col-xs-10">
+                                            <button class="btn btn-primary" onclick="getItems()">提交</button>
+                                            <button class="btn btn-warning" onclick="getItems()">取消</button>
+                                    </div>
+                                    </body>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+{% endblock %}
+
+{% block script %}
+<link href="{% static 'css/bootstrap-table.min.css' %}" rel="stylesheet">
+<script src="{% static 'js/bootstrap-table.min.js' %}"></script>
+<script src="{% static 'js/bootstrap-table-zh-CN.min.js' %}"></script>
+<link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
+<script src="{% static 'js/toastr.min.js' %}"></script>
+<script src="{% static 'js/jquery.cookie.js' %}"></script>
+
+
+
+<script>
+    toastr.options = {
+        closeButton: true,
+        debug: true,
+        progressBar: true,
+        positionClass: "toast-top-center",
+        onclick: null,
+        showDuration: "300",
+        hideDuration: "1000",
+        timeOut: "2000",
+        extendedTimeOut: "1000",
+        showEasing: "swing",
+        hideEasing: "linear",
+        showMethod: "fadeIn",
+        hideMethod: "fadeOut"
+    };
+
+/*
+	 * 向右穿梭 
+	 */
+    function goRight(){
+        var li = $(".list-box li.active");
+        if(li.length > 0 && li.parent().attr("id") == 'leftUl'){
+            var newLi = li.clone().click(setActive);
+            $("#rightUl").append(newLi);
+            li.remove();
+        }
+    }
+	/*
+	 * 向左穿梭 
+	 */
+    function goLeft(){
+        var li = $(".list-box li.active");
+        if(li.length > 0 && li.parent().attr("id") == 'rightUl'){
+            var newLi = li.clone().click(setActive);
+            $("#leftUl").append(newLi);
+            li.remove();
+        }
+    }
+	/*
+	 * 向上穿梭 
+	 */
+    function goUp(){
+        var li = $(".list-box li.active");
+        if(li.length > 0){
+            if(li.prev().length > 0){
+                var newLi = li.clone().click(setActive);
+                li.prev().before(newLi);
+                li.remove();
+            }
+        }
+    }
+	/*
+	 * 向下穿梭 
+	 */
+    function goDown(){
+        var li = $(".list-box li.active");
+        if(li.length > 0){
+            if(li.next().length > 0){
+                var newLi = li.clone().click(setActive);
+                li.next().after(newLi);
+                li.remove();
+            }
+        }
+    }
+	function setActive(){
+       $(".list-box li").removeClass("active");
+       $(this).addClass("active");
+    }
+
+	$(function(){
+		$(".list-box li").click(setActive);
+		$(".list-tool-indiv .fa.right").click(goRight);
+		$(".list-tool-indiv .fa.up").click(goUp);
+		$(".list-tool-indiv .fa.down").click(goDown);
+		$(".list-tool-indiv .fa.left").click(goLeft);
+		//添加选项
+		{% comment %} addItem("#rightUl",{title:'模块五'});
+		addItem("#rightUl",{title:'模块六'});
+		addItem("#leftUl",{title:'模块一'});
+		addItem("#leftUl",{title:'模块二'});
+		addItem("#leftUl",{title:'模块三'});
+		addItem("#leftUl",{title:'模块四'}); {% endcomment %}
+	})
+	function addItem(ul,item){
+		//添加选项时绑定事件
+		$("<li>"+item.title+"</li>").appendTo($(ul)).click(setActive);
+	}
+    function getItems(){
+		var list = [];
+        $("#leftUl li").each(function(i,o){
+            var obj = {};
+			//自定义参数
+            obj.moduleId = $(o).attr('moduleid');
+			//是否可见
+            obj.seen = -1;
+			//排序
+            obj.seq = i+1;
+            list.push(obj);
+        });
+        $("#rightUl li").each(function(i,o){
+            var obj = {};
+            obj.moduleId = $(o).attr('moduleid');
+            obj.seen = 1;
+            obj.seq = i+1;
+            list.push(obj);
+        });
+		console.log(list);
+		alert(JSON.stringify(list));
+		return list;
+	}
+    
+
+</script>
+
+{% endblock %}

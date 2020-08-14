@@ -1,0 +1,92 @@
+
+.flex{display:flex;}
+.flex-1{order:1;}
+.flex-2{order:2}
+.flex-3{order:3}
+.flex-auto{flex: 1;overflow: auto}
+.height-auto{height: auto}
+.flex-row{flex-direction:row}
+.flex-row-reverse{flex-direction: row-reverse}
+.flex-row .flex-child{height: 100%;}
+.flex-lie {flex-direction:column}
+.flex-lie .flex-child{width: 100%;}
+
+.list-tran{
+    /* width: 670px; */
+    /* height: 360px; */
+    padding: 5px;
+}
+
+.list-tran .list-box{
+    /* width:200px;height:300px; */
+    border:1px solid #ccc;box-sizing: border-box;margin:2px;
+}
+.list-tran .list-box .list-header{
+    /* width:200px;height:30px; */
+    line-height: 30px;border-bottom:1px solid #ccc;padding: 0;text-align: center;
+}
+.list-tran .list-tool{
+    width: 60px;
+    min-width: 60px;
+    height: 300px;
+}
+.list-tran .list-tool .list-tool-indiv{
+    width: 0;
+    height: 120px;
+    position: relative;
+    top: 50%;
+    text-align: center;
+}
+.list-tran .list-tool .list-tool-indiv>div{
+    width: 60px;
+    height: 120px;
+    position: relative;
+    line-height: 30px;
+    top: -50%;
+}
+.list-tran .list-tool .list-tool-indiv>div>i{
+    font-size: 24px;color:#0c901d;
+    line-height: 30px;cursor: pointer;color:#009688!important;
+}
+.list-tran .list-box ul{
+    width: 100%; height: 260px;
+    display: block;
+    padding: 5px 2px;
+    overflow: auto;
+    line-height: 22px;text-align: left!important;font: 14px Helvetica Neue,Helvetica,PingFang SC,Tahoma,Arial,sans-serif;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);box-sizing: border-box;
+}
+.list-tran .list-box ul>li{
+    height: 32px;
+    line-height: 32px;
+    padding: 0 10px;box-sizing: border-box;list-style: none;
+    margin: 0;
+    display: list-item;
+    text-align: -webkit-match-parent;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    cursor: pointer;
+}
+.list-tran .list-box ul>li.active{
+	background-color: #009688;color: white;
+}
+
+
+.drag-float-tool{
+    width:100px;height:30px;box-sizing: border-box;/*border: 1px solid #ccc;*/position: absolute;top:5px;right: 20px;display: none;
+}
+.list-tran .list-tool .list-tool-indiv>div>i.icon{
+    font-style:normal;
+}
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

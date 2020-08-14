@@ -174,7 +174,20 @@ desired effect
         </li>
 
         <li><a href="{% url 'bom_manager:index' %}"><i class="fa fa-list "></i> <span>BOM管理</span></a></li>
-        <li><a href="#"><i class="fa fa-arrow-right "></i> <span>过程管理</span></a></li>
+        
+        <li class="treeview">
+          <a href="#"><i class="fa fa-automobile"></i> <span>过程管理</span>
+            <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+              </span>
+          </a>
+          <ul class="treeview-menu">
+            <li><a href="{% url 'process_manager:ps_index' %}">工序管理</a></li>
+            <li><a href="{% url 'process_manager:pr_index' %}">工艺路线</a></li>
+            <li><a href="#">工艺明细</a></li>
+          </ul>
+        </li>
+
         <li><a href="{% url 'station_manager:index' %}"><i class="fa fa-institution "></i> <span>工站管理</span></a></li>
         <li><a href="{% url 'order_manager:index' %}"><i class="fa fa-cart-plus "></i> <span>订单管理</span></a></li>
         <li><a href="#"><i class="fa fa-search "></i> <span>查询系统</span></a></li>
