@@ -81,7 +81,7 @@
                                                 <div class="form-group">
                                                     <label for="lockInput" class="col-sm-3 control-label" >工序互锁</label>
                                                     <div class="input-group col-sm-7">
-                                                        <input type="checkbox" class="form-control"  name="lockInput" id="lockInput" required="required"
+                                                        <input type="checkbox" class="checkbox checkbox-inline"  name="lockInput" id="lockInput" required="required"
                                                             style="text-align: left">
                                                     </div>
                                                 </div>
@@ -98,8 +98,8 @@
                             </form>
 
                             <!-- 修改数据模态框（Modal） -->
-                            <form id="updateOrderForm" action="#" method="post" class="form-horizontal" role="form">
-                                <div class="modal fade" id="updateOrderModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
+                            <form id="updateForm" action="#" method="post" class="form-horizontal" role="form">
+                                <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
@@ -119,73 +119,31 @@
                                     </div>
 
                                      <div class="form-group">
-                                        <label for="orderNoUpdateInput" class="col-sm-3 control-label" >订单号</label>
-                                        <div class="input-group col-sm-7">
-                                            <input type="text" class="form-control"  name="orderNoUpdateInput" id="orderNoUpdateInput" required="required" disabled="disabled"
-                                                placeholder="请输入订单号" style="text-align: left">
-                                        </div>
-                                    </div>
+                                                    <label for="psNameUpdateInput" class="col-sm-3 control-label" >工序名</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <input type="text" class="form-control"  name="psNameUpdateInput" id="psNameUpdateInput" required="required" 
+                                                             style="text-align: left">
+                                                    </div>
+                                                </div>
 
-                                    <div class="form-group">
-                                        <label for="productUpdateSelect" class="col-sm-3 control-label" >产品</label>
-                                        <div class="input-group col-sm-7">
-                                            <select class="form-control" name="productUpdateSelect" id="productUpdateSelect" required="required">
-                                                <option value="">请选择产品</option>
-                                                {% for product in products %}
-                                                <option value="{{ product.id }}" hassubinfo="true">{{ product.erp_no }} | {{ product.product_name }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="quantityUpdateInput" class="col-sm-3 control-label" >数量</label>
-                                        <div class="input-group col-sm-7">
-                                            <input type="number" class="form-control"  name="quantityUpdateInput" id="quantityUpdateInput" required="required"
-                                                style="text-align: left">
-                                        </div>
-                                    </div>
-
-                                  <div class="form-group">
-                                       <label for="diliveryUpdateInput" class="col-sm-3 control-label">计划交付时间</label>
-                                       <div class='input-group col-sm-7 date' id='datetimepicker2'>
-                                         <input type='text' class="form-control " name="diliveryUpdateInput" id="diliveryUpdateInput" required="required"
-                                                style="text-align: left">
-                                         <span class="input-group-addon" >
-                                             <span class="glyphicon glyphicon-calendar" style="position: relative; z-index: 9999;"></span>
-                                         </span>
-                                       </div>
-                                  </div>
-                                 <div class="form-group">
-                                        <label for="statusUpdateSelect" class="col-sm-3 control-label" >订单状态</label>
-                                        <div class="input-group col-sm-7">
-                                            <select class="form-control" name="statusUpdateSelect" id="statusUpdateSelect" required="required">
-                                                {% for stats in status_choice %}
-                                                <option value="{{ stats.0 }}" hassubinfo="true">{{ stats.1 }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
-                                    </div>
-                                  <div class="form-group">
-                                       <label for="startUpdateInput" class="col-sm-3 control-label">开始时间</label>
-                                       <div class='input-group col-sm-7 datetime' id='datetimepicker3'>
-                                         <input type='text' class="form-control " name="startUpdateInput" id="startUpdateInput" required="required"
-                                                style="text-align: left">
-                                         <span class="input-group-addon">
-                                             <span class="glyphicon glyphicon-calendar" style="position: relative; z-index: 9999;"></span>
-                                         </span>
-                                       </div>
-                                  </div>
-                                 <div class="form-group">
-                                       <label for="endUpdateInput" class="col-sm-3 control-label">结束时间</label>
-                                       <div class='input-group col-sm-7 datetime' id='datetimepicker4'>
-                                         <input type='text' class="form-control " name="endUpdateInput" id="endUpdateInput" required="required"
-                                                style="text-align: left">
-                                         <span class="input-group-addon" >
-                                             <span class="glyphicon glyphicon-calendar" style="position: relative; z-index: 9999;"></span>
-                                         </span>
-                                       </div>
-                                  </div>
+                                                <div class="form-group">
+                                                    <label for="stationUpdateSelect" class="col-sm-3 control-label" >工站</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <select class="form-control" name="stationUpdateSelect" id="stationUpdateSelect" required="required">
+                                                            <option value="">请选择工站</option>
+                                                            {% for station in stations %}
+                                                            <option value="{{ station.id }}" hassubinfo="true">{{ station.station_no }} | {{ station.station_name }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="lockUpdateInput" class="col-sm-3 control-label" >工序互锁</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <input type="checkbox" class="checkbox checkbox-inline"  name="lockUpdateInput" id="lockUpdateInput" required="required"
+                                                            style="text-align: left">
+                                                    </div>
+                                                </div>
 
                                 </div>
                     {#            模态框底部#}
@@ -227,30 +185,6 @@
 <script src="{% static 'js/bootstrap-datetimepicker.min.js' %}"></script>
 
 <script>
-    $('#addOrderModal').on('shown.bs.modal', function () {
-        $('#datetimepicker1').datetimepicker({
-        format: 'YYYY-MM-DD',
-        //format: 'YYYY-MM-DD hh:mm',
-        locale: moment.locale('zh-cn'),
-        defaultDate: "",
-        });
-    });
-    $('#updateOrderModal').on('shown.bs.modal', function () {
-        $('.date').datetimepicker({
-        format: 'YYYY-MM-DD',
-        //format: 'YYYY-MM-DD hh:mm',
-        locale: moment.locale('zh-cn'),
-        defaultDate: "",
-        });
-    });
-    $('#updateOrderModal').on('shown.bs.modal', function () {
-        $('.datetime').datetimepicker({
-        format: 'YYYY-MM-DD-hh:mm:ss',
-        //format: 'YYYY-MM-DD hh:mm',
-        locale: moment.locale('zh-cn'),
-        defaultDate: "",
-        });
-    });
 
     toastr.options = {
         closeButton: true,
@@ -271,17 +205,16 @@
     {#$("#addOrderModal").on("hidden.bs.modal", function() {#}
     {#    document.getElementById("addOrderForm").reset();#}
     {#    });#}
-    $("#updateOrderModal").on("hidden.bs.modal", function() {
-        document.getElementById("updateOrderForm").reset();
+    $("#updateModal").on("hidden.bs.modal", function() {
+        document.getElementById("updateForm").reset();
         });
 
     function closeModal() {
-        $("#updateOrderModal option:selected").each(function () {
+        $("#updateModal option:selected").each(function () {
             $(this).attr("selected", false);
         })
     }
 
-    
     function update(){
         $.ajax(
             {
@@ -289,16 +222,16 @@
                 cache:false,
                 type: "POST",//方法类型
                 dataType: "json",//预期服务器返回的数据类型
-                url: "{% url 'order_manager:updateOrderData' %}" ,//url
+                url: "{% url 'process_manager:updatePSData' %}" ,//url
                 headers:{"X-CSRFToken":$.cookie("csrftoken")},
-                data: $('#updateOrderForm').serialize(), //将模态框的form表单数据序列化，以便提交到后台
+                data: $('#updateForm').serialize(), //将模态框的form表单数据序列化，以便提交到后台
                 processData: false,// 不加会报错
                 //contentType: false,// 不加会报错
-                async:true,  //必须要为false,必须必须
+                async:true,  //必须要为false
 
                 success: function (data) {
-                    $('#updateOrderModal').modal('hide');
-                    document.getElementById("updateOrderForm").reset();
+                    $('#updateModal').modal('hide');
+                    document.getElementById("updateForm").reset();
                     $("#mytab").bootstrapTable('refresh');
                     if(data.ret){
                         toastr.success('提交数据成功');
@@ -313,9 +246,7 @@
         }
     
     function add() {
-        $('#orderNoInput').removeAttr('disabled');
-        var data1 = $('#addOrderForm').serialize();
-        $('#orderNoInput').attr('disabled', 'disabled');
+        var data1 = $('#addForm').serialize();
         $.ajax({
         //几个参数需要注意一下
             cache:false,
@@ -343,7 +274,6 @@
         });
     }
 
-
     function actionFormatter(value, row, index) {
         var id = row.id;
         var data = JSON.stringify(row);
@@ -359,23 +289,20 @@
 
      // getData方法获取全部页面数据后，将data转为json对象，使用index当前行号作为下标获取对应数据
     function EditViewById(index, data){
-        $("#productUpdateSelect option").removeAttr("selected");
+        $("#stationUpdateSelect option").removeAttr("selected");
         //var data = JSON.stringify($("#mytab").bootstrapTable('getData')); //获取全部数据
         //var data_json = JSON.parse(data); //data_json和data_json2一样都是json对象
         //由于data2已经是对象了，alert不能显示对象只能显示为[object Object],需要控制台打印
-        {#alert(data_json[0]); #}
         //根据index找到对应行数据，填充数据到修改模态框
         $("#idUpdateInput").val(data.id);
-        $("#orderNoUpdateInput").val(data.order_no);
-        $("#productUpdateSelect").find("option:contains('" + data.erp_no + "')").each(function(){
+        $("#psNameUpdateInput").val(data.step_name);
+        $("#stationUpdateSelect").find("option:contains('" + data.station + "')").each(function(){
                      $(this).attr('selected', true);});
-        $("#quantityUpdateInput").val(data.quantity);
-        $("#diliveryUpdateInput").val(data.delivery_time);
-        $("#statusUpdateSelect").val(data.order_status);
-        $("#startUpdateInput").val(data.start_time);
-        $("#endUpdateInput").val(data.end_time);
+        if (data.process_lock){
+            $("#lockUpdateInput").attr('checked', true);
+        }
 
-        $('#updateOrderModal').modal('show');
+        $('#updateModal').modal('show');
     }
 
 
@@ -437,7 +364,7 @@
                 field: 'no',
                 title: '序号',
                 align: "center",
-                width: "5%",
+                width: "10%",
                 formatter: function (value, row, index) {
                     //获取每页显示的数量
                     var pageSize=$('#mytab').bootstrapTable('getOptions').pageSize;
@@ -450,13 +377,13 @@
             {
                 field: 'step_name',
                 title:'工序名称',
-                width: '10%',
+                width: '15%',
                 sortable: true,
             },
             {
                 field: 'station',
                 title:'工站',
-                width: '10%',
+                width: '15%',
                 sortable: true,
             },
             {
@@ -477,13 +404,13 @@
             {
                 field: 'c_time',
                 title:'创建时间',
-                width: '15%',
+                width: '20%',
                 sortable: true,
             },
             {
                 field: 'm_time',
                 title:'修改时间',
-                width: '15%',
+                width: '20%',
                 sortable: true,
             },
             {

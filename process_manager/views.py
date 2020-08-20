@@ -1,3 +1,5 @@
+import json
+
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.db.models import Q
@@ -12,6 +14,7 @@ from process_manager.models import ProcessStep
 def ps_index(request):
     stations = Station.objects.all()
     return render(request, 'process_manager/ps_index.html', locals())
+
 
 def getPSData(request):
     if request.method == "GET":
@@ -61,16 +64,15 @@ def addPSData(request):
     if request.method == "POST":
         name = request.POST.get('psNameInput')
         station_id = request.POST.get('stationSelect')
-        lock = request.POST.get('lockInput')
+        
+        if request.POST.get('lockInput') == 'on':
+            lock = True
+        else:
+            lock = False
+
         try:
-            # cate_str = ''
-            # for choice in category_choice:
-            #     if int(category_id) == choice[0]:
-            #         cate_str = choice[1]
-            #         break
-            # station_no = genStationNo(cate_str)
-            # Station.objects.create(station_no=station_no, station_name=name,
-            #                        station_category=category_id, remarks=remarks)
+            station = Station.objects.get(id=station_id)
+            ProcessStep.objects.create(step_name=name, station=station, process_lock=lock)
         except Exception as e:
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
             return JsonResponse(return_dict)
@@ -78,6 +80,28 @@ def addPSData(request):
         return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
         return JsonResponse(return_dict)
 
+
+def updatePSData(request):
+    if request.method == "POST":
+        id = request.POST.get('idUpdateInput')
+        step_name = request.POST.get('psNameUpdateInput')
+        station_id = request.POST.get('stationUpdateSelect')
+        if request.POST.get('lockUpdateInput') == 'on':
+            lock = True
+        else:
+            lock = False
+        try:
+            station = Station.objects.get(id=station_id)
+            step = ProcessStep.objects.get(id=id)
+            step.step_name = step_name
+            step.station = station
+            step.process_lock = lock
+            step.save()
+            return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
+            return JsonResponse(return_dict)
+        except Exception as e:
+            return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
+            return JsonResponse(return_dict)
 
 
 def pr_index(request):
@@ -87,5 +111,14 @@ def pr_index(request):
 
 def pr_detail(request, product_id): 
     product = ProductModel.objects.get(pk=product_id)
-    stations = Station.objects.all()
+    steps = ProcessStep.objects.all()
     return render(request, "process_manager/pr_detail.html", locals())
+
+
+def pr_edit(request, product_id):
+    if request.method == "POST":
+        print(request.body)
+        receive_data = json.loads(request.body.decode())
+        print(receive_data[0])
+    return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
+    return JsonResponse(return_dict)

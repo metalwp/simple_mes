@@ -35,8 +35,8 @@
                                             <div class="list-box flex-child col-xs-5">
                                                 <div class="list-header">待选工站</div>
                                                 <ul id="leftUl">
-                                                    {% for station in stations %}
-                                                        <li>{{ station.station_no }} {{station.station_name}}</li>
+                                                    {% for step in steps %}
+                                                        <li>{{step.step_name}}</li>
                                                     
                                                     {% endfor %}
                                                 </ul>
@@ -68,7 +68,7 @@
                                     </div>
                                     <div style="margin-top:50px;text-align:right;" class="col-xs-10">
                                             <button class="btn btn-primary" onclick="getItems()">提交</button>
-                                            <button class="btn btn-warning" onclick="getItems()">取消</button>
+                                            <button class="btn btn-warning" onclick="#">取消</button>
                                     </div>
                                     </body>
                             </div>
@@ -87,8 +87,6 @@
 <link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
 <script src="{% static 'js/toastr.min.js' %}"></script>
 <script src="{% static 'js/jquery.cookie.js' %}"></script>
-
-
 
 <script>
     toastr.options = {
@@ -167,12 +165,15 @@
 		$(".list-tool-indiv .fa.down").click(goDown);
 		$(".list-tool-indiv .fa.left").click(goLeft);
 		//添加选项
-		{% comment %} addItem("#rightUl",{title:'模块五'});
+        {% comment %} 
+        addItem("#rightUl",{title:'模块五'});
 		addItem("#rightUl",{title:'模块六'});
 		addItem("#leftUl",{title:'模块一'});
 		addItem("#leftUl",{title:'模块二'});
 		addItem("#leftUl",{title:'模块三'});
-		addItem("#leftUl",{title:'模块四'}); {% endcomment %}
+		addItem("#leftUl",{title:'模块四'}); 
+         {% endcomment %}
+       
 	})
 	function addItem(ul,item){
 		//添加选项时绑定事件
@@ -180,26 +181,39 @@
 	}
     function getItems(){
 		var list = [];
-        $("#leftUl li").each(function(i,o){
-            var obj = {};
-			//自定义参数
-            obj.moduleId = $(o).attr('moduleid');
-			//是否可见
-            obj.seen = -1;
-			//排序
-            obj.seq = i+1;
-            list.push(obj);
-        });
         $("#rightUl li").each(function(i,o){
             var obj = {};
-            obj.moduleId = $(o).attr('moduleid');
+            obj.step_name = $(this).text()
             obj.seen = 1;
             obj.seq = i+1;
             list.push(obj);
         });
-		console.log(list);
-		alert(JSON.stringify(list));
-		return list;
+        console.log(list);
+        console.log(JSON.stringify(list));
+        $.ajax({
+            //几个参数需要注意一下
+                cache:false,
+                type: "POST",//方法类型
+                contentType : "application/json",
+                dataType: "json",//预期服务器返回的数据类型
+                url: "edit" , //url
+                headers:{"X-CSRFToken":$.cookie("csrftoken")},
+                data: JSON.stringify(list) ,//将模态框的form表单数据序列化，以便提交到后台
+                async:true,  //必须要为false,必须必须
+
+                success: function (data) {
+                    
+                    if(data.ret){
+                        toastr.success('提交数据成功');
+                    }
+                    else{
+                        toastr.error('错误：' + data.errMsg);
+                    }
+                },
+                error : function(data) {
+                    toastr.error("输入数据有误！");
+                }
+            }); 
 	}
     
 
