@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'product_manager',
     'query_system',
     'station_manager',
+    'manufacturing',
 ]
 
 MIDDLEWARE = [

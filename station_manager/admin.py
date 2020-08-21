@@ -5,3 +5,5 @@ from . import models
 
 
 admin.site.register(models.Station)
+admin.site.register(models.Fixture)
+admin.site.register(models.TestStandard)
