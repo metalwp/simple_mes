@@ -49,4 +49,4 @@ class MaterialModel(models.Model):
 
 class Inspection(models.Model):
     material_model = models.ManyToManyField(MaterialModel, blank=True, verbose_name='物料型号')
-    num = models.CharField()
+    num = models.CharField('检验编号', max_length=100, unique=True)

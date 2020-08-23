@@ -1,10 +1,12 @@
 from django.db import models
 
+from order_manager.models import Order
+
 # Create your models here.
 
 class Product(models.Model):
     vin = models.CharField('VIN', max_length=30, unique=True, help_text="本行为系统自动创建")
-    order = models.ForeignKey('Order', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='订单')
+    order = models.ForeignKey(Order, on_delete=models.SET_NULL, blank=True, null=True, verbose_name='订单')
     start_time = models.DateTimeField('开始时间')
     end_time = models.DateTimeField('结束时间')
 
