@@ -19,8 +19,8 @@ class Customer(models.Model):
         return self.num + " " + self.name
     
     class Meta:
-        verbose_name = '客户'
-        verbose_name_plural = '客户'
+        verbose_name = '客户信息'
+        verbose_name_plural = '客户信息'
 
 class Order(models.Model):
     order_status_choice = (

@@ -48,5 +48,32 @@ class MaterialModel(models.Model):
 
 
 class Inspection(models.Model):
+    mode_choice = {
+        (0, "无"),
+        (1, "目视"),
+        (2, "测量工具"),
+        (3, "手动设备" ),
+        (4, "自动设备"),}
+
+    category_choice={
+        (0, "无"),
+        (1, "外观"),
+        (2, "功能"),
+        (3, "性能"),}
+
     material_model = models.ManyToManyField(MaterialModel, blank=True, verbose_name='物料型号')
-    num = models.CharField('检验编号', max_length=100, unique=True)
+    num = models.CharField('检验编号', max_length=20, unique=True)
+    name = models.CharField('检验名称', max_length=50, unique=True)
+    category = models.SmallIntegerField('检验类型', choices=category_choice, default=0)
+    mode = models.SmallIntegerField('检验方式', choices=mode_choice, default=0)
+    upper = models.FloatField('上限')
+    lower = models.FloatField('下限')
+    c_time = models.DateTimeField("创建时间", auto_now_add=True)
+    m_time = models.DateTimeField('修改时间', auto_now=True)
+
+    class Meta:
+        verbose_name = '检验项'
+        verbose_name_plural = '检验项'
+
+    def __str__(self):
+        return self.num + ' ' + self.name
