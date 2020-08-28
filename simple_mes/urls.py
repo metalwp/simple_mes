@@ -16,17 +16,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from dashboard import views
-
+from apps.dashboard import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('index/', views.index),
     path('', views.index),
-    path('product_category/', include('product_manager.urls')),
-    path('bom_manager/', include('bom_manager.urls')),
-    path('order_manager/', include('order_manager.urls')),
-    path('station_manager/', include('station_manager.urls')),
-    path('process_manager/', include('process_manager.urls')),
+    path('product_category/', include('apps.product_manager.urls')),
+    path('bom_manager/', include('apps.bom_manager.urls')),
+    path('order_manager/', include('apps.order_manager.urls')),
+    path('station_manager/', include('apps.station_manager.urls')),
+    path('process_manager/', include('apps.process_manager.urls')),
 
 ]

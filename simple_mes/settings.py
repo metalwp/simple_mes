@@ -11,10 +11,16 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import sys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# 将apps的路径加入环境变量
+# sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
+
+# 不生成django自带的auth_user表
+AUTH_USER_MODEL = "account.User"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
@@ -37,15 +43,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'account',
-    'bom_manager',
-    'dashboard',
-    'order_manager',
-    'process_manager',
-    'product_manager',
-    'query_system',
-    'station_manager',
-    'manufacturing',
+    'apps.account',
+    'apps.bom_manager',
+    'apps.product_manager',
+    'apps.process_manager',
+    'apps.station_manager',
+    'apps.order_manager',
+    'apps.Inspection',
+    'apps.manufacturing',
+    'apps.dashboard',
+    'apps.query_system',
 ]
 
 MIDDLEWARE = [
@@ -63,8 +70,7 @@ ROOT_URLCONF = 'simple_mes.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')]
-        ,
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -136,9 +142,7 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
-]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"),]
 
 # 文件上传配置
 UPLOAD_ROOT = os.path.join(BASE_DIR, 'upload')

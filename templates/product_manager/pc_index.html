@@ -78,7 +78,7 @@
                                                         <select class="form-control" name="p_name" id="p_name" required="required">
                                                             <option value="">请选择项目</option>
                                                             {% for pc in product_category %}
-                                                            <option value="{{ pc.id }}" hassubinfo="true">{{ pc.category_name }}</option>
+                                                            <option value="{{ pc.id }}" hassubinfo="true">{{ pc.name }}</option>
                                                             {% endfor %}
                                                         </select>
                                                     </div>
@@ -143,7 +143,7 @@
                                             <select class="form-control" name="update_p_name" id="update_p_name" required="required">
                                                 <option value="">请选择项目</option>
                                                 {% for pc in product_category %}
-                                                <option value="{{ pc.id }}" hassubinfo="true">{{ pc.category_name }}</option>
+                                                <option value="{{ pc.id }}" hassubinfo="true">{{ pc.name }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
@@ -240,8 +240,8 @@
                         toastr.success('提交数据成功');
 
                         {#刷新表格数据#}
-                        $("#mytab").bootstrapTable(' ');
-                        window.location.reload()
+                        $('#mytab').bootstrapTable('refresh');
+                        //window.location.reload(); // 页面重新加载
 
                      }
                  },
@@ -264,8 +264,8 @@
             async:true,  //必须要为false,必须必须
 
             success: function (data) {
-                console.log(data);//打印服务端返回的数据(调试用)
-                if(data.status == "success"){
+                console.log(data);
+                if(data.ret === true){
                     {#关闭模态框并清除框内数据，否则下次打开还是上次的数据#}
                     //document.getElementById("add-smoke-form").reset();
                     $('#myaddModal').modal('hide');
@@ -275,11 +275,13 @@
 
                     {#刷新表格数据#}
                     $("#mytab").bootstrapTable('refresh');
-                    window.location.reload();
+                    //window.location.reload();
+                 }else{
+                     toastr.error(data.errMsg);
                  }
              },
             error : function() {
-                toastr.error("输入数据有误！");
+                toastr.error("数据异常！");
              }
         });
     }
