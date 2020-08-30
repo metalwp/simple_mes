@@ -9,11 +9,16 @@ from django.views.generic import ListView, View
 from django.views import View
 
 from apps.product_manager.models import ProductModel
-from .models import Order
+from .models import Order, Customer
 # Create your views here.
 
 
-def index(request):
+def cm_index(request):
+    customer = Customer.objects.all()
+    return render(request, 'order_manager/cm_index.html', locals())
+
+
+def om_index(request):
     orders = Order.objects.all()
     status_choice = Order.order_status_choice
     products = ProductModel.objects.all()

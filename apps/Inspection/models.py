@@ -18,6 +18,7 @@ class GeneralMaterial(BaseModel):
     class Meta:
         verbose_name = '一般物料信息'
         verbose_name_plural = verbose_name
+        db_table = 'sm_general_material'
 
 
 class GMInspectRecord(BaseModel):
@@ -33,6 +34,7 @@ class GMInspectRecord(BaseModel):
     class Meta:
         verbose_name = '一般物料检测项'
         verbose_name_plural = '一般物料检测项'
+        db_table = 'sm_gminspect_record'
 
 
 class TraceMaterial(BaseModel):
@@ -58,6 +60,7 @@ class TraceMaterial(BaseModel):
     class Meta:
         verbose_name = '追溯物料信息'
         verbose_name_plural = verbose_name
+        db_table = 'sm_trace_material'
 
 
 class TMInspectRecord(BaseModel):
@@ -72,9 +75,11 @@ class TMInspectRecord(BaseModel):
     data = models.DecimalField('检验项数据', max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return self.num + ' ' + self.result + ' ' + self.data
+        return self.num + ' ' + str(self.result) + ' ' + self.data
 
     class Meta:
         verbose_name = '追溯物料检测项'
         verbose_name_plural = verbose_name
+        db_table = 'sm_tminspect_record'
+
 

@@ -11,6 +11,7 @@ class BOM(BaseModel):
     remark = models.CharField('备注', max_length=200, null=True, blank=True)        
 
     class Meta:
+        db_table = 'sm_bom'
         verbose_name = 'BOM'
         verbose_name_plural = 'BOM'
 
@@ -32,7 +33,7 @@ class MaterialModel(BaseModel):
     bom = models.ManyToManyField("BOM", blank=True, verbose_name='BOM')
     name = models.CharField('物料名称', max_length=100)
     model = models.CharField('型号描述', max_length=200, blank=True, null=True)
-    erp_no = models.CharField('物料号', max_length=30, unique=True)
+    erp_no = models.CharField('物料号', max_length=30)
     category = models.SmallIntegerField('类别', choices=category_choice, default=0)
     quantity = models.DecimalField('用量', max_digits=10, decimal_places=2)
     is_traced = models.BooleanField("是否追溯", default=False)
@@ -40,12 +41,14 @@ class MaterialModel(BaseModel):
     class Meta:
         verbose_name = '物料型号'
         verbose_name_plural = '物料型号'
+        db_table = 'sm_material_model'
+        unique_together = ('is_delete', 'erp_no')
 
     def __str__(self):
         return self.erp_no + ' ' + self.name
 
 
-class Inspection(models.Model):
+class Inspection(BaseModel):
     mode_choice = (
             (0, "无"),
             (1, "目视"),
@@ -53,15 +56,15 @@ class Inspection(models.Model):
             (3, "手动设备" ),
             (4, "自动设备"))
         
-    category_choice=(
+    category_choice = (
             (0, "无"),
             (1, "外观"),
             (2, "功能"),
             (3, "性能"))
 
     material_model = models.ManyToManyField("MaterialModel", blank=True, verbose_name='物料型号')
-    num = models.CharField('检验编号', primary_key=True, max_length=20, unique=True)
-    name = models.CharField('检验名称', max_length=50, unique=True)
+    num = models.CharField('检验编号', primary_key=True, max_length=20)
+    name = models.CharField('检验名称', max_length=50)
     category = models.SmallIntegerField('检验类型', choices=category_choice, default=0)
     mode = models.SmallIntegerField('检验方式', choices=mode_choice, default=0)
     upper = models.DecimalField('上限', max_digits=10, decimal_places=2)
@@ -70,6 +73,9 @@ class Inspection(models.Model):
     class Meta:
         verbose_name = '检验项'
         verbose_name_plural = '检验项'
+        db_table = 'sm_inspection'
+        unique_together = (('is_delete', 'num'), ('is_delete', 'name'))
 
     def __str__(self):
         return self.num + ' ' + self.name
+

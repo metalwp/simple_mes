@@ -1,0 +1,598 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}订单管理{% endblock %}
+{% block css %}{% endblock %}
+
+{% block breadcrumb %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>订单管理<small>OrderManager</small></h1>
+        <ol class="breadcrumb">
+            <li><a href="#">主页</a></li>
+            <li class="active">订单管理</li>
+        </ol>
+    </section>
+{% endblock %}
+
+{% block content %}
+    <section class="content">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box">
+                        <div class="box-header">
+                            <h3 class="box-title">订单管理</h3>
+                        </div>
+
+
+                        <!-- /.box-header -->
+                        <div class="box-body" >
+                            {#        自定义搜索条件区域#}
+                        <div class="fixed-table-toolbar">
+                            <div class="pull-left search">
+                                <input id="search_keyword" class="form-control" placeholder="请输入名称以查询">
+                            </div>
+
+                            <div class="columns columns-left btn-group pull-left">
+                                <button id="search_button" type="button" class="btn btn-primary">查询</button>
+                            </div>
+                            <div class="columns columns-left btn-group pull-left">
+                                <button id="reset-button" type="button" class="btn btn-primary" onclick="clean()">重置</button>
+                            </div>
+
+                            <!-- 按钮触发模态框 -->
+                            <div class="columns columns-right btn-group pull-right">
+{#                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addOrderModal">新增记录</button>#}
+                                <button type="button" class="btn btn-primary" onclick="showAddModal()">新增记录</button>
+                            </div>
+
+                            <!-- 新增模态框（Modal） -->
+                            <form id="addOrderForm" action="#" method="post" class="form-horizontal" role="form">
+                                <div class="modal fade" id="addOrderModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                                                &times;
+                                                </button>
+                                                <h4 class="modal-title">新增记录</h4>
+                                            </div>
+                                            {# 模态框body #}
+                                            <div class="modal-body" style="height: 100%;">
+
+                                                <div class="form-group">
+                                                    <label for="orderNoInput" class="col-sm-3 control-label" >订单号</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <input type="text" class="form-control"  name="orderNoInput" id="orderNoInput" required="required" disabled="disabled"
+                                                             style="text-align: left">
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="productSelect" class="col-sm-3 control-label" >产品</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <select class="form-control" name="productSelect" id="productSelect" required="required">
+                                                            <option value="">请选择产品</option>
+                                                            {% for product in products %}
+                                                            <option value="{{ product.id }}" hassubinfo="true">{{ product.erp_no }} | {{ product.product_name }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="quantityInput" class="col-sm-3 control-label" >数量</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <input type="number" class="form-control"  name="quantityInput" id="quantityInput" required="required"
+                                                            style="text-align: left">
+                                                    </div>
+                                                </div>
+
+                                              <div class="form-group">
+                                                   <label for="diliveryInput" class="col-sm-3 control-label">计划交付时间</label>
+                                                   <div class='input-group col-sm-7 datetime' id='datetimepicker1'>
+                                                     <input type='text' class="form-control " name="diliveryInput" id="diliveryInput" required="required"
+                                                            style="text-align: left">
+                                                     <span class="input-group-addon" >
+                                                         <span class="glyphicon glyphicon-calendar" style="position: relative; z-index: 9999;"></span>
+                                                     </span>
+                                                   </div>
+                                              </div>
+
+
+                                            </div>
+                                {#            模态框底部#}
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                                <input type="button" data-dissmiss="modal" onclick="add()" class="btn btn-primary"value="提交">
+                                            </div>
+                                        </div><!-- /.modal-content -->
+                                    </div><!-- /.modal -->
+                                </div>
+                            </form>
+
+                            <!-- 修改数据模态框（Modal） -->
+                            <form id="updateOrderForm" action="#" method="post" class="form-horizontal" role="form">
+                                <div class="modal fade" id="updateOrderModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="closeModal()">
+                                                &times;
+                                                </button>
+                                    <h4 class="modal-title">
+                                        修改项目
+                                    </h4>
+                                </div>
+                                {# 模态框body #}
+                                 <div class="modal-body" style="height: 100%;">
+                                    <div class="form-group">
+                                        <div class="input-group col-sm-7">
+                                            <input type="text" class="form-control"  name="idUpdateInput" id="idUpdateInput" required="required" style="text-align: left; display: none;">
+                                        </div>
+                                    </div>
+
+                                     <div class="form-group">
+                                        <label for="orderNoUpdateInput" class="col-sm-3 control-label" >订单号</label>
+                                        <div class="input-group col-sm-7">
+                                            <input type="text" class="form-control"  name="orderNoUpdateInput" id="orderNoUpdateInput" required="required" disabled="disabled"
+                                                placeholder="请输入订单号" style="text-align: left">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="productUpdateSelect" class="col-sm-3 control-label" >产品</label>
+                                        <div class="input-group col-sm-7">
+                                            <select class="form-control" name="productUpdateSelect" id="productUpdateSelect" required="required">
+                                                <option value="">请选择产品</option>
+                                                {% for product in products %}
+                                                <option value="{{ product.id }}" hassubinfo="true">{{ product.erp_no }} | {{ product.product_name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="quantityUpdateInput" class="col-sm-3 control-label" >数量</label>
+                                        <div class="input-group col-sm-7">
+                                            <input type="number" class="form-control"  name="quantityUpdateInput" id="quantityUpdateInput" required="required"
+                                                style="text-align: left">
+                                        </div>
+                                    </div>
+
+                                  <div class="form-group">
+                                       <label for="diliveryUpdateInput" class="col-sm-3 control-label">计划交付时间</label>
+                                       <div class='input-group col-sm-7 date' id='datetimepicker2'>
+                                         <input type='text' class="form-control " name="diliveryUpdateInput" id="diliveryUpdateInput" required="required"
+                                                style="text-align: left">
+                                         <span class="input-group-addon" >
+                                             <span class="glyphicon glyphicon-calendar" style="position: relative; z-index: 9999;"></span>
+                                         </span>
+                                       </div>
+                                  </div>
+                                 <div class="form-group">
+                                        <label for="statusUpdateSelect" class="col-sm-3 control-label" >订单状态</label>
+                                        <div class="input-group col-sm-7">
+                                            <select class="form-control" name="statusUpdateSelect" id="statusUpdateSelect" required="required">
+                                                {% for stats in status_choice %}
+                                                <option value="{{ stats.0 }}" hassubinfo="true">{{ stats.1 }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                  <div class="form-group">
+                                       <label for="startUpdateInput" class="col-sm-3 control-label">开始时间</label>
+                                       <div class='input-group col-sm-7 datetime' id='datetimepicker3'>
+                                         <input type='text' class="form-control " name="startUpdateInput" id="startUpdateInput" required="required"
+                                                style="text-align: left">
+                                         <span class="input-group-addon">
+                                             <span class="glyphicon glyphicon-calendar" style="position: relative; z-index: 9999;"></span>
+                                         </span>
+                                       </div>
+                                  </div>
+                                 <div class="form-group">
+                                       <label for="endUpdateInput" class="col-sm-3 control-label">结束时间</label>
+                                       <div class='input-group col-sm-7 datetime' id='datetimepicker4'>
+                                         <input type='text' class="form-control " name="endUpdateInput" id="endUpdateInput" required="required"
+                                                style="text-align: left">
+                                         <span class="input-group-addon" >
+                                             <span class="glyphicon glyphicon-calendar" style="position: relative; z-index: 9999;"></span>
+                                         </span>
+                                       </div>
+                                  </div>
+
+                                </div>
+                    {#            模态框底部#}
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal" onclick="closeModal()" >关闭</button>
+                                    <input type="button" class="btn btn-primary" onclick="update()" value="提交"/>
+                                </div>
+                            </div><!-- /.modal-content -->
+                        </div><!-- /.modal -->
+                    </div>
+                    {##}
+                    </form>
+
+
+                   {#        bootstrap table自动渲染区域#}
+                    <table id="mytab" class="table table-bordered table-hover"></table>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+{% endblock %}
+
+{% block script %}
+
+<link href="{% static 'css/bootstrap-table.min.css' %}" rel="stylesheet">
+<link href="{% static 'css/bootstrap-datetimepicker.min.css' %}" rel="stylesheet">
+
+<script src="{% static 'js/bootstrap-table.min.js' %}"></script>
+<script src="{% static 'js/bootstrap-table-zh-CN.min.js' %}"></script>
+
+<link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
+<script src="{% static 'js/toastr.min.js' %}"></script>
+<script src="{% static 'js/jquery.cookie.js' %}"></script>
+<script src="{% static 'js/moment-with-locales.js' %}"></script>
+<script src="{% static 'js/bootstrap-datetimepicker.min.js' %}"></script>
+
+<script>
+    $('#addOrderModal').on('shown.bs.modal', function () {
+        $('#datetimepicker1').datetimepicker({
+        format: 'YYYY-MM-DD',
+        //format: 'YYYY-MM-DD hh:mm',
+        locale: moment.locale('zh-cn'),
+        defaultDate: "",
+        });
+    });
+    $('#updateOrderModal').on('shown.bs.modal', function () {
+        $('.date').datetimepicker({
+        format: 'YYYY-MM-DD',
+        //format: 'YYYY-MM-DD hh:mm',
+        locale: moment.locale('zh-cn'),
+        defaultDate: "",
+        });
+    });
+    $('#updateOrderModal').on('shown.bs.modal', function () {
+        $('.datetime').datetimepicker({
+        format: 'YYYY-MM-DD-hh:mm:ss',
+        //format: 'YYYY-MM-DD hh:mm',
+        locale: moment.locale('zh-cn'),
+        defaultDate: "",
+        });
+    });
+
+    toastr.options = {
+        closeButton: true,
+        debug: true,
+        progressBar: true,
+        positionClass: "toast-top-center",
+        onclick: null,
+        showDuration: "300",
+        hideDuration: "1000",
+        timeOut: "2000",
+        extendedTimeOut: "1000",
+        showEasing: "swing",
+        hideEasing: "linear",
+        showMethod: "fadeIn",
+        hideMethod: "fadeOut",
+    };
+
+    {#$("#addOrderModal").on("hidden.bs.modal", function() {#}
+    {#    document.getElementById("addOrderForm").reset();#}
+    {#    });#}
+    $("#updateOrderModal").on("hidden.bs.modal", function() {
+        document.getElementById("updateOrderForm").reset();
+        });
+
+    function closeModal() {
+        $("#updateOrderModal option:selected").each(function () {
+            $(this).attr("selected", false);
+        })
+    }
+
+    function showAddModal() {
+        $.ajax(
+            {
+                //几个参数需要注意一下
+                cache:false,
+                type: "GET",//方法类型
+                dataType: "json",//预期服务器返回的数据类型
+                url: "{% url 'order_manager:getOrderNo' %}" ,//url
+                //headers:{"X-CSRFToken":$.cookie("csrftoken")},
+                //data: $('#updateOrderForm').serialize(), //将模态框的form表单数据序列化，以便提交到后台
+                processData: false,// 不加会报错
+                //contentType: false,// 不加会报错
+                async:true,  //必须要为false,必须必须
+
+                success: function (data) {
+                     if(data.ret){
+                        document.getElementById("addOrderForm").reset();
+                        $("#orderNoInput").val(data.order_num)
+                        $('#addOrderModal').modal('show');
+                     }else {
+                        toastr.error('错误：' + ret.data);
+                        }
+                     },
+                error : function(data) {
+                        toastr.error("输入数据有误！");
+                     }
+                    });
+    }
+
+    function update(){
+        $.ajax(
+            {
+                //几个参数需要注意一下
+                cache:false,
+                type: "POST",//方法类型
+                dataType: "json",//预期服务器返回的数据类型
+                url: "{% url 'order_manager:updateOrderData' %}" ,//url
+                headers:{"X-CSRFToken":$.cookie("csrftoken")},
+                data: $('#updateOrderForm').serialize(), //将模态框的form表单数据序列化，以便提交到后台
+                processData: false,// 不加会报错
+                //contentType: false,// 不加会报错
+                async:true,  //必须要为false,必须必须
+
+                success: function (data) {
+                    $('#updateOrderModal').modal('hide');
+                    document.getElementById("updateOrderForm").reset();
+                    $("#mytab").bootstrapTable('refresh');
+                    if(data.ret){
+                        toastr.success('提交数据成功');
+                     }else {
+                    toastr.error('错误：' + data.errMsg);
+                        }
+                     },
+                error : function(data) {
+                        toastr.error("输入数据有误！");
+                     }
+                    });
+        }
+    
+    function add() {
+        $('#orderNoInput').removeAttr('disabled');
+        var data1 = $('#addOrderForm').serialize();
+        $('#orderNoInput').attr('disabled', 'disabled');
+        $.ajax({
+        //几个参数需要注意一下
+            cache:false,
+            type: "POST",//方法类型
+            dataType: "json",//预期服务器返回的数据类型
+            url: "{% url 'order_manager:addOrderData' %}" ,//url
+            headers:{"X-CSRFToken":$.cookie("csrftoken")},
+            data: data1, //将模态框的form表单数据序列化，以便提交到后台
+            async:true,  //必须要为false,必须必须
+
+            success: function (data) {
+                $('#addOrderModal').modal('hide');
+                document.getElementById("addOrderForm").reset();
+                $("#mytab").bootstrapTable('refresh');
+                if(data.ret){
+                    toastr.success('提交数据成功');
+                 }
+                else{
+                    toastr.error('错误：' + data.errMsg);
+                }
+             },
+            error : function(data) {
+                toastr.error("输入数据有误！");
+             }
+        });
+    }
+
+
+    function actionFormatter(value, row, index) {
+        var id = row.id;
+        var data = JSON.stringify(row);
+        var result = "";
+        {#result += "<a href='javascript:;' class='btn btn-xs green' onclick=\"EditViewById('" + id + "', view='view')\" title='查看'><span class='glyphicon glyphicon-search'></span></a>";#}
+        {#result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"EditViewById('" + JSON.stringify(row) + "','" + id + "')\" title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";#}
+        result += "<a href='javascript:;' class='btn btn-xs blue' onclick=" + "EditViewById(" + index + "," + data + ")" + " title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";
+        //result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"EditViewById('" + index + "','" + data + "')\" title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";
+        {#result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"edit()\" title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";#}
+        result += "<a href='javascript:;' class='btn btn-xs red' onclick=" + "deleteconfirm(" + id + ")" + " title='删除'><span class='glyphicon glyphicon-remove'></span></a>";
+        return result;
+    }
+
+     // getData方法获取全部页面数据后，将data转为json对象，使用index当前行号作为下标获取对应数据
+    function EditViewById(index, data){
+        $("#productUpdateSelect option").removeAttr("selected");
+        //var data = JSON.stringify($("#mytab").bootstrapTable('getData')); //获取全部数据
+        //var data_json = JSON.parse(data); //data_json和data_json2一样都是json对象
+        //由于data2已经是对象了，alert不能显示对象只能显示为[object Object],需要控制台打印
+        {#alert(data_json[0]); #}
+        //根据index找到对应行数据，填充数据到修改模态框
+        $("#idUpdateInput").val(data.id);
+        $("#orderNoUpdateInput").val(data.order_no);
+        $("#productUpdateSelect").find("option:contains('" + data.erp_no + "')").each(function(){
+                     $(this).attr('selected', true);});
+        $("#quantityUpdateInput").val(data.quantity);
+        $("#diliveryUpdateInput").val(data.delivery_time);
+        $("#statusUpdateSelect").val(data.order_status);
+        $("#startUpdateInput").val(data.start_time);
+        $("#endUpdateInput").val(data.end_time);
+
+        $('#updateOrderModal').modal('show');
+    }
+
+
+    // 搜索查询按钮触发事件
+    $(function() {
+        $("#search_button").click(function () {
+            $('#mytab').bootstrapTable(('refresh')); // 很重要的一步，刷新url！
+        })
+    });
+
+    // 重置按钮触发事件
+    function clean(){
+                    //先清空
+                    $('#search_keyword').val('');
+                    //清空后查询条件为空了，再次刷新页面，就是全部数据了
+                    $('#mytab').bootstrapTable(('refresh')); // 很重要的一步，刷新url！
+                }
+
+    $('#mytab').bootstrapTable({
+        url:"{% url 'order_manager:getOrderData' %}",    //请求后台的URL（*）
+        method: 'GET',   //请求方式（*）
+        dataType: "json",
+        uniqueId: 'id',
+        striped: true, //间隔行颜色
+        cache: false,
+        sortName: 'id',
+        sortable: true,
+        sortOrder: 'desc',
+        sidePagination: "server",
+        undefinedText: '--',
+        singleSelect: false,
+        toolbar: '#soft-toolbar',
+        search: false,
+        strictSearch: true,
+        clickToSelect: true,
+        pagination: true,
+        pageNumber: 1,
+        pageSize: 20,
+        pageList: [20, 50, 100],
+        paginationPreText: "上一页",
+        paginationNextText: "下一页",
+        queryParamsType: "",
+        queryParams : function (params){
+            var temp = {
+                pageSize : params.pageSize,
+                pageNumber : params.pageNumber,
+                searchText: params.searchText,
+                sortName: params.sortName,
+                sortOrder: params.sortOrder,
+                search_kw: $('#search_keyword').val(), // 请求时向服务端传递的参数
+            };
+            return temp;
+        },
+        columns: [
+            //{
+                //checkbox: true
+            //},
+            {
+                field: 'no',
+                title: '序号',
+                align: "center",
+                width: "5%",
+                formatter: function (value, row, index) {
+                    //获取每页显示的数量
+                    var pageSize=$('#mytab').bootstrapTable('getOptions').pageSize;
+                    //获取当前是第几页
+                    var pageNumber=$('#mytab').bootstrapTable('getOptions').pageNumber;
+                    //返回序号，注意index是从0开始的，所以要加上1
+                    return pageSize * (pageNumber - 1) + index + 1;
+                }
+            },
+            {
+                field: 'order_no',
+                title:'订单号',
+                width: '10%',
+                sortable: true,
+            },
+            {
+                field: 'erp_no',
+                title:'产品编码',
+                width: '10%',
+                sortable: true,
+            },
+            {
+                field: 'name',
+                title:'产品名称',
+                width: '10%',
+                sortable: true,
+            },
+            {
+                field: 'model',
+                title:'产品型号',
+                width: '10%',
+                sortable: true,
+            },
+            {
+                field: 'quantity',
+                title:'数量',
+                width: '5%',
+                sortable: true,
+            },
+            {
+                field: 'delivery_time',
+                title:'计划交付时间',
+                width: '10%',
+                sortable: true,
+            },
+            {
+                field: 'order_status',
+                title:'订单状态',
+                width: '5%',
+                sortable: true,
+                formatter:function (value, row, index) {
+                    var obj = {};
+                    {% for stats in status_choice %}
+                        obj["{{stats.0}}"]= "{{ stats.1 }}";
+                    {% endfor %}
+                    return obj[value];
+                }
+            },
+            {
+                field: 'start_time',
+                title:'开始时间',
+                width: '12%',
+                sortable: true,
+            },
+            {   field: 'end_time',
+                title:'结束时间',
+                width: '12%',
+                sortable: true,
+            },
+            {
+                field: 'operate',
+                title: '操作',
+                align: 'center',
+                valign: 'middle',
+                formatter: actionFormatter,
+            },
+        ],
+        onLoadSuccess: function(data) {
+           },
+        onLoadError: function () {
+            toastr.error("数据加载失败！", "错误提示");
+        },
+        onClickRow: function (row, $element) {
+            //    EditViewById(id, 'view');
+        }
+    });
+
+    function deleteconfirm(id) {
+        var tmp = confirm("确认删除？")
+        if(tmp === true){
+            DeleteByIds(id);
+        }
+    }
+
+    function DeleteByIds(id) {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'order_manager:deleteOrderData' %}",
+            headers:{"X-CSRFToken":$.cookie("csrftoken")},
+            data: {id: id},
+            dataType: "json",
+            success: function (data) {
+                if (data.ret) {
+                    toastr.success("数据删除成功！");
+                    $('#mytab').bootstrapTable('refresh');
+                }else {
+                    toastr.error("数据删除失败！");
+                }
+            },
+            error: function (data) {
+                toastr.error("数据删除失败！")
+            }
+        });
+    }
+
+</script>
+
+{% endblock %}

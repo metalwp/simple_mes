@@ -230,8 +230,8 @@
                 async:true,  //必须要为false,必须必须
 
                 success: function (data) {
-                    console.log(data);//打印服务端返回的数据(调试用)
-                    if(data.status === "success"){
+                    //console.log(data);//打印服务端返回的数据(调试用)
+                    if(data.ret === true){
 
                         {#关闭模态框并清除框内数据，否则下次打开还是上次的数据#}
                         $('#updateModal').modal('hide');
@@ -243,11 +243,13 @@
                         $('#mytab').bootstrapTable('refresh');
                         //window.location.reload(); // 页面重新加载
 
-                     }
-                 },
-                error : function() {
-                    toastr.error("输入数据有误！");
+                     }else{
+                     toastr.error(data.errMsg);
                  }
+             },
+            error : function() {
+                toastr.error("数据异常！");
+             }
             });
     }
     
@@ -264,7 +266,7 @@
             async:true,  //必须要为false,必须必须
 
             success: function (data) {
-                console.log(data);
+                //console.log(data);
                 if(data.ret === true){
                     {#关闭模态框并清除框内数据，否则下次打开还是上次的数据#}
                     //document.getElementById("add-smoke-form").reset();
@@ -275,7 +277,7 @@
 
                     {#刷新表格数据#}
                     $("#mytab").bootstrapTable('refresh');
-                    //window.location.reload();
+                    window.location.reload();
                  }else{
                      toastr.error(data.errMsg);
                  }
@@ -307,14 +309,14 @@
         $("#update_p_name option").removeAttr("selected");
         var data = JSON.stringify($("#mytab").bootstrapTable('getData')); //获取全部数据
         var data_json = JSON.parse(data); //data_json和data_json2一样都是json对象
-        console.log(data_json);
+        //console.log(data_json);
         //由于data2已经是对象了，alert不能显示对象只能显示为[object Object],需要控制台打印
         {#alert(data_json[0]); #}
         //根据index找到对应行数据，填充数据到修改模态框
         $("#update_c_name").val(data_json[index].name);
         $("#update_id").val(data_json[index].id);
         var parent = data_json[index].parent;
-        console.log(parent);
+        //console.log(parent);
         if(parent){
             $("#update_p_name").find("option:contains('" + parent + "')").each(function(){
                   if ($(this).text() === parent) {
@@ -401,13 +403,13 @@
                 }
             },
             {
-                field: 'category_name',
+                field: 'name',
                 title:'名称',
                 width: '15%',
                 sortable: true,
             },
             {
-                field: 'parent_category',
+                field: 'parent',
                 title:'父类',
                 width: '15%',
                 sortable: true,

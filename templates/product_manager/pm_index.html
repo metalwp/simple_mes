@@ -81,11 +81,16 @@
                                                             placeholder="请输入erp号" style="text-align: left">
                                                     </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="bomversionInput" class="col-sm-3 control-label" >BOM版本</label>
+
+                                                 <div class="form-group">
+                                                    <label for="processRouteSelect" class="col-sm-3 control-label" >工艺路线</label>
                                                     <div class="col-sm-7">
-                                                        <input type="text" class="form-control"  name="bomversionInput" id="bomversionInput" required="required"
-                                                            placeholder="请输入BOM版本" style="text-align: left">
+                                                        <select class="form-control" name="processRouteSelect" id="processRouteSelect" required="required">
+                                                            <option value="">请选择工艺路线</option>
+                                                            {% for process_route in process_routes %}
+                                                                <option value="{{ process_route.id }}" hassubinfo="true">{{ process_route.name }}</option>
+                                                            {% endfor %}
+                                                        </select>
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
@@ -94,7 +99,7 @@
                                                         <select class="form-control" name="categorySelect" id="categorySelect" required="required">
                                                             <option value="">请选择类型</option>
                                                             {% for category in categorys %}
-                                                                <option value="{{ category.id }}" hassubinfo="true">{{ category.category_name }}</option>
+                                                                <option value="{{ category.id }}" hassubinfo="true">{{ category.name }}</option>
                                                             {% endfor %}
                                                         </select>
                                                     </div>
@@ -155,10 +160,14 @@
                                                     </div>
                                                 </div>
                                                  <div class="form-group">
-                                                    <label for="bomversionUpdate" class="col-sm-3 control-label" >BOM版本</label>
+                                                    <label for="processRouteSelectUpdate" class="col-sm-3 control-label" >工艺路线</label>
                                                     <div class="col-sm-7">
-                                                        <input type="text" class="form-control"  name="bomversionUpdate" id="bomversionUpdate" required="required"
-                                                            placeholder="请输入BOM版本" style="text-align: left">
+                                                        <select class="form-control" name="processRouteSelectUpdate" id="processRouteSelectUpdate" required="required">
+                                                            <option value="">请选择工艺路线</option>
+                                                            {% for process_route in process_routes %}
+                                                                <option value="{{ process_route.id }}" hassubinfo="true">{{ process_route.name }}</option>
+                                                            {% endfor %}
+                                                        </select>
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
@@ -167,7 +176,7 @@
                                                         <select class="form-control" name="categorySelectUpdate" id="categorySelectUpdate" required="required">
                                                             <option value="">请选择类型</option>
                                                             {% for category in categorys %}
-                                                                <option value="{{ category.id }}" hassubinfo="true">{{ category.category_name }}</option>
+                                                                <option value="{{ category.id }}" hassubinfo="true">{{ category.name }}</option>
                                                             {% endfor %}
                                                         </select>
                                                     </div>
@@ -245,24 +254,26 @@
                 async:true,  //必须要为false,必须必须
 
                 success: function (data) {
-                    console.log(data);//打印服务端返回的数据(调试用)
-                    if(data.status === "success"){
+                console.log(data);//打印服务端返回的数据(调试用)
+                if(data.ret === true){
+                    {#关闭模态框并清除框内数据，否则下次打开还是上次的数据#}
+                    //document.getElementById("add-smoke-form").reset();
+                    $('#newFormUpdate1').modal('hide');
 
-                        {#关闭模态框并清除框内数据，否则下次打开还是上次的数据#}
-                        $('#newFormUpdate1').modal('hide');
+                    {# 判断确实正确入库之后提示#}
+                    toastr.success('提交数据成功');
 
-                        {# 判断确实正确入库之后提示#}
-                        toastr.success('提交数据成功');
+                    {#刷新表格数据#}
+                    $("#productTable").bootstrapTable('refresh');
 
-                        {#刷新表格数据#}
-                        $("#productTable").bootstrapTable('refresh');
-
-                     }
-                 },
-                error : function() {
-                    toastr.error("输入数据有误！");
-                 }
-            });
+                 }else{
+                    toastr.error(data.errMsg);
+                }
+             },
+            error : function() {
+                toastr.error("输入数据有误！");
+             }
+        });
     }
     
     $("#newFormAdd1").on("hidden.bs.modal", function() {
@@ -285,7 +296,7 @@
 
             success: function (data) {
                 console.log(data);//打印服务端返回的数据(调试用)
-                if(data.status == "success"){
+                if(data.ret === true){
                     {#关闭模态框并清除框内数据，否则下次打开还是上次的数据#}
                     //document.getElementById("add-smoke-form").reset();
                     $('#newFormAdd1').modal('hide');
@@ -296,7 +307,9 @@
                     {#刷新表格数据#}
                     $("#productTable").bootstrapTable('refresh');
 
-                 }
+                 }else{
+                    toastr.error(data.errMsg);
+                }
              },
             error : function() {
                 toastr.error("输入数据有误！");
@@ -333,10 +346,19 @@
         $("#nameInputUpdate").val(data_json[index].name);
         $("#modelInputUpdate").val(data_json[index].model);
         $("#erpInputUpdate").val(data_json[index].erp_no);
-        $("#bomversionUpdate").val(data_json[index].bom_version)
+
         var category = data_json[index].category;
-        console.log(category);
-        if(parent){
+        var process_route = data_json[index].process_route;
+        if(process_route){
+            $("#processRouteSelectUpdate").find("option:contains('" + process_route + "')").each(function(){
+                  if ($(this).text() === process_route) {
+                     $(this).attr('selected', true);
+                  }
+                });
+        }else {
+            $("#processRouteSelectUpdate").find("option:contains('请选择项目')").attr('selected', true);
+        }
+        if(category){
             $("#categorySelectUpdate").find("option:contains('" + category + "')").each(function(){
                   if ($(this).text() === category) {
                      $(this).attr('selected', true);
@@ -427,20 +449,20 @@
                 sortable: true,
             },
             {
-                field: 'product_name',
+                field: 'name',
                 title:'名称',
                 width: '10%',
                 sortable: true,
             },
             {
-                field: 'model_name',
+                field: 'model',
                 title:'型号',
                 width: '10%',
                 sortable: true,
             },
             {
-                field: 'bom_version',
-                title:'BOM版本',
+                field: 'process_route',
+                title:'工艺路线',
                 width: '10%',
                 sortable: true,
             },

@@ -7,6 +7,7 @@ from django.db.models import Q
 
 
 from .models import ProductModel, ProductCategory
+from apps.process_manager.models import ProcessRoute
 
 
 # Create your views here.
@@ -14,12 +15,12 @@ from .models import ProductModel, ProductCategory
 
 def pc_index(request):
     product_category = ProductCategory.objects.all()
-
     return render(request, 'product_manager/pc_index.html', locals())
 
 
 def getPcData(request):
     if request.method == 'GET':
+        # 收取前端数据
         pageSize = int(request.GET.get('pageSize'))
         pageNumber = int(request.GET.get('pageNumber'))
         # searchText = request.GET.get('searchText')
@@ -30,9 +31,10 @@ def getPcData(request):
             sort_str = sortName
         else:
             sort_str = '-' + sortName
+
         if not search_kw:
             total = ProductCategory.objects.all().count()
-            categorys = ProductCategory.objects.order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+            categorys = ProductCategory.objects.all().order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
         else:
             categorys = ProductCategory.objects.filter(Q(name__contains=search_kw)).order_by(sort_str) \
                         [(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
@@ -43,11 +45,11 @@ def getPcData(request):
         data = {"total": total, "rows": rows}
         for category in categorys:
             if category.parent:
-                rows.append({'id': category.id, 'category_name': category.name, 'parent_category': category.parent.name,
+                rows.append({'id': category.id, 'name': category.name, 'parent': category.parent.name,
                              'c_time': category.c_time.strftime("%Y-%m-%d %H:%M:%S"), 'm_time': category.m_time.strftime("%Y-%m-%d %H:%M:%S")})
             else:
-                rows.append({'id': category.id, 'category_name': category.name,
-                             'parent_category': None,
+                rows.append({'id': category.id, 'name': category.name,
+                             'parent': None,
                              'c_time': category.c_time.strftime("%Y-%m-%d %H:%M:%S"), 'm_time': category.m_time.strftime("%Y-%m-%d %H:%M:%S")})
         return HttpResponse(json.dumps(data), content_type="application/json")
     else:
@@ -81,32 +83,55 @@ def addPcData(request):
 
 def updatePcData(request):
     if request.method == "POST":
+        # 收取前端数据
         id = request.POST.get('update_id')
         c_name = request.POST.get('update_c_name')
         p_id = request.POST.get('update_p_name')
+
+        # 校验数据有效性
+        if not c_name:
+            return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
+
+        # 业务处理
         if p_id:
             parent = get_object_or_404(ProductCategory, id=p_id)
-            pc, created = ProductCategory.objects.update_or_create(id=id, defaults={'name': c_name,
-                                                                                    'parent': parent})
         else:
-            pc, created = ProductCategory.objects.update_or_create(id=id,
-                                                                   defaults={'name': c_name,
-                                                                             'parent': None})
-        return HttpResponse(json.dumps({'status': 'success'}))
+            parent = None
+        try:
+            pc, created = ProductCategory.objects.update_or_create(id=id, defaults={'name': c_name,
+                                                                                'parent': parent})
+        except Exception as e:
+            return JsonResponse( {"ret": False, "errMsg": str(e), "rows": [], "total": 0})
+
+        # 返回应答
+        return JsonResponse({"ret": True, "errMsg": '', "rows": [], "total": 0})
 
 
 def deletePcData(request):
-    return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
-    _id = request.POST.get('id')
-    catagory = ProductCategory.objects.get(id=_id)
-    # category = get_object_or_404(ProductCategory, id=_id)
-    catagory.delete()
-    return HttpResponse(json.dumps(return_dict))
+    if request.method == "POST":
+        # 收取前端数据
+        _id = request.POST.get('id')
+
+        # 校验数据有效性
+        if not _id:
+            return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
+
+        # 业务处理
+        try:
+            catagory = ProductCategory.objects.get(id=_id)
+            # category = get_object_or_404(ProductCategory, id=_id)
+            catagory.delete()
+        except Exception as e:
+            return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
+
+        # 返回应答
+        return JsonResponse({"ret": True, "errMsg": '', "rows": [], "total": 0})
 
 
 def pm_index(request):
     products = ProductModel.objects.all()
     categorys = ProductCategory.objects.all()
+    process_routes = ProcessRoute.objects.all()
     return render(request, 'product_manager/pm_index.html', locals())
 
 
@@ -125,22 +150,26 @@ def getPmData(request):
             total = ProductModel.objects.all().count()
             products = ProductModel.objects.order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
         else:
-            products = ProductModel.objects.filter(Q(product_name__contains=search_kw)).order_by(sort_str) \
+            products = ProductModel.objects.filter(Q(name__contains=search_kw)).order_by(sort_str) \
                         [(pageNumber - 1) * pageSize: pageNumber * pageSize]
             # 获取查询结果的总条数
-            total = ProductModel.objects.filter(Q(product_name__contains=search_kw)).order_by(sort_str) \
+            total = ProductModel.objects.filter(Q(name__contains=search_kw)).order_by(sort_str) \
                         [(pageNumber - 1) * pageSize: pageNumber * pageSize].count()
         rows = []
         data = {"total": total, "rows": rows}
         for product in products:
             if product.category:
-                rows.append({'id': product.id, 'erp_no': product.erp_no, 'product_name': product.product_name, 'model_name': product.model_name,
-                             'category': product.category.name, 'bom_version': product.bom_version,
-                             'c_time': product.c_time.strftime("%Y-%m-%d %H:%M:%S"), 'm_time': product.m_time.strftime("%Y-%m-%d %H:%M:%S")})
+                category = product.category.name
             else:
-                rows.append({'id': product.id, 'erp_no': product.erp_no, 'name': product.product_name, 'model': product.model_name,
-                             'category': None, 'bom_version': product.bom_version,
-                             'c_time': product.c_time.strftime("%Y-%m-%d %H:%M:%S"), 'm_time': product.m_time.strftime("%Y-%m-%d %H:%M:%S")})
+                category = None
+            if product.process_route:
+                process_route = product.process_route.name
+            else:
+                process_route = None
+            rows.append({'id': product.id, 'erp_no': product.erp_no, 'name': product.name, 'model': product.model,
+                         'category': category, 'process_route': process_route,
+                         'c_time': product.c_time.strftime("%Y-%m-%d %H:%M:%S"), 'm_time': product.m_time.strftime("%Y-%m-%d %H:%M:%S")})
+
         return HttpResponse(json.dumps(data), content_type="application/json")
     else:
         return HttpResponse('Error!')
@@ -152,55 +181,92 @@ def addPmData(request):
         modal = request.POST.get('modalInput')
         erp_no = request.POST.get('erpInput')
         category_id = request.POST.get('categorySelect')
-        bom_version = request.POST.get('bomversionInput')
+        process_route_id = request.POST.get('processRouteSelect')
 
         if category_id:
-            category = ProductCategory.objects.get(id=category_id)
-            product = ProductModel(product_name=name, model_name=modal, erp_no=erp_no, category=category,
-                                   bom_version=bom_version)
-            product.save()
+            try:
+                category = ProductCategory.objects.get(id=category_id)
+            except Exception as e:
+                return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
         else:
-            product = ProductModel(product_name=name, model_name=modal, erp_no=erp_no, category=None,
-                                   bom_version=bom_version)
-            product.save()
+            category = None
 
-        return HttpResponse(json.dumps({'status': 'success'}))
+        if process_route_id:
+            try:
+                process_route = ProcessRoute.objects.get(id=process_route_id)
+            except Exception as e:
+                return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
+        else:
+            process_route = None
+        try:
+            product = ProductModel(name=name, model=modal, erp_no=erp_no, category=category,
+                                   process_route=process_route)
+            product.save()
+        except Exception as e:
+            return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
+
+        # 返回应答
+        return JsonResponse({"ret": True, "errMsg": '', "rows": [], "total": 0})
 
 
 def updatePmData(request):
     if request.method == "POST":
+        # 收取前端数据
         id = request.POST.get('idInputUpdate')
         name = request.POST.get('nameInputUpdate')
         model = request.POST.get('modelInputUpdate')
         erp_no = request.POST.get('erpInputUpdate')
         category_id = request.POST.get('categorySelectUpdate')
-        bom_version = request.POST.get('bomversionUpdate')
+        process_route_id = request.POST.get('processRouteSelectUpdate')
+        print(request.POST)
 
+        # 校验数据有效性
+        if not all([name, model, erp_no]):
+            return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
+
+        # 业务处理
         if category_id:
             category = get_object_or_404(ProductCategory, id=category_id)
-            pc, created = ProductModel.objects.update_or_create(id=id, defaults={'product_name': name,
-                                                                                 'model_name': model,
+        else:
+            category = None
+
+        if process_route_id:
+            process_route = get_object_or_404(ProcessRoute, id=process_route_id)
+        else:
+            process_route = None
+
+        try:
+            pm, created = ProductModel.objects.update_or_create(id=id, defaults={'name': name,
+                                                                                 'model': model,
                                                                                  'category': category,
                                                                                  'erp_no': erp_no,
-                                                                                 'bom_version': bom_version})
-        else:
-            pc, created = ProductModel.objects.update_or_create(id=id, defaults={'product_name': name,
-                                                                                 'model_name': model,
-                                                                                 'category': None,
-                                                                                 'erp_no': erp_no,
-                                                                                 'bom_version': bom_version})
-        return HttpResponse(json.dumps({'status': 'success'}))
+                                                                                 'process_route': process_route})
+        except Exception as e:
+            return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
+
+        # 返回应答
+        return JsonResponse({"ret": True, "errMsg": '', "rows": [], "total": 0})
 
 
 def deletePmData(request):
-    return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
-    _id = request.POST.get('id')
-    product = ProductModel.objects.get(id=_id)
-    product.delete()
-    return HttpResponse(json.dumps(return_dict))
+    if request.method == "POST":
+        # 收取前端数据
+        _id = request.POST.get('id')
 
+        # 校验数据有效性
+        if not _id:
+            return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
 
+        # 业务处理
+        try:
+            product = ProductModel.objects.get(id=_id)
+            # category = get_object_or_404(ProductCategory, id=_id)
+            product.delete()
+        except Exception as e:
+            return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
 
+        # 返回应答
+        return JsonResponse({"ret": True, "errMsg": '', "rows": [], "total": 0})
 
 
 
