@@ -1,4 +1,5 @@
 import json
+import re
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
@@ -14,7 +15,7 @@ from apps.process_manager.models import ProcessRoute
 
 
 def pc_index(request):
-    product_category = ProductCategory.objects.all()
+    product_category = ProductCategory.objects.filter_without_isdelete()
     return render(request, 'product_manager/pc_index.html', locals())
 
 
@@ -33,13 +34,13 @@ def getPcData(request):
             sort_str = '-' + sortName
 
         if not search_kw:
-            total = ProductCategory.objects.all().count()
-            categorys = ProductCategory.objects.all().order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+            total = ProductCategory.objects.filter_without_isdelete().count()
+            categorys = ProductCategory.objects.filter_without_isdelete().order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
         else:
-            categorys = ProductCategory.objects.filter(Q(name__contains=search_kw)).order_by(sort_str) \
+            categorys = ProductCategory.objects.filter_without_isdelete().filter(Q(name__contains=search_kw)).order_by(sort_str) \
                         [(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
             # 获取查询结果的总条数
-            total = ProductCategory.objects.filter(Q(name__contains=search_kw)).order_by(sort_str) \
+            total = ProductCategory.objects.filter_without_isdelete().filter(Q(name__contains=search_kw)).order_by(sort_str) \
                         [(pageNumber - 1) * pageSize:(pageNumber) * pageSize].count()
         rows = []
         data = {"total": total, "rows": rows}
@@ -129,9 +130,9 @@ def deletePcData(request):
 
 
 def pm_index(request):
-    products = ProductModel.objects.all()
-    categorys = ProductCategory.objects.all()
-    process_routes = ProcessRoute.objects.all()
+    products = ProductModel.objects.filter_without_isdelete()
+    categorys = ProductCategory.objects.filter_without_isdelete()
+    process_routes = ProcessRoute.objects.filter_without_isdelete()
     return render(request, 'product_manager/pm_index.html', locals())
 
 
@@ -147,13 +148,13 @@ def getPmData(request):
         else:
             sort_str = '-' + sortName
         if not search_kw:
-            total = ProductModel.objects.all().count()
-            products = ProductModel.objects.order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+            total = ProductModel.objects.filter_without_isdelete().count()
+            products = ProductModel.objects.filter_without_isdelete().order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
         else:
-            products = ProductModel.objects.filter(Q(name__contains=search_kw)).order_by(sort_str) \
+            products = ProductModel.objects.filter_without_isdelete().filter(Q(name__contains=search_kw)).order_by(sort_str) \
                         [(pageNumber - 1) * pageSize: pageNumber * pageSize]
             # 获取查询结果的总条数
-            total = ProductModel.objects.filter(Q(name__contains=search_kw)).order_by(sort_str) \
+            total = ProductModel.objects.filter_without_isdelete().filter(Q(name__contains=search_kw)).order_by(sort_str) \
                         [(pageNumber - 1) * pageSize: pageNumber * pageSize].count()
         rows = []
         data = {"total": total, "rows": rows}
@@ -182,6 +183,12 @@ def addPmData(request):
         erp_no = request.POST.get('erpInput')
         category_id = request.POST.get('categorySelect')
         process_route_id = request.POST.get('processRouteSelect')
+
+        if not all([name, modal, erp_no]):
+            return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
+        # 校验物料号格式
+        if not re.match(r'^[A-Z]\d{9}V\d{4}A$', erp_no):
+            return JsonResponse({"ret": False, "errMsg": '物料号格式不正确！', "rows": [], "total": 0})
 
         if category_id:
             try:

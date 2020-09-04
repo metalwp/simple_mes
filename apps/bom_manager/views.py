@@ -1,32 +1,28 @@
 import json
 import os
 import xlrd
+import re
 
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 
-
-# from apps.product_manager.models import ProductModel
-from apps.bom_manager.models import MaterialModel
+from apps.product_manager.models import ProductModel
+from apps.bom_manager.models import MaterialModel, BOM, Bom_MaterialModel
 from simple_mes import settings
 
 # Create your views here.
 
 
 def index(request):
-    product = ProductModel.objects.all()
+    products = ProductModel.objects.filter_without_isdelete()
+    # boms = BOM.objects.filter_without_isdelete()
     return render(request, "bom_manager/index.html", locals())
 
 
-def detail(request, product_id):
-    product = ProductModel.objects.get(pk=product_id)
-    categorys = MaterialModel.category_choice
-    return render(request, 'bom_manager/detail.html', locals())
-
-
-def getMaterials(request, product_id):
+def getBomData(request):
+    model = BOM
     if request.method == 'GET':
         pageSize = int(request.GET.get('pageSize'))
         pageNumber = int(request.GET.get('pageNumber'))
@@ -37,29 +33,129 @@ def getMaterials(request, product_id):
             sort_str = sortName
         else:
             sort_str = '-' + sortName
-        product = ProductModel.objects.get(pk=product_id)
+        
         if not search_kw:
-            total = product.materialmodel_set.all().count()
-            materials = product.materialmodel_set.order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+            total = model.objects.filter_without_isdelete().count()
+            objs = model.objects.filter_without_isdelete().order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
         else:
+            objs = model.objects.filter_without_isdelete().filter(Q(product_model__name__contains=search_kw)).order_by(sort_str) \
+                        [(pageNumber - 1) * pageSize: pageNumber * pageSize]
             # 获取查询结果的总条数
-            total = product.materialmodel_set.filter(Q(name__contains=search_kw)).order_by(sort_str) \
-                        [(pageNumber - 1) * pageSize:(pageNumber) * pageSize].count()
-            materials = product.materialmodel_set.filter(Q(name__contains=search_kw)).order_by(sort_str) \
-                        [(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+            total = model.objects.filter_without_isdelete().filter(Q(product_model__name__contains=search_kw)).order_by(sort_str) \
+                        [(pageNumber - 1) * pageSize: pageNumber * pageSize].count()
         rows = []
         data = {"total": total, "rows": rows}
+        for obj in objs:
+            rows.append({"id":obj.id, 'erp_no': obj.product_model.erp_no, 'product_name': obj.product_model.name, 'model_name': obj.product_model.model,
+                         'bom_version': obj.version, 'remark': obj.remark})
+        return JsonResponse(data)
 
-        for material in materials:
-                rows.append({'id': material.id, 'name': material.name,
-                             'model': material.model,  'erp_no': material.erp_no,
-                             'category': material.category, 'quantity': material.quantity,
-                             'is_traced': material.is_traced,
-                             'c_time': material.c_time.strftime("%Y-%m-%d %H:%M:%S"),
-                             'm_time': material.m_time.strftime("%Y-%m-%d %H:%M:%S")})
-        return HttpResponse(json.dumps(data), content_type="application/json")
-    else:
-        return HttpResponse('Error!')
+
+def addBomData(request):
+    model = BOM
+    if request.method == "POST":
+        # 获取前端数据
+        product_id = request.POST.get('productSelect')
+        version = request.POST.get('versionInput')
+        remark = request.POST.get('remarkText')
+
+        # 数据校验
+        if not all([product_id, version]):
+            return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
+        # 校验版本格式
+        if not re.match(r'^V(\d{1,2})\.(\d{3})$', version):
+            return JsonResponse({"ret": False, "errMsg": '版本格式不正确！', "rows": [], "total": 0})
+
+        # 业务逻辑    
+        try:
+            product = ProductModel.objects.get(id = product_id)
+            model.objects.create(product_model=product, version=version, remark=remark)
+        except Exception as e:
+            return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
+            return JsonResponse(return_dict)
+
+        return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
+        #返回响应
+        return JsonResponse(return_dict)
+
+
+def updateBomData(request):
+    model = BOM
+    if request.method == 'POST':
+        id = request.POST.get('u_idInput')
+        product_id = request.POST.get('u_productSelect')
+        version = request.POST.get('u_versionInput')
+        remark = request.POST.get('u_remarkText')
+
+         # 数据校验
+        if not all([id, product_id, version]):
+            return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
+        # 校验版本格式
+        if not re.match(r'^V(\d{1,2})\.(\d{3})$', version):
+            return JsonResponse({"ret": False, "errMsg": '版本格式不正确！', "rows": [], "total": 0})
+
+        try:
+            product = ProductModel.objects.get(id=product_id)
+            mat, created = model.objects.update_or_create(id=id, defaults={"product_model": product,
+                                                                        "version": version, "remark": remark})
+        except Exception as e:
+            return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
+            return JsonResponse(return_dict)
+
+        return_dict = {"ret": True, "errMsg": '', "rows": [], "total": 0}
+        return JsonResponse(return_dict)
+
+
+def deleteBomData(request):
+        model = BOM 
+        return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
+        id = request.POST.get('id')
+        obj = model.objects.get(id=id)
+        obj.delete()
+        return JsonResponse(return_dict)
+
+
+def detail(request, bom_id):
+    bom = BOM.objects.get(id=bom_id)
+    bom_id = bom_id
+    product = bom.product_model
+    categorys = MaterialModel.category_choice
+    return render(request, 'bom_manager/detail.html', locals())
+
+
+def get(request, bom_id):
+    if request.method == 'GET':
+        pageSize = int(request.GET.get('pageSize'))
+        pageNumber = int(request.GET.get('pageNumber'))
+        sortName = request.GET.get('sortName')
+        sortOrder = request.GET.get('sortOrder')
+        search_kw = request.GET.get('search_kw')
+        if sortOrder == 'asc':
+            sort_str = sortName
+        else:
+            sort_str = '-' + sortName
+
+        bom = BOM.objects.get(pk=bom_id)
+        if not search_kw:
+            total = bom.bom_materialmodel_set.all().count()
+            ships = bom.bom_materialmodel_set.all().order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+        else:
+            total = bom.bom_materialmodel_set.filter(Q(material_model_name__contains=search_kw)).count()
+            ships = bom.bom_materialmodel_set.filter(Q(material_model_name__contains=search_kw)).order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+        rows = []
+        for ship in ships:
+            rows.append({'id': ship.material_model.id, 
+                                        'name': ship.material_model.name,
+                                        'model': ship.material_model.model,  
+                                        'erp_no': ship.material_model.erp_no,
+                                        'category': ship.material_model.category, 
+                                        'quantity': ship.quantity,
+                                        'is_traced': ship.is_traced,
+                                        'c_time': ship.material_model.c_time.strftime("%Y-%m-%d %H:%M:%S"),
+                                        'm_time': ship.material_model.m_time.strftime("%Y-%m-%d %H:%M:%S")})
+   
+        data = {"total": total, "rows": rows}
+        return JsonResponse(data)
 
 
 def writeToDB(filename, product_id):
@@ -134,32 +230,57 @@ def upload(request, product_id):
         return HttpResponse(json.dumps(return_dict))
 
 
-def delete(request, product_id):
+def delete(request, bom_id):
+    bom = BOM.objects.get(id=bom_id)
+    material_id = request.POST.get('id') # 获取的物料id
+    ships = Bom_MaterialModel.objects.filter(bom__id=bom_id, material_model__id=material_id)
+    if len(ships)==1:
+        ships[0].delete()
+    else:
+        return_dict = {"ret": False, "errMsg": '该物料查询异常！', "rows": [], "total": 0}
+        return JsonResponse(return_dict)
+
     return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
-    _id = request.POST.get('id')
-    material = MaterialModel.objects.get(id=_id)
-    material.delete()
-    return HttpResponse(json.dumps(return_dict))
+    return JsonResponse(return_dict)
 
 
-def add(request, product_id):
+def add(request, bom_id):
     if request.method == "POST":
         name = request.POST.get('nameInput')
         model = request.POST.get('modelText')
-        if request.POST.get('categorySelect'):
-            category = int(request.POST.get('categorySelect'))
+        category = request.POST.get('categorySelect')
+        erp_no = request.POST.get('erpInput')
+        quantity = request.POST.get('quantityInput')
+        trace = request.POST.get('traceInput')
+
+        # 数据校验
+        if not all([name, model, category, erp_no, quantity]):
+            return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
+        # 校验物料号格式
+        if not re.match(r'^[A-Z]\d{9}V\d{4}A$', erp_no):
+            return JsonResponse({"ret": False, "errMsg": '物料号格式不正确！', "rows": [], "total": 0})
+        if float(quantity) < 1:
+            return JsonResponse({"ret": False, "errMsg": '用量应大于1 ！', "rows": [], "total": 0})
+
+        if category:
+            category = int(category)
         else:
             category = 0
-        erp_no = request.POST.get('erpInput')
         quantity = float(request.POST.get('quantityInput'))
-        if request.POST.get('traceInput') == 'on':
+        if trace == 'on':
             is_traced = True
         else:
             is_traced = False
-        product = ProductModel.objects.get(pk=product_id)
+
         try:
-            MaterialModel.objects.create(name=name, model=model, category=category, erp_no=erp_no,
-                                        quantity=quantity, is_traced=is_traced, product_model=product)
+            obj = MaterialModel.objects.get(erp_no=erp_no)
+        except MaterialModel.DoesNotExist:
+            obj = None
+        try:
+            bom = BOM.objects.get(pk=bom_id)
+            if not obj:
+                obj = MaterialModel.objects.create(name=name, model=model, category=category, erp_no=erp_no)
+            obj.bom.add(bom)
         except Exception as e:
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
             return HttpResponse(json.dumps(return_dict))
@@ -167,30 +288,46 @@ def add(request, product_id):
         return HttpResponse(json.dumps(return_dict))
 
 
-def update(request, product_id):
+def update(request, bom_id):
     if request.method == "POST":
-        id = request.POST.get('idUpdateInput')
-        name = request.POST.get('nameUpdateInput')
-        model = request.POST.get('modelUpdateText')
-        if request.POST.get('categoryUpdateSelect'):
-            category = int(request.POST.get('categoryUpdateSelect'))
+        id = request.POST.get('u_idInput')
+        name = request.POST.get('u_nameInput')
+        model = request.POST.get('u_modelText')
+        category = request.POST.get('u_categorySelect')
+        erp_no = request.POST.get('u_erpInput')
+        quantity = request.POST.get('u_quantityInput')
+        trace = request.POST.get('u_traceInput')
+        
+        # 数据校验
+        if not all([id, name, model, category, erp_no, quantity]):
+            return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
+        # 校验物料号格式
+        if not re.match(r'^[A-Z]\d{9}V\d{4}A$', erp_no):
+            return JsonResponse({"ret": False, "errMsg": '物料号格式不正确！', "rows": [], "total": 0})
+        if float(quantity) < 1:
+            return JsonResponse({"ret": False, "errMsg": '用量应大于1 ！', "rows": [], "total": 0})
+        
+        if request.POST.get('u_categorySelect'):
+            category = int(request.POST.get('u_categorySelect'))
         else:
             category = 0
-        erp_no = request.POST.get('erpUpdateInput')
-        quantity = float(request.POST.get('quantityUpdateInput'))
-        if request.POST.get('traceUpdateInput') == 'on':
+        quantity = float(quantity)
+        if trace == 'on':
             is_traced = True
         else:
             is_traced = False
-
         try:
-            mat, created = MaterialModel.objects.update_or_create(id=id, defaults={"name": name, "model": model,
-                                                                               "erp_no": erp_no, "category": category,
-                                                                               "quantity": quantity, "is_traced": is_traced})
+            obj = MaterialModel.objects.get(id=id)
+            obj.name = name
+            obj.model = model
+            obj.category = category
+            obj.erp_no = erp_no
+            obj.quantity = quantity
+            obj.is_traced = is_traced
+            obj.save()
         except Exception as e:
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
             return HttpResponse(json.dumps(return_dict))
-
         return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
         return HttpResponse(json.dumps(return_dict))
 

@@ -3,11 +3,14 @@ from django.db import models
 
 class MyManager(models.Manager):
     # 父类先声明,继承的是 models.Manager 类,需要重写 filter 方法
-    '''使用继承,重写原来类的方法,进行改进函数时,考虑类的继承'''
-    def get_queryset(self):
-        '''使 filter 自动具有保留 is_delete 为 0 的功能,is_delete 为 1 的自动过滤掉'''
+    #'''使用继承,重写原来类的方法,进行改进函数时,考虑类的继承'''
+    # def get_queryset(self):
+        # '''使 filter 自动具有保留 is_delete 为 0 的功能,is_delete 为 1 的自动过滤掉'''
         # 对父类的方法进行修改,将 is_delete 为 0 的留下
-        return super(MyManager, self).get_queryset().filter(is_delete=False)
+        # return super(MyManager, self).get_queryset().filter(is_delete=False)
+
+    def filter_without_isdelete(self):
+        return super().get_queryset().filter(is_delete=False)
 
     # def create(self,a_name = "Pandas"):
     #     # 默认创建一个熊猫

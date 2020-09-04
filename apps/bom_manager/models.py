@@ -30,13 +30,14 @@ class MaterialModel(BaseModel):
         (5, '塑料标件'),
         (6, '塑料零件'),
         (7, '其他'),)
-    bom = models.ManyToManyField("BOM", blank=True, verbose_name='BOM')
+        
+    bom = models.ManyToManyField("BOM", through='Bom_MaterialModel')
     name = models.CharField('物料名称', max_length=100)
     model = models.CharField('型号描述', max_length=200, blank=True, null=True)
     erp_no = models.CharField('物料号', max_length=30)
     category = models.SmallIntegerField('类别', choices=category_choice, default=0)
-    quantity = models.DecimalField('用量', max_digits=10, decimal_places=2)
-    is_traced = models.BooleanField("是否追溯", default=False)
+    # quantity = models.DecimalField('用量', max_digits=10, decimal_places=2) # 使用自定义中间表
+    # is_traced = models.BooleanField("是否追溯", default=False) # 使用自定义中间表
 
     class Meta:
         verbose_name = '物料型号'
@@ -46,6 +47,16 @@ class MaterialModel(BaseModel):
 
     def __str__(self):
         return self.erp_no + ' ' + self.name
+
+
+class Bom_MaterialModel(models.Model):
+    bom = models.ForeignKey("BOM", on_delete=models.CASCADE)
+    material_model = models.ForeignKey("MaterialModel", on_delete=models.CASCADE)
+    quantity = models.DecimalField('用量', max_digits=10, decimal_places=2)
+    is_traced = models.BooleanField("是否追溯", default=False)
+
+    class Meta:
+        db_table = 'sm_bom_material_model'
 
 
 class Inspection(BaseModel):

@@ -11,7 +11,7 @@ class CustomerManager(MyManager):
     # 新建客户时不会
 
     def create(self, **kwargs):
-        print(kwargs)
+        # print(kwargs)
         kwargs['num'] = self.gen_cumtomer_num()
         return super(CustomerManager, self).create(**kwargs)
         # # 默认创建一个熊猫
@@ -28,10 +28,10 @@ class CustomerManager(MyManager):
         customer = Customer.objects.filter(num__contains="CUST" + date_str).order_by("-c_time").first()
 
         if customer:
-            serial_number = int(customer.num[11:]) + 1 #CUST20200830002
+            serial_number = int(customer.num[12:]) + 1 #CUST20200831002
         else:
             serial_number = 1
-        customer_number = "CUST" + date_str + "{0:03d}".format(serial_number)  # CUST20200830002
+        customer_number = "CUST" + date_str + "{0:03d}".format(serial_number)  # CUST20200831002
         return customer_number
 
 
@@ -55,7 +55,11 @@ class Customer(BaseModel):
         verbose_name = '客户信息'
         verbose_name_plural = '客户信息'
         db_table = 'sm_customer'
-        unique_together = (('is_delete', "num"), ('is_delete', "name"))
+        # unique_together = ('is_delete', "name")
+
+    def save(self, *args, **kwargs):
+        print('SAVED 111111111')
+        return super().save(*args, **kwargs)
 
 
 class Order(BaseModel):
@@ -65,13 +69,13 @@ class Order(BaseModel):
                             (2, '已完成'),
                             (3, '已挂起'),)
 
-    num = models.CharField('订单编号', primary_key=True, max_length=100, unique=True)
+    num = models.CharField('订单编号', primary_key=True, max_length=100)
     status = models.SmallIntegerField('订单状态', choices=order_status_choice, default=0)
     product_model = models.ForeignKey("product_manager.ProductModel", on_delete=models.SET_NULL, blank=True, null=True, verbose_name='产品')
     quantity = models.SmallIntegerField('数量', default=1)
     delivery_time = models.DateField('交付时间')
-    start_time = models.DateTimeField('开始时间', null=True, blank=True)
-    end_time = models.DateTimeField('结束时间', null=True, blank=True)
+    start_time = models.DateTimeField('开始时间', null=True, blank=True) # 系统逻辑自动填写，非人工配置
+    end_time = models.DateTimeField('结束时间', null=True, blank=True) # 系统逻辑自动填写，非人工配置
     customer = models.ForeignKey("Customer", on_delete=models.SET_NULL, null=True, blank=True, verbose_name='客户')
 
     def __str__(self):
@@ -81,7 +85,6 @@ class Order(BaseModel):
         verbose_name = '订单信息'
         verbose_name_plural = '订单信息'
         db_table = 'sm_order'
-        unique_together = ('is_delete', "num")
 
 
 
