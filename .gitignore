@@ -1,6 +1,6 @@
 # venv/
 # .idea/
-# upload/
+upload/
 # */__pycache__/*
 # */migrations/*
 # .vscode/

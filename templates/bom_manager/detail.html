@@ -57,6 +57,7 @@
 
                             <!-- 新增模态框（Modal） -->
                             <form id="addForm" action="#" method="post" class="form-horizontal" role="form">
+                                {% csrf_token %}
                                 <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
@@ -249,7 +250,7 @@ toastr.options = {
 $("#uploadSubmit").click(function(){
     var formdata = new FormData(); //ajax上传文件的时候，需要这个类型，它会将添加给它的键值对加工成formdata的类型
     var token = $("[name='csrfmiddlewaretoken']").val();
-    　　formdata.append("csrfmiddlewaretoken", token); //别忘了csrf_token
+    formdata.append("csrfmiddlewaretoken", token); //别忘了csrf_token
     formdata.append("uploadFile",$("#uploadFile")[0].files[0]);
     $.ajax({
         url:"upload/",
@@ -347,8 +348,8 @@ function add() {
 function actionFormatter(value, row, index) {
     var id = row.id;
     row.url = "{% url 'bom_manager:delete' bom_id%}";
-    delete row['c_time'];
-    delete row['m_time'];
+    delete row['c_time']; //这两个字段的内容影响HTML的解析
+    delete row['m_time']; //这两个字段的内容影响HTML的解析
     var data = JSON.stringify(row);
     var result = "";
     result += "<a href='javascript:;' class='btn btn-xs blue' onclick=" + "EditViewById(" + index + "," + data + ")" + " title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";

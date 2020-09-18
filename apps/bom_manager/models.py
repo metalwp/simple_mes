@@ -21,7 +21,7 @@ class BOM(BaseModel):
 
 
 class MaterialModel(BaseModel):
-    category_choice = (
+    CATEGORY_CHOICE = (
         (0, '无'),
         (1, '钣金零件'),
         (2, '底盘总成'),
@@ -35,9 +35,7 @@ class MaterialModel(BaseModel):
     name = models.CharField('物料名称', max_length=100)
     model = models.CharField('型号描述', max_length=200, blank=True, null=True)
     erp_no = models.CharField('物料号', max_length=30)
-    category = models.SmallIntegerField('类别', choices=category_choice, default=0)
-    # quantity = models.DecimalField('用量', max_digits=10, decimal_places=2) # 使用自定义中间表
-    # is_traced = models.BooleanField("是否追溯", default=False) # 使用自定义中间表
+    category = models.SmallIntegerField('类别', choices=CATEGORY_CHOICE, default=0)
 
     class Meta:
         verbose_name = '物料型号'
@@ -59,34 +57,4 @@ class Bom_MaterialModel(models.Model):
         db_table = 'sm_bom_material_model'
 
 
-class Inspection(BaseModel):
-    mode_choice = (
-            (0, "无"),
-            (1, "目视"),
-            (2, "测量工具"),
-            (3, "手动设备" ),
-            (4, "自动设备"))
-        
-    category_choice = (
-            (0, "无"),
-            (1, "外观"),
-            (2, "功能"),
-            (3, "性能"))
-
-    material_model = models.ManyToManyField("MaterialModel", blank=True, verbose_name='物料型号')
-    num = models.CharField('检验编号', primary_key=True, max_length=20)
-    name = models.CharField('检验名称', max_length=50)
-    category = models.SmallIntegerField('检验类型', choices=category_choice, default=0)
-    mode = models.SmallIntegerField('检验方式', choices=mode_choice, default=0)
-    upper = models.DecimalField('上限', max_digits=10, decimal_places=2)
-    lower = models.DecimalField('下限', max_digits=10, decimal_places=2)
-
-    class Meta:
-        verbose_name = '检验项'
-        verbose_name_plural = '检验项'
-        db_table = 'sm_inspection'
-        unique_together = (('is_delete', 'num'), ('is_delete', 'name'))
-
-    def __str__(self):
-        return self.num + ' ' + self.name
 

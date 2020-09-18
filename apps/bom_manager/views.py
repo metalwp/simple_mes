@@ -119,7 +119,7 @@ def detail(request, bom_id):
     bom = BOM.objects.get(id=bom_id)
     bom_id = bom_id
     product = bom.product_model
-    categorys = MaterialModel.category_choice
+    categorys = MaterialModel.CATEGORY_CHOICE
     return render(request, 'bom_manager/detail.html', locals())
 
 
@@ -158,18 +158,20 @@ def get(request, bom_id):
         return JsonResponse(data)
 
 
-def writeToDB(filename, product_id):
-    product = ProductModel.objects.get(pk=product_id)
+def writeToDB(filename, bom_id):
+    bom = BOM.objects.get(pk=bom_id)
     excel = xlrd.open_workbook(settings.UPLOAD_ROOT + "/" + filename)
     sheet = excel.sheet_by_name('部件清单')
     nrows = sheet.nrows
     ncols = sheet.ncols
-    category_choice = MaterialModel.category_choice
+    category_choice = MaterialModel.CATEGORY_CHOICE
     tmp_list = [x[1] for x in category_choice]
     materials_list = []
     for i in range(1, nrows):
         row = sheet.row_values(i)
         erp_no = row[1].strip()
+        if (not erp_no) or (not re.match(r'^[A-Z]\d{9}V\d{4}A$', erp_no)):
+            raise Exception("excel文档的第" + str(i+1) + "存在异常！")
         name = row[2].strip()
         model = row[3].strip()
         if not row[4].strip():
@@ -199,18 +201,27 @@ def writeToDB(filename, product_id):
             materials_list.append([erp_no, name, model, category, is_traced, quantity])
     for mat in materials_list:
         try:
-            material, created = MaterialModel.objects.update_or_create(erp_no=mat[0], product_model=product,
-                                                               defaults={"bom_version": '-',
-                                                                         "name": mat[1], "model": mat[2],
-                                                                        "category": mat[3], "quantity": mat[5],
-                                                                        "is_traced": mat[4]})
-
+            material, created = MaterialModel.objects.update_or_create(erp_no=mat[0], 
+                                                                                                                                    defaults={"name": mat[1], 
+                                                                                                                                                        "model": mat[2],
+                                                                                                                                                        "category": mat[3]})
         except Exception as e:
             raise e
+        ship = None
+        if not created:
+            try:
+                ship = material.bom_materialmodel_set.get(bom=bom)
+            except Bom_MaterialModel.DoesNotExist:
+                ship = None
+        if ship:
+            ship.quantity = mat[5]
+            ship.is_traced = mat[4]
+            ship.save()
+        else:
+            Bom_MaterialModel.objects.create(bom=bom, material_model=material, quantity=mat[5], is_traced=mat[4])
 
-
-def upload(request, product_id):
-
+        
+def upload(request, bom_id):
     file = request.FILES.get('uploadFile')
 
     if not os.path.exists(settings.UPLOAD_ROOT):
@@ -222,7 +233,7 @@ def upload(request, product_id):
         with open(settings.UPLOAD_ROOT + "/" + file.name, 'wb') as f:
             for i in file.readlines():
                 f.write(i)
-        writeToDB(file.name, product_id)
+        writeToDB(file.name, bom_id)
         return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
         return HttpResponse(json.dumps(return_dict))
     except Exception as e:

@@ -10,8 +10,19 @@ urlpatterns = [
     path('process_step/index/deletePSData', views.deletePSData, name='deletePSData'),
     path('process_step/index/addPSData', views.addPSData, name='addPSData'),
     path('process_step/index/updatePSData', views.updatePSData, name='updatePSData'),
+
+    path('process_step/detail/<int:step_id>/', views.ps_detail, name='ps_detail'),
+    path('process_step/detail/<int:step_id>/getMaterialDate', views.getMaterialDate, name='getMaterialDate'),
+    path('process_step/detail/<int:step_id>/addMaterialDate', views.addMaterialDate, name='addMaterialDate'),
+    path('process_step/detail/<int:step_id>/deleteMaterialDate', views.deleteMaterialDate, name='deleteMaterialDate'),
+
     path('process_route/index/', views.pr_index, name='pr_index'),
-    path('process_route/detail/<int:product_id>/', views.pr_detail, name='pr_detail'),
-    path('process_route/detail/<int:product_id>/edit', views.pr_edit, name='pr_edit'),
+    path('process_route/index/getPRData', views.getPRData, name='getPRData'),
+    path('process_route/index/addPRData', views.addPRData, name='addPRData'),
+    path('process_route/index/deletePRData', views.deletePRData, name='deletePRData'),
+    path('process_route/index/updatePRData', views.updatePRData, name='updatePRData'),
+
+    path('process_route/detail/<int:route_id>/', views.pr_detail, name='pr_detail'),
+    path('process_route/detail/<int:route_id>/edit', views.pr_edit, name='pr_edit'),
 
 ]

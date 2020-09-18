@@ -7,16 +7,16 @@ from db.base_model import BaseModel
 
 class Station(BaseModel):
     """工站"""
-    station_category_choice = (
+    STATION_CATEGORY_CHOICE = (
                                 (0, '无'),
                                 (1, '组装'),
                                 (2, '测试'),
                                 (3, '标定'),
                                 (4, '检验'),
                                 (5, '其他'))
-    num = models.CharField('工站编号', max_length=32, primary_key=True)
+    num = models.CharField('工站编号', unique=True, max_length=32)
     name = models.CharField('工站名称', max_length=100, unique=True)
-    category = models.PositiveSmallIntegerField('工位类型', choices=station_category_choice, default=0)
+    category = models.PositiveSmallIntegerField('工位类型', choices=STATION_CATEGORY_CHOICE, default=0)
     ip_address = models.GenericIPAddressField('IP地址', null=True, blank=True)
     remarks = models.CharField('备注', max_length=100, null=True, blank=True)
 
@@ -24,7 +24,6 @@ class Station(BaseModel):
         verbose_name = '工站信息'
         verbose_name_plural = '工站信息'
         db_table = 'sm_station'
-        unique_together = ('is_delete', "num")
 
     def __str__(self):
         return self.num + ' ' + self.name
@@ -38,15 +37,15 @@ class Station(BaseModel):
 class Fixture(BaseModel):
     """工装信息"""
     station = models.ForeignKey("Station", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="工站")
-    num = models.CharField("工装编号", max_length=20, primary_key=True, unique=True)
-    name = models.CharField("工装名称", max_length=20, unique=True)
+    num = models.CharField("工装编号", unique=True, max_length=20)
+    name = models.CharField("工装名称", unique=True, max_length=20)
     remarks = models.CharField('备注', max_length=100, null=True, blank=True)
 
     class Meta:
         verbose_name = '工装'
         verbose_name_plural = '工装'
         db_table = 'sm_fixture'
-        unique_together = (('is_delete', "num"), ('is_delete', "name"))
+
     
     def __str__(self):
         return self.num + " " + self.name
@@ -67,7 +66,7 @@ class TestStandard(BaseModel):
         verbose_name = '测试标准'
         verbose_name_plural = '测试标准'
         db_table = 'sm_teststandard'
-        unique_together = ('is_delete', 'fixture', 'version', 'num')  # 联合约束
+        unique_together = ( 'fixture', 'version', 'num')  # 联合约束
 
 
 

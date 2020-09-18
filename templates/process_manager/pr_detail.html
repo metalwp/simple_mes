@@ -22,7 +22,7 @@
                 <div class="col-xs-12">
                     <div class="box">
                         <div class="box-header">
-                            <h3 class="box-title">{{ product.product_name}} {{ product.erp_no }}</h3>
+                            <h3 class="box-title">{{ route.name}}</h3>
                         </div>
                                 
 
@@ -33,11 +33,10 @@
                                         <div class="col-xs-1"></div>
                                         <div class="list-tran flex flex-row ">
                                             <div class="list-box flex-child col-xs-5">
-                                                <div class="list-header">待选工站</div>
+                                                <div class="list-header">待选工序</div>
                                                 <ul id="leftUl">
                                                     {% for step in steps %}
-                                                        <li>{{step.step_name}}</li>
-                                                    
+                                                        <li value={{ step.id }}>{{step.name}}</li>
                                                     {% endfor %}
                                                 </ul>
                                             </div>
@@ -57,8 +56,11 @@
 
                                             </div>
                                             <div class="list-box flex-child col-xs-5">
-                                                <div class="list-header">已选工站</div>
+                                                <div class="list-header">已选工序</div>
                                                 <ul id="rightUl">
+                                                    {% for step in selected_steps %}
+                                                        <li value={{ step.id }}>{{step.name}}</li>
+                                                    {% endfor %}
                                                 </ul>
                                             </div>
                                             
@@ -67,8 +69,8 @@
 
                                     </div>
                                     <div style="margin-top:50px;text-align:right;" class="col-xs-10">
-                                            <button class="btn btn-primary" onclick="getItems()">提交</button>
-                                            <button class="btn btn-warning" onclick="#">取消</button>
+                                            <button class="btn btn-primary" onclick=getItems()>提交</button>
+                                            <button class="btn btn-warning" onclick=cancel()>取消</button>
                                     </div>
                                     </body>
                             </div>
@@ -174,22 +176,25 @@
 		addItem("#leftUl",{title:'模块四'}); 
          {% endcomment %}
        
-	})
+	});
+    function cancel() {
+        window.location.href = "{% url 'process_manager:pr_index' %}"
+    }
 	function addItem(ul,item){
 		//添加选项时绑定事件
 		$("<li>"+item.title+"</li>").appendTo($(ul)).click(setActive);
 	}
     function getItems(){
 		var list = [];
-        $("#rightUl li").each(function(i,o){
+        $("#rightUl li").each(function(i){
             var obj = {};
-            obj.step_name = $(this).text()
-            obj.seen = 1;
+            obj.step_name = $(this).text();
+            obj.step_id = $(this).val();
+            //obj.seen = 1;
             obj.seq = i+1;
             list.push(obj);
         });
         console.log(list);
-        console.log(JSON.stringify(list));
         $.ajax({
             //几个参数需要注意一下
                 cache:false,
@@ -202,9 +207,9 @@
                 async:true,  //必须要为false,必须必须
 
                 success: function (data) {
-                    
                     if(data.ret){
                         toastr.success('提交数据成功');
+                        window.location.href = "{% url 'process_manager:pr_index' %}";
                     }
                     else{
                         toastr.error('错误：' + data.errMsg);

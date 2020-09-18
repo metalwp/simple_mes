@@ -45,6 +45,7 @@
 
                                 <!-- 新增模态框（Modal） -->
                                 <form id="addForm" action="#" method="post" class="form-horizontal" role="form">
+                                    {% csrf_token %}
                                     <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                                         <div class="modal-dialog">
                                             <div class="modal-content">
@@ -278,7 +279,9 @@ function actionFormatter(value, row, index) {
 
 // getData方法获取全部页面数据后，将data转为json对象，使用index当前行号作为下标获取对应数据
 function EditViewById(index, data){
-    $("#updateModal option:selected").each(function () {$(this).removeAttr("selected");}); 
+    //$("#updateModal option:selected").each(function () {$(this).removeAttr("selected");});
+    $("#u_productSelect option").each(function () {$(this).removeAttr("selected");});
+
     $("#u_idInput").val(data.id);
     $("#u_productSelect").find("option:contains('" + data.erp_no + "')").each(function(){
                     $(this).attr('selected', true);});
@@ -314,19 +317,19 @@ var columns =  [
         {
             field: 'product_name',
             title:'名称',
-            width: '20%',
+            width: '10%',
             sortable: false,
         },
         {
             field: 'model_name',
             title:'型号',
-            width: '20%',
+            width: '10%',
             sortable: false,
         },
         {
             field: 'bom_version',
             title:'BOM版本',
-            width: '20%',
+            width: '10%',
             sortable: true,
         },
         {

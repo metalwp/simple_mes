@@ -1,5 +1,4 @@
 
-
 function tableFresh(columns, urls, pk){
     $('table').bootstrapTable({
         url:urls,    //请求后台的URL（*）
@@ -41,6 +40,55 @@ function tableFresh(columns, urls, pk){
             },
         onLoadError: function () {
             toastr.error("数据加载失败！", "错误提示");
+        },
+        onClickRow: function (row, $element) {
+            //    EditViewById(id, 'view');
+        }
+    });
+}
+
+function tableFresh2(columns, urls, pk){
+    $('table').bootstrapTable({
+        url:urls,    //请求后台的URL（*）
+        method: 'GET',   //请求方式（*）
+        dataType: "json",
+        uniqueId: pk,
+        striped: true, //间隔行颜色
+        cache: false,
+        sortName: pk,
+        sortable: true,
+        sortOrder: 'desc',
+        sidePagination: "server",
+        undefinedText: '--',
+        singleSelect: false,
+        toolbar: '#soft-toolbar',
+        search: false,
+        strictSearch: true,
+        clickToSelect: true,
+        pagination: false,
+        pageNumber: 1,
+        pageSize: 20,
+        pageList: [20, 50, 100],
+        paginationPreText: "上一页",
+        paginationNextText: "下一页",
+        queryParamsType: "",
+        queryParams : function (params){
+            var temp = {
+                // pageSize : params.pageSize,
+                // pageNumber : params.pageNumber,
+                // searchText: params.searchText,
+                // sortName: params.sortName,
+                // sortOrder: params.sortOrder,
+                erp_no: $('#erpInput').val(), // 请求时向服务端传递的参数
+                batch_num:$('#batchInput').val(),
+            };
+            return temp;
+        },
+        columns: columns,
+        onLoadSuccess: function(data) {
+            },
+        onLoadError: function () {
+            toastr.error('Error')
         },
         onClickRow: function (row, $element) {
             //    EditViewById(id, 'view');

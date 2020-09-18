@@ -27,5 +27,6 @@ urlpatterns = [
     path('order_manager/', include('apps.order_manager.urls')),
     path('station_manager/', include('apps.station_manager.urls')),
     path('process_manager/', include('apps.process_manager.urls')),
+    path('inspection/', include('apps.Inspection.urls')),
 
 ]

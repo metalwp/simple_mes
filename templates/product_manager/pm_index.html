@@ -46,6 +46,7 @@
 
                             <!-- 新增模态框（Modal） -->
                             <form id="newFormAdd" action="#" method="post" class="form-horizontal" role="form">
+                                {% csrf_token %}
                                 <div class="modal fade" id="newFormAdd1" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">

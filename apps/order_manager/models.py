@@ -55,7 +55,6 @@ class Customer(BaseModel):
         verbose_name = '客户信息'
         verbose_name_plural = '客户信息'
         db_table = 'sm_customer'
-        # unique_together = ('is_delete', "name")
 
     def save(self, *args, **kwargs):
         print('SAVED 111111111')

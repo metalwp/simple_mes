@@ -182,13 +182,21 @@ desired effect
               </span>
           </a>
           <ul class="treeview-menu">
-            <li><a href="{% url 'process_manager:ps_index' %}">工序管理</a></li>
-            <li><a href="{% url 'process_manager:pr_index' %}">工艺路线</a></li>
-            <li><a href="#">工艺明细</a></li>
+              <li><a href="{% url 'process_manager:pr_index' %}">工艺路线</a></li>
+              <li><a href="{% url 'process_manager:ps_index' %}">工序管理</a></li>
           </ul>
         </li>
-
-        <li><a href="{% url 'station_manager:index' %}"><i class="fa fa-institution "></i> <span>工站管理</span></a></li>
+        <li class="treeview">
+          <a href="#"><i class="fa fa-automobile"></i> <span>工站&工装</span>
+            <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+              </span>
+          </a>
+          <ul class="treeview-menu">
+            <li><a href="{% url 'station_manager:station_index' %}">工站管理</a></li>
+            <li><a href="{% url 'station_manager:fixture_index' %}">工装管理</a></li>
+          </ul>
+        </li>
         <li class="treeview">
           <a href="#"><i class="fa fa-automobile"></i> <span>客户&订单</span>
             <span class="pull-right-container">
@@ -200,6 +208,21 @@ desired effect
             <li><a href="{% url 'order_manager:om_index' %}">订单管理</a></li>
           </ul>
         </li>
+
+        <li class="treeview">
+          <a href="#"><i class="fa fa-automobile"></i> <span>检验管理</span>
+            <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+              </span>
+          </a>
+          <ul class="treeview-menu">
+            <li><a href="{% url 'Inspection:material_index' %}">检验项配置</a></li>
+            <li><a href="{% url 'Inspection:gminspection_index' %}">一般物料来料检验</a></li>
+            <li><a href="{% url 'Inspection:tminspection_index' %}">追溯物料来料检验</a></li>
+
+          </ul>
+        </li>
+
         <li><a href="#"><i class="fa fa-search "></i> <span>查询系统</span></a></li>
         <li><a href="#"><i class="fa fa-user "></i> <span>用户管理</span></a></li>
       </ul>
@@ -279,11 +302,12 @@ desired effect
      Both of these plugins are recommended to enhance the
      user experience. -->
 <script>
-    $('ul.sidebar-menu li').each(function (i) {
-            if($(this).children().first().attr('href')==='{{ request.path }}'){
+    $('ul.sidebar-menu li').each(function () {
+            if($(this).children().attr('href')==='{{ request.path }}'){
                 $(this).addClass('active');
-            }else {
-
+                $(this).parent().addClass('active');
+                $(this).parent().css({'display':'block'});
+                $(this).parent().parent().addClass('menu-open');
             }
         });
 </script>

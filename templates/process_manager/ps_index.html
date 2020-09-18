@@ -16,37 +16,33 @@
 
 {% block content %}
     <section class="content">
-            <div class="row">
-                <div class="col-xs-12">
-                    <div class="box">
-                        <div class="box-header">
-                            <h3 class="box-title">工序管理</h3>
-                        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div class="box-header">
+                        <h3 class="box-title">工序管理</h3>
+                    </div>
 
-
-                        <!-- /.box-header -->
-                        <div class="box-body" >
-                            {#        自定义搜索条件区域#}
-                        <div class="fixed-table-toolbar">
-                            <div class="pull-left search">
+                    <!-- /.box-header -->
+                    <div class="box-body" >
+                        {#        自定义搜索条件区域#}
+                        <div class="col-xs-12" style="">
+                            <div class="form-inline col-xs-5 ">
                                 <input id="search_keyword" class="form-control" placeholder="请输入名称以查询">
-                            </div>
-
-                            <div class="columns columns-left btn-group pull-left">
                                 <button id="search_button" type="button" class="btn btn-primary">查询</button>
-                            </div>
-                            <div class="columns columns-left btn-group pull-left">
                                 <button id="reset-button" type="button" class="btn btn-primary" onclick="clean()">重置</button>
                             </div>
-
                             <!-- 按钮触发模态框 -->
-                            <div class="columns columns-right btn-group pull-right">
-                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addModal">新增记录</button>
-                                {% comment %} <button type="button" class="btn btn-primary" onclick="showAddModal()">新增</button> {% endcomment %}
+                            <div class="pull-right ">
+                                    <div class="form-group">
+                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addModal">新增记录</button>
+                                    </div>
                             </div>
+                        </div>
 
                             <!-- 新增模态框（Modal） -->
                             <form id="addForm" action="#" method="post" class="form-horizontal" role="form">
+                                {% csrf_token %}
                                 <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
@@ -60,29 +56,35 @@
                                             <div class="modal-body" style="height: 100%;">
 
                                                 <div class="form-group">
-                                                    <label for="psNameInput" class="col-sm-3 control-label" >工序名</label>
+                                                    <label for="nameInput" class="col-sm-3 control-label" >工序名</label>
                                                     <div class="input-group col-sm-7">
-                                                        <input type="text" class="form-control"  name="psNameInput" id="psNameInput" required="required" 
+                                                        <input type="text" class="form-control"  name="nameInput" id="nameInput" required="required"
                                                              style="text-align: left">
                                                     </div>
                                                 </div>
-
                                                 <div class="form-group">
-                                                    <label for="stationSelect" class="col-sm-3 control-label" >工站</label>
+                                                    <label for="fixtureSelect" class="col-sm-3 control-label" >工站</label>
                                                     <div class="input-group col-sm-7">
-                                                        <select class="form-control" name="stationSelect" id="stationSelect" required="required">
-                                                            <option value="">请选择工站</option>
-                                                            {% for station in stations %}
-                                                            <option value="{{ station.id }}" hassubinfo="true">{{ station.station_no }} | {{ station.station_name }}</option>
+                                                        <select class="form-control" name="fixtureSelect" id="fixtureSelect" required="required">
+                                                            <option value="">请选择工装</option>
+                                                            {% for fixture in fixtures %}
+                                                            <option value="{{ fixture.id }}" hassubinfo="true">{{ fixture.name }}</option>
                                                             {% endfor %}
                                                         </select>
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="lockInput" class="col-sm-3 control-label" >工序互锁</label>
+                                                    <label for="lockInput" class="col-sm-3 control-label">工序互锁</label>
                                                     <div class="input-group col-sm-7">
-                                                        <input type="checkbox" class="checkbox checkbox-inline"  name="lockInput" id="lockInput" required="required"
+                                                        <input type="checkbox" class="checkbox checkbox-inline"  name="lockInput" id="lockInput"
                                                             style="text-align: left">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="remarkText" class="col-sm-3 control-label" >备注</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <textarea class="form-control" name="remarkText" id="remarkText"
+                                                                  placeholder="请输入备注信息..." style="text-align: left"></textarea>
                                                     </div>
                                                 </div>
 
@@ -114,36 +116,41 @@
                                  <div class="modal-body" style="height: 100%;">
                                     <div class="form-group">
                                         <div class="input-group col-sm-7">
-                                            <input type="text" class="form-control"  name="idUpdateInput" id="idUpdateInput" required="required" style="text-align: left; display: none;">
+                                            <input type="text" class="form-control"  name="u_idInput" id="u_idInput" required="required" style="text-align: left; display: none;">
                                         </div>
                                     </div>
-
-                                     <div class="form-group">
-                                                    <label for="psNameUpdateInput" class="col-sm-3 control-label" >工序名</label>
-                                                    <div class="input-group col-sm-7">
-                                                        <input type="text" class="form-control"  name="psNameUpdateInput" id="psNameUpdateInput" required="required" 
-                                                             style="text-align: left">
-                                                    </div>
-                                                </div>
-
-                                                <div class="form-group">
-                                                    <label for="stationUpdateSelect" class="col-sm-3 control-label" >工站</label>
-                                                    <div class="input-group col-sm-7">
-                                                        <select class="form-control" name="stationUpdateSelect" id="stationUpdateSelect" required="required">
-                                                            <option value="">请选择工站</option>
-                                                            {% for station in stations %}
-                                                            <option value="{{ station.id }}" hassubinfo="true">{{ station.station_no }} | {{ station.station_name }}</option>
-                                                            {% endfor %}
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="lockUpdateInput" class="col-sm-3 control-label" >工序互锁</label>
-                                                    <div class="input-group col-sm-7">
-                                                        <input type="checkbox" class="checkbox checkbox-inline"  name="lockUpdateInput" id="lockUpdateInput" required="required"
-                                                            style="text-align: left">
-                                                    </div>
-                                                </div>
+                                    <div class="form-group">
+                                        <label for="u_nameInput" class="col-sm-3 control-label" >工序名</label>
+                                        <div class="input-group col-sm-7">
+                                            <input type="text" class="form-control"  name="u_nameInput" id="u_nameInput" required="required"
+                                                 style="text-align: left">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="u_fixtureSelect" class="col-sm-3 control-label" >工站</label>
+                                        <div class="input-group col-sm-7">
+                                            <select class="form-control" name="u_fixtureSelect" id="u_fixtureSelect" required="required">
+                                                <option value="">请选择工装</option>
+                                                {% for fixture in fixtures %}
+                                                <option value="{{ fixture.id }}" hassubinfo="true">{{ fixture.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="u_lockInput" class="col-sm-3 control-label" >工序互锁</label>
+                                        <div class="input-group col-sm-7">
+                                            <input type="checkbox" class="checkbox checkbox-inline"  name="u_lockInput" id="u_lockInput"
+                                                style="text-align: left">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="u_remarkText" class="col-sm-3 control-label" >备注</label>
+                                        <div class="col-sm-7">
+                                            <textarea class="form-control" name="u_remarkText" id="u_remarkText"
+                                                      placeholder="请输入备注信息..." style="text-align: left"></textarea>
+                                        </div>
+                                    </div>
 
                                 </div>
                     {#            模态框底部#}
@@ -158,10 +165,11 @@
                     </form>
 
 
-                   {#        bootstrap table自动渲染区域#}
-                    <table id="mytab" class="table table-bordered table-hover"></table>
+                        {#        bootstrap table自动渲染区域#}
+                        <div class="col-xs-12">
+                            <table id="myTab" class="table table-bordered table-hover"></table>
+                        </div>
 
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -172,17 +180,18 @@
 
 {% block script %}
 
-<link href="{% static 'css/bootstrap-table.min.css' %}" rel="stylesheet">
-<link href="{% static 'css/bootstrap-datetimepicker.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/bootstrap-table.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/bootstrap-datetimepicker.min.css' %}" rel="stylesheet">
 
-<script src="{% static 'js/bootstrap-table.min.js' %}"></script>
-<script src="{% static 'js/bootstrap-table-zh-CN.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap-table.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap-table-zh-CN.min.js' %}"></script>
 
-<link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
-<script src="{% static 'js/toastr.min.js' %}"></script>
-<script src="{% static 'js/jquery.cookie.js' %}"></script>
-<script src="{% static 'js/moment-with-locales.js' %}"></script>
-<script src="{% static 'js/bootstrap-datetimepicker.min.js' %}"></script>
+    <link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
+    <script src="{% static 'js/toastr.min.js' %}"></script>
+    <script src="{% static 'js/jquery.cookie.js' %}"></script>
+    <script src="{% static 'js/moment-with-locales.js' %}"></script>
+    <script src="{% static 'js/bootstrap-datetimepicker.min.js' %}"></script>
+    <script src="{% static 'js/myscript.js' %}"></script>
 
 <script>
 
@@ -202,18 +211,9 @@
         hideMethod: "fadeOut",
     };
 
-    {#$("#addOrderModal").on("hidden.bs.modal", function() {#}
-    {#    document.getElementById("addOrderForm").reset();#}
-    {#    });#}
-    $("#updateModal").on("hidden.bs.modal", function() {
-        document.getElementById("updateForm").reset();
-        });
+    $("#addModal").on("hidden.bs.modal", function() {document.getElementById("addForm").reset();});
 
-    function closeModal() {
-        $("#updateModal option:selected").each(function () {
-            $(this).attr("selected", false);
-        })
-    }
+    $("#updateModal").on("hidden.bs.modal", function() {document.getElementById("updateForm").reset();});
 
     function update(){
         $.ajax(
@@ -232,7 +232,7 @@
                 success: function (data) {
                     $('#updateModal').modal('hide');
                     document.getElementById("updateForm").reset();
-                    $("#mytab").bootstrapTable('refresh');
+                    $("#myTab").bootstrapTable('refresh');
                     if(data.ret){
                         toastr.success('提交数据成功');
                      }else {
@@ -244,7 +244,7 @@
                      }
                     });
         }
-    
+
     function add() {
         var data1 = $('#addForm').serialize();
         $.ajax({
@@ -260,7 +260,7 @@
             success: function (data) {
                 $('#addModal').modal('hide');
                 document.getElementById("addForm").reset();
-                $("#mytab").bootstrapTable('refresh');
+                $("#myTab").bootstrapTable('refresh');
                 if(data.ret){
                     toastr.success('提交数据成功');
                  }
@@ -276,87 +276,33 @@
 
     function actionFormatter(value, row, index) {
         var id = row.id;
+        row.url = "{% url 'process_manager:deletePSData' %}";
         var data = JSON.stringify(row);
         var result = "";
-        {#result += "<a href='javascript:;' class='btn btn-xs green' onclick=\"EditViewById('" + id + "', view='view')\" title='查看'><span class='glyphicon glyphicon-search'></span></a>";#}
-        {#result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"EditViewById('" + JSON.stringify(row) + "','" + id + "')\" title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";#}
         result += "<a href='javascript:;' class='btn btn-xs blue' onclick=" + "EditViewById(" + index + "," + data + ")" + " title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";
-        //result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"EditViewById('" + index + "','" + data + "')\" title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";
-        {#result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"edit()\" title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";#}
-        result += "<a href='javascript:;' class='btn btn-xs red' onclick=" + "deleteconfirm(" + id + ")" + " title='删除'><span class='glyphicon glyphicon-remove'></span></a>";
+        result += "<a href='javascript:;' class='btn btn-xs red' onclick=" + "deleteconfirm(" + data + ")" + " title='删除'><span class='glyphicon glyphicon-remove'></span></a>";
         return result;
-    }
+        }
 
      // getData方法获取全部页面数据后，将data转为json对象，使用index当前行号作为下标获取对应数据
     function EditViewById(index, data){
-        $("#stationUpdateSelect option").removeAttr("selected");
-        //var data = JSON.stringify($("#mytab").bootstrapTable('getData')); //获取全部数据
-        //var data_json = JSON.parse(data); //data_json和data_json2一样都是json对象
-        //由于data2已经是对象了，alert不能显示对象只能显示为[object Object],需要控制台打印
-        //根据index找到对应行数据，填充数据到修改模态框
-        $("#idUpdateInput").val(data.id);
-        $("#psNameUpdateInput").val(data.step_name);
-        $("#stationUpdateSelect").find("option:contains('" + data.station + "')").each(function(){
-                     $(this).attr('selected', true);});
-        if (data.process_lock){
-            $("#lockUpdateInput").attr('checked', true);
-        }
+        $("#u_fixtureSelect option").each(function () {$(this).removeAttr("selected");});
+        $("#u_idInput").val(data.id);
+        $("#u_nameInput").val(data.name);
+        $("#u_remarkText").val(data.remark);
+        $("#u_fixtureSelect").find("option:contains('" + data.fixture + "')").each(function () {
+            $(this).attr('selected', true);});
 
+        if(data.process_lock===true){
+            $("#u_lockInput").attr("checked", true);
+        }else {
+            $("#u_lockInput").attr("checked", false);
+        }
+        //弹出修改模态框，非新增模态框
         $('#updateModal').modal('show');
     }
 
-
-    // 搜索查询按钮触发事件
-    $(function() {
-        $("#search_button").click(function () {
-            $('#mytab').bootstrapTable(('refresh')); // 很重要的一步，刷新url！
-        })
-    });
-
-    // 重置按钮触发事件
-    function clean(){
-                    //先清空
-                    $('#search_keyword').val('');
-                    //清空后查询条件为空了，再次刷新页面，就是全部数据了
-                    $('#mytab').bootstrapTable(('refresh')); // 很重要的一步，刷新url！
-                }
-
-    $('#mytab').bootstrapTable({
-        url:"{% url 'process_manager:getPSData' %}",    //请求后台的URL（*）
-        method: 'GET',   //请求方式（*）
-        dataType: "json",
-        uniqueId: 'id',
-        striped: true, //间隔行颜色
-        cache: false,
-        sortName: 'id',
-        sortable: true,
-        sortOrder: 'desc',
-        sidePagination: "server",
-        undefinedText: '--',
-        singleSelect: false,
-        toolbar: '#soft-toolbar',
-        search: false,
-        strictSearch: true,
-        clickToSelect: true,
-        pagination: true,
-        pageNumber: 1,
-        pageSize: 20,
-        pageList: [20, 50, 100],
-        paginationPreText: "上一页",
-        paginationNextText: "下一页",
-        queryParamsType: "",
-        queryParams : function (params){
-            var temp = {
-                pageSize : params.pageSize,
-                pageNumber : params.pageNumber,
-                searchText: params.searchText,
-                sortName: params.sortName,
-                sortOrder: params.sortOrder,
-                search_kw: $('#search_keyword').val(), // 请求时向服务端传递的参数
-            };
-            return temp;
-        },
-        columns: [
+    let columns = [
             //{
                 //checkbox: true
             //},
@@ -367,22 +313,31 @@
                 width: "10%",
                 formatter: function (value, row, index) {
                     //获取每页显示的数量
-                    var pageSize=$('#mytab').bootstrapTable('getOptions').pageSize;
+                    var pageSize = $('#myTab').bootstrapTable('getOptions').pageSize;
                     //获取当前是第几页
-                    var pageNumber=$('#mytab').bootstrapTable('getOptions').pageNumber;
+                    var pageNumber = $('#myTab').bootstrapTable('getOptions').pageNumber;
                     //返回序号，注意index是从0开始的，所以要加上1
                     return pageSize * (pageNumber - 1) + index + 1;
                 }
             },
             {
-                field: 'step_name',
+                field: 'name',
                 title:'工序名称',
+                width: '15%',
+                sortable: true,
+                formatter:function (value, row, index) {
+                    let res = '<a href="../detail/' +row.id+ '"> '+ row.name +'</a>';
+                    return res;},
+            },
+            {
+                field: 'fixture',
+                title:'使用工装',
                 width: '15%',
                 sortable: true,
             },
             {
-                field: 'station',
-                title:'工站',
+                field: 'sequence_no',
+                title:'顺序号',
                 width: '15%',
                 sortable: true,
             },
@@ -392,7 +347,6 @@
                 width: '10%',
                 sortable: true,
                 formatter:function(value, row, index){
-                    console.log(value)
                     if (value === true){
                         return '是'
                     }
@@ -402,15 +356,15 @@
                 }
             },
             {
-                field: 'c_time',
-                title:'创建时间',
-                width: '20%',
+                field: 'process_route',
+                title:'所属工艺路线',
+                width: '15%',
                 sortable: true,
             },
             {
-                field: 'm_time',
-                title:'修改时间',
-                width: '20%',
+                field: 'remark',
+                title:'备注',
+                width: '15%',
                 sortable: true,
             },
             {
@@ -420,44 +374,10 @@
                 valign: 'middle',
                 formatter: actionFormatter,
             },
-        ],
-        onLoadSuccess: function(data) {
-           },
-        onLoadError: function () {
-            toastr.error("数据加载失败！", "错误提示");
-        },
-        onClickRow: function (row, $element) {
-            //    EditViewById(id, 'view');
-        }
-    });
+        ];
+    let urls = "{% url 'process_manager:getPSData' %}";
+    tableFresh(columns, urls, 'id');
 
-    function deleteconfirm(id) {
-        var tmp = confirm("确认删除？")
-        if(tmp === true){
-            DeleteByIds(id);
-        }
-    }
-
-    function DeleteByIds(id) {
-        $.ajax({
-            type: "POST",
-            url: "{% url 'process_manager:deletePSData' %}",
-            headers:{"X-CSRFToken":$.cookie("csrftoken")},
-            data: {id: id},
-            dataType: "json",
-            success: function (data) {
-                if (data.ret) {
-                    toastr.success("数据删除成功！");
-                    $('#mytab').bootstrapTable('refresh');
-                }else {
-                    toastr.error("数据删除失败！");
-                }
-            },
-            error: function (data) {
-                toastr.error("数据删除失败！")
-            }
-        });
-    }
 
 </script>
 
