@@ -1,6 +1,6 @@
 import json
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect, reverse
 from django.http import JsonResponse
 from django.db.models import Q
 
@@ -128,10 +128,13 @@ def updatePSData(request):
 def ps_detail(request, step_id):
     step = ProcessStep.objects.get(pk=step_id)
     route = step.process_route
+    if not route:
+        return redirect(reverse('process_manager:ps_index'), aaa='1231')
     productmodel = route.productmodel_set.all().first()
+    if not productmodel:
+        return redirect(reverse('process_manager:ps_index'), aaa='1231')
     bom = productmodel.bom
-    ships = Bom_MaterialModel.objects.filter(bom=bom, is_traced=True)
-
+    ships = Bom_MaterialModel.objects.filter(bom=bom, material_model__is_traced=True)
     # ships = Bom_MaterialModel.objects.filter(is_traced=True).values_list('material_model', 'id').distinct()
     # for ship in ships:
     #     print(ship)
@@ -205,7 +208,7 @@ def addMaterialDate(request, step_id):
 
             productmodel = route.productmodel_set.all().first()
             bom = productmodel.bom
-            ship = Bom_MaterialModel.objects.filter(bom=bom, is_traced=True, material_model=material).first()
+            ship = Bom_MaterialModel.objects.filter(bom=bom, material_model=material).first()
             if count > float(ship.quantity):
                 return_dict = {"ret": False, "errMsg": '输入用量超过BOM总用量！', "rows": [], "total": 0}
                 return JsonResponse(return_dict)

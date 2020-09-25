@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}一般物料检验{% endblock %}
-{% block css %}{% endblock %}
+{% block css %}
+
+    <link href="{% static 'css/bootstrap-editable.css' %}" rel="stylesheet"/>
+    <link href="{% static 'bootstrap-table-1.18.0/dist/bootstrap-table.min.css' %}" rel="stylesheet">
+
+{% endblock %}
 
 {% block breadcrumb %}
     <!-- Content Header (Page header) -->
@@ -45,7 +50,7 @@
                                                                                         margin: 5px;"
                                        placeholder="请输入批次号">
                                 <button id="search" style="margin-left: 5px;" type="button" class="btn btn-lg btn-default" onclick="search()">查询</button>
-                                <button id="reset" style="margin-left: 5px;" type="button" class="btn btn-lg btn-primary" onclick="">保存检验结果</button>
+                                <button id="save" style="margin-left: 5px;" type="button" class="btn btn-lg btn-primary" onclick="save()">保存检验结果</button>
                             </div>
                             <div class="col-xs-4">
                                 <div class="form-inline form-group">
@@ -73,6 +78,10 @@
                                <div class="form-inline form-group">
                                     <label class="control-label" >批次数量:</label>
                                     <input type="number" step="0.01" min="0" class="form-control" name="batch_quantity" id="batch_quantity" placeholder="输入数量">
+                                </div>
+                                <div class="form-inline form-group">
+                                    <label class="control-label" >合格数量:</label>
+                                    <label id="qualified_quantity" class="control-label" ></label>
                                 </div>
                                 <div class="form-inline form-group">
                                     <label class="control-label" >合格率:</label>
@@ -119,14 +128,16 @@
 {% endblock %}
 
 {% block script %}
-<link href="{% static 'css/bootstrap-table.min.css' %}" rel="stylesheet">
-<script src="{% static 'js/bootstrap-table.min.js' %}"></script>
-<script src="{% static 'js/bootstrap-table-zh-CN.min.js' %}"></script>
-<link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
-<script src="{% static 'js/toastr.min.js' %}"></script>
-<script src="{% static 'js/jquery.cookie.js' %}"></script>
-<script src="{% static 'js/myscript.js' %}"></script>
 
+    <script src="{% static 'bootstrap-table-1.18.0/dist/bootstrap-table.js' %}"></script>
+    <script src="{% static 'bootstrap-table-1.18.0/dist/locale/bootstrap-table-zh-CN.js' %}"></script>
+    <script src="{% static 'js/bootstrap-editable.min.js' %}"></script>
+    <script src="{% static 'bootstrap-table-1.18.0/dist/extensions/editable/bootstrap-table-editable.js' %}"></script>
+
+    <link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
+    <script src="{% static 'js/toastr.min.js' %}"></script>
+    <script src="{% static 'js/jquery.cookie.js' %}"></script>
+    <script src="{% static 'js/myscript.js' %}"></script>
 
 <script>
 
@@ -163,7 +174,7 @@
                 cache:false,
                 type: "POST",//方法类型
                 dataType: "json",//预期服务器返回的数据类型
-                url: "{% url 'Inspection:getMaterialInfo' %}" , //url
+                url: "{% url 'Inspection:getGMaterialInfo' %}" , //url
                 headers:{"X-CSRFToken":$.cookie("csrftoken")},
                 data: formdata, //将模态框的form表单数据序列化，以便提交到后台
                 processData: false,// 不加会报错
@@ -177,6 +188,7 @@
                         $('#category').text(obj[data.info.category]);
                         $('#model').text(data.info.model);
                         $('#batch_num').text(data.info.batch_num);
+                        $('#qualified_quantity').text(data.info.qualified_quantity);
                         $('#batch_quantity').val(data.info.batch_quantity);
                         $('#pass_rate').text(data.info.pass_rate);
                         $('#user').text(data.info.user);
@@ -194,11 +206,44 @@
             });
     }
 
+    function save() {
+        var allTableData = $("#myTab").bootstrapTable("getData");
+        data = {};
+        data.erpInput = $("#erpInput").val();
+        data.batchInput = $("#batchInput").val();
+        data.row = allTableData;
+        data.total_quantity = $('#batch_quantity').val();
+        data.rcheck_quantity = $('#rcheck_quantity').val();
+        data.inspect_mode = $('#inspect_mode').val();
+        var json_data = JSON.stringify(data);
+        $.ajax({
+            url:"{% url 'Inspection:saveGMInspectionData' %}",
+            headers:{"X-CSRFToken":$.cookie("csrftoken")},
+            type:"post",
+            data:json_data, //将添加好数据的formdata放到data这里
+            processData: false,    // 不处理数据
+            contentType: false,    // 不设置内容类型
+            dataType: "json",
+            success:function(data){
+                if (data.ret){
+                    $('#myTab').bootstrapTable('refresh');
+                    toastr.success("数据保存成功！");
+
+                    }
+                else {
+                    toastr.error("错误：" + data.errMsg);
+                }},
+            error: function(data){
+                toastr.error('导入异常！')
+                }
+        })
+    }
+
     var columns =  [
             {
                 field: 'num',
                 title:'检验项编号',
-                width: '5%',
+                width: '10%',
                 align: 'center',
                 valign: 'middle',
                 sortable: false,
@@ -206,7 +251,7 @@
             {
                 field: 'name',
                 title:'检验项名称',
-                width: '20%',
+                width: '15%',
                 align: 'center',
                 valign: 'middle',
                 sortable: false,
@@ -214,7 +259,7 @@
             {
                 field: 'category',
                 title:'检验类型',
-                width: '10%',
+                width: '15%',
                 align: 'center',
                 valign: 'middle',
                 sortable: false,
@@ -229,7 +274,7 @@
             {
                 field: 'mode',
                 title:'检验方法',
-                width: '10%',
+                width: '15%',
                 align: 'center',
                 valign: 'middle',
                 sortable: false,
@@ -254,17 +299,47 @@
                 align: 'center',
                 valign: 'middle',
             },
-            {   field: '测量值',
-                title:'measure',
+            {   field: 'measure',
+                title:'测量值',
                 width: '10%',
                 align: 'center',
                 valign: 'middle',
-                formatter: function (value, row, index) {
-                    str_index = String(index);
-                    var res = '<input type="text" name="measure'+str_index+'" id="measure'+ str_index+'" value="" onblue="changeData('+ index +', this);" >';
-                    return res;},
+                editable: {
+                    type: 'text',
+                    emptytext: '空',
+                    mode:'inline',
+                    validate: function (v) {
+                    if (!v) {
+                        return "不能为空";
+                    }
+                },
+                },
             },
-
+            {
+            field: 'pass_quantity',
+            title: '合格数量',
+            width: '10%',
+            align: 'center',
+            valign: 'middle',
+            editable: {
+                type: 'text',
+                emptytext: '空',
+                mode:'inline',
+                validate: function (v) {
+                    if (!v) {
+                        return "不能为空";
+                    }
+                },
+            },
+            cellStyle: function (value, row, index) {
+                        if (value == undefined || value == "" || isNaN(value)) {
+                            return { css: { "background-color": "yellow" } }
+                        }
+                        else {
+                            return { css: { "background-color": "white" } }
+                        }
+                    },
+            }
         ];
     var urls = "{% url 'Inspection:getGMInspectionData' %}";
     tableFresh2(columns, urls, 'id');

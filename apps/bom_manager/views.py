@@ -150,7 +150,7 @@ def get(request, bom_id):
                                         'erp_no': ship.material_model.erp_no,
                                         'category': ship.material_model.category, 
                                         'quantity': ship.quantity,
-                                        'is_traced': ship.is_traced,
+                                        'is_traced': ship.material_model.is_traced,
                                         'c_time': ship.material_model.c_time.strftime("%Y-%m-%d %H:%M:%S"),
                                         'm_time': ship.material_model.m_time.strftime("%Y-%m-%d %H:%M:%S")})
    
@@ -201,10 +201,10 @@ def writeToDB(filename, bom_id):
             materials_list.append([erp_no, name, model, category, is_traced, quantity])
     for mat in materials_list:
         try:
-            material, created = MaterialModel.objects.update_or_create(erp_no=mat[0], 
-                                                                                                                                    defaults={"name": mat[1], 
-                                                                                                                                                        "model": mat[2],
-                                                                                                                                                        "category": mat[3]})
+            material, created = MaterialModel.objects.update_or_create(erp_no=mat[0], defaults={"name": mat[1],
+                                                                                                "model": mat[2],
+                                                                                                "category": mat[3],
+                                                                                                'is_traced': mat[4]})
         except Exception as e:
             raise e
         ship = None
@@ -215,10 +215,9 @@ def writeToDB(filename, bom_id):
                 ship = None
         if ship:
             ship.quantity = mat[5]
-            ship.is_traced = mat[4]
             ship.save()
         else:
-            Bom_MaterialModel.objects.create(bom=bom, material_model=material, quantity=mat[5], is_traced=mat[4])
+            Bom_MaterialModel.objects.create(bom=bom, material_model=material, quantity=mat[5])
 
         
 def upload(request, bom_id):

@@ -1,149 +1,41 @@
-<!DOCTYPE html>
-<html style="height: 100%;width:100%" lang="en">
-<head>
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="Content-Type" content="multipart/form-data; charset=utf-8" />
-    <title>基于jquery的穿梭框</title>
-    <script src="https://www.jq22.com/jquery/jquery-1.10.2.js"></script>
-	<link rel="stylesheet" type="text/css" href="font-awesome-4.7.0/css/font-awesome.min.css"/>
-	<link rel="stylesheet" type="text/css" href="home.css"/>
-    <style>
-        
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Hello, Bootstrap Table!</title>
 
-</head>
-<body>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.0/dist/bootstrap-table.min.css">
+  </head>
+  <body>
+    <table data-toggle="table">
+      <thead>
+        <tr>
+          <th>Item ID</th>
+          <th>Item Name</th>
+          <th>Item Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>Item 1</td>
+          <td>$1</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>Item 2</td>
+          <td>$2</td>
+        </tr>
+      </tbody>
+    </table>
 
-<div id="homeConfigDiv">
-    <div class="list-tran flex flex-row">
-        <div class="list-box flex-child">
-            <div class="list-header">未显示</div>
-            <ul id="leftUl">
-            </ul>
-        </div>
-        <div class="list-tool flex-child">
-            <div class="list-tool-indiv">
-                <div class="flex flex-lie">
-                    <i class="fa fa-angle-double-right right"></i>
-					<i class="fa fa-angle-double-up up"></i>
-                    <i class="fa fa-angle-double-down down"></i>
-                    <i class="fa fa-angle-double-left left"></i>
-                    <!--<i class="icon right">⇒</i>-->
-                    <!--<i class="icon up">⇑</i>-->
-                    <!--<i class="icon down">⇓</i>-->
-                    <!--<i class="icon left">⇐</i>-->
-                </div>
-            </div>
-
-        </div>
-        <div class="list-box flex-child">
-            <div class="list-header">已显示</div>
-            <ul id="rightUl">
-            </ul>
-        </div>
-    </div>
-
-
-</div>
-<div style="margin-top:100px;"><button onclick="getItems()">获得值</button></div>
-</body>
-<script>
-    /*
-	 * 向右穿梭 
-	 */
-    function goRight(){
-        var li = $(".list-box li.active");
-        if(li.length > 0 && li.parent().attr("id") == 'leftUl'){
-            var newLi = li.clone().click(setActive);
-            $("#rightUl").append(newLi);
-            li.remove();
-        }
-    }
-	/*
-	 * 向左穿梭 
-	 */
-    function goLeft(){
-        var li = $(".list-box li.active");
-        if(li.length > 0 && li.parent().attr("id") == 'rightUl'){
-            var newLi = li.clone().click(setActive);
-            $("#leftUl").append(newLi);
-            li.remove();
-        }
-    }
-	/*
-	 * 向上穿梭 
-	 */
-    function goUp(){
-        var li = $(".list-box li.active");
-        if(li.length > 0){
-            if(li.prev().length > 0){
-                var newLi = li.clone().click(setActive);
-                li.prev().before(newLi);
-                li.remove();
-            }
-        }
-    }
-	/*
-	 * 向下穿梭 
-	 */
-    function goDown(){
-        var li = $(".list-box li.active");
-        if(li.length > 0){
-            if(li.next().length > 0){
-                var newLi = li.clone().click(setActive);
-                li.next().after(newLi);
-                li.remove();
-            }
-        }
-    }
-	function setActive(){
-       $(".list-box li").removeClass("active");
-       $(this).addClass("active");
-    }
-	$(function(){
-		$(".list-box li").click(setActive);
-		$(".list-tool-indiv .fa.right").click(goRight);
-		$(".list-tool-indiv .fa.up").click(goUp);
-		$(".list-tool-indiv .fa.down").click(goDown);
-		$(".list-tool-indiv .fa.left").click(goLeft);
-		//添加选项
-		addItem("#rightUl",{title:'模块五'});
-		addItem("#rightUl",{title:'模块六'});
-		addItem("#leftUl",{title:'模块一'});
-		addItem("#leftUl",{title:'模块二'});
-		addItem("#leftUl",{title:'模块三'});
-		addItem("#leftUl",{title:'模块四'});
-	})
-	function addItem(ul,item){
-		//添加选项时绑定事件
-		$("<li>"+item.title+"</li>").appendTo($(ul)).click(setActive);
-	}
-    function getItems(){
-		var list = [];
-        $("#leftUl li").each(function(i,o){
-            var obj = {};
-			//自定义参数
-            obj.moduleId = $(o).attr('moduleid');
-			//是否可见
-            obj.seen = -1;
-			//排序
-            obj.seq = i+1;
-            list.push(obj);
-        });
-        $("#rightUl li").each(function(i,o){
-            var obj = {};
-            obj.moduleId = $(o).attr('moduleid');
-            obj.seen = 1;
-            obj.seq = i+1;
-            list.push(obj);
-        });
-		console.log(list);
-		alert(JSON.stringify(list));
-		return list;
-	}
-    
-    
-</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/bootstrap-table@1.18.0/dist/bootstrap-table.min.js"></script>
+  </body>
 </html>

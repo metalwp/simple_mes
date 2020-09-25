@@ -16,9 +16,13 @@ urlpatterns = [
     path('material/detail/<int:material_id>/uploadData/', views.uploadInspection, name='uploadInspection'),
 
     path('gminspection/index/', views.gminspection_index, name='gminspection_index'),
-    path('gminspection/getMaterialInfo/', views.getMaterialInfo, name='getMaterialInfo'),
+    path('gminspection/getGMaterialInfo/', views.getGMaterialInfo, name='getGMaterialInfo'),
     path('gminspection/getGMInspectionData/', views.getGMInspectionData, name='getGMInspectionData'),
+    path('gminspection/saveGMInspectionData/', views.saveGMInspectionData, name='saveGMInspectionData'),
 
     path('tminspection/index/', views.tminspection_index, name='tminspection_index'),
+    path('tminspection/getTMaterialInfo/', views.getTMaterialInfo, name='getTMaterialInfo'),
+    path('tminspection/getTMInspectionData/', views.getTMInspectionData, name='getTMInspectionData'),
+    path('tminspection/saveTMInspectionData/', views.saveTMInspectionData, name='saveTMInspectionData'),
 
 ]

@@ -3,7 +3,7 @@ import json
 import xlrd
 import re
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect, reverse
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
 
@@ -258,7 +258,7 @@ def gminspection_index(request):
     return render(request, 'Inspection/gminspection_index.html', locals())
 
 
-def getMaterialInfo(request):
+def getGMaterialInfo(request):
     if request.method == "POST":
         erp_no = request.POST.get('erpInput')
         batch_num = request.POST.get('batchInput')
@@ -271,7 +271,7 @@ def getMaterialInfo(request):
             return JsonResponse({"ret": False, "errMsg": '批次号应为6位！', "rows": [], "total": 0})
 
         try:
-            material_model = MaterialModel.objects.get(erp_no=erp_no, is_delete=False)
+            material_model = MaterialModel.objects.get(erp_no=erp_no, is_delete=False, is_traced=False)
         except MaterialModel.DoesNotExist:
             return JsonResponse({"ret": False, "errMsg": '未找到此物料！', "rows": [], "total": 0})
         try:
@@ -283,8 +283,11 @@ def getMaterialInfo(request):
         date = '' if not material else material.m_time
         if material:
             pass_rate = '{:.2%}'.format(material.qualified_quantity/material.total_quantity)
+            qualified_quantity = '{:.2f}'.format(material.qualified_quantity)
         else:
             pass_rate = ''
+            qualified_quantity = ''
+        print(qualified_quantity)
 
         info = {'erp_no': material_model.erp_no,
                 'name': material_model.name,
@@ -292,6 +295,7 @@ def getMaterialInfo(request):
                 'model': material_model.model,
                 'batch_num': batch_num,
                 'batch_quantity': batch_quantity,
+                'qualified_quantity': qualified_quantity,
                 'pass_rate': pass_rate,
                 'user': 'user',
                 'date': date
@@ -310,32 +314,355 @@ def getGMInspectionData(request):
         # sortOrder = request.POST.get('sortOrder')
         erp_no = request.GET.get('erp_no')
         batch_num = request.GET.get('batch_num')
+
         try:
-            material_model = MaterialModel.objects.get(erp_no=erp_no)
+            material_model = MaterialModel.objects.get(erp_no=erp_no, is_delete=False, is_traced=False)
         except MaterialModel.DoesNotExist:
             return JsonResponse({"ret": False, "errMsg": '该物料未找到！', "rows": [], "total": 0})
-        try:
-            objs = Inspection.objects.filter_without_isdelete().filter(material_model=material_model)
-        except Exception as e:
-            return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
-
+        # try:
+        #     objs = Inspection.objects.filter_without_isdelete().filter(material_model=material_model)
+        # except Exception as e:
+        #     return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
         rows = []
         data = {"ret": True, "errMsg": "", "total": 0, "rows": rows, 'info': {}}
-        for obj in objs:
-            rows.append({'id': obj.id,
-                         'num': obj.num,
-                         'name': obj.name,
-                         'category': obj.category,
-                         'mode': obj.mode,
-                         'upper': obj.upper,
-                         'lower': obj.lower,
-                         'm_time': obj.m_time.strftime("%Y-%m-%d-%H:%M:%S"),
-                         'c_time': obj.c_time.strftime("%Y-%m-%d-%H:%M:%S"),
-                         })
+        try:
+            material = GeneralMaterial.objects.get(material_model=material_model, batch_num=batch_num)
+            objs = GMInspectRecord.objects.filter_without_isdelete().filter(general_material=material)
+            if objs:
+                for obj in objs:
+                    rows.append({'id': obj.id,
+                                 'num': obj.num,
+                                 'name': obj.name,
+                                 'category': obj.category,
+                                 'mode': obj.mode,
+                                 'upper': obj.upper,
+                                 'lower': obj.lower,
+                                 'measure': obj.data,
+                                 'pass_quantity': obj.qualified_quantity,
+                                 'm_time': obj.m_time.strftime("%Y-%m-%d-%H:%M:%S"),
+                                 'c_time': obj.c_time.strftime("%Y-%m-%d-%H:%M:%S"),
+                                 })
+            else:
+                objs = Inspection.objects.filter_without_isdelete().filter(material_model=material_model)
+                for obj in objs:
+                    rows.append({'id': '',
+                                 'num': obj.num,
+                                 'name': obj.name,
+                                 'category': obj.category,
+                                 'mode': obj.mode,
+                                 'upper': obj.upper,
+                                 'lower': obj.lower,
+                                 'measure': '',
+                                 'pass_quantity': '',
+                                 })
+        except GeneralMaterial.DoesNotExist:
+            objs = Inspection.objects.filter_without_isdelete().filter(material_model=material_model)
+            for obj in objs:
+                rows.append({'id': '',
+                             'num': obj.num,
+                             'name': obj.name,
+                             'category': obj.category,
+                             'mode': obj.mode,
+                             'upper': obj.upper,
+                             'lower': obj.lower,
+                             'measure': '',
+                             'pass_quantity': '',
+                             })
         return JsonResponse(data)
 
 
+def saveGMInspectionData(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        erp_no = data.get('erpInput')
+        batch_num = data.get('batchInput')
+        rows = data.get('row')
+        inspect_mode = int(data.get('inspect_mode'))
+        total_quantity = float(data.get('total_quantity'))
+        # rcheck_quantity = float(data.get('rcheck_quantity'))
+        pass_quantity = 0
+
+        if not all([erp_no, batch_num, rows, total_quantity]):
+            return JsonResponse({"ret": False, "errMsg": "数据不能为空！", "rows": [], "total": 0})
+        # if inspect_mode == 1:
+        if not re.match(r'^[A-Z]\d{9}V\d{4}A$', erp_no):
+            return JsonResponse({"ret": False, "errMsg": '物料号格式不正确！', "rows": [], "total": 0})
+        if len(batch_num) != 6:
+            return JsonResponse({"ret": False, "errMsg": '批次号应为6位！', "rows": [], "total": 0})
+
+        total_pass_quantity = 0
+        for i, row in enumerate(rows):
+
+            try:
+                if row.get('pass_quantity'):
+                    tmp = float(row.get('pass_quantity'))
+                    if tmp > total_quantity:
+                        return JsonResponse(
+                            {"ret": False, "errMsg": "第" + str(i + 1) + "行的合格数量应小于总数量！", "rows": [], "total": 0})
+                    if not row.get('measure'):
+                        return JsonResponse(
+                            {"ret": False, "errMsg": "第" + str(i + 1) + "行未填写检测数值！", "rows": [], "total": 0})
+                else:
+                    tmp = 0
+                total_pass_quantity = tmp if tmp < total_pass_quantity else total_pass_quantity
+            except Exception as e:
+                return JsonResponse(
+                    {"ret": False, "errMsg": "第" + str(i + 1) + "行的合格数量数据错误！", "rows": [], "total": 0})
+
+        try:
+            material_model = MaterialModel.objects.get(erp_no=erp_no, is_delete=False, is_traced=False)
+        except MaterialModel.DoesNotExist:
+            return JsonResponse({"ret": False, "errMsg": '无此物料！', "rows": [], "total": 0})
+        gm_obj, created = GeneralMaterial.objects.update_or_create(material_model=material_model, batch_num=batch_num,
+                                                          defaults={'total_quantity': total_quantity,
+                                                                    'qualified_quantity': total_pass_quantity})
+        for row in rows:
+            if row.get('pass_quantity'):
+                pass_quantity = float(row.get('pass_quantity'))
+            else:
+                pass_quantity = 0
+            if row.get('id'):
+                record = GMInspectRecord.objects.get(id=row.get('id'))
+                record.qualified_quantity = pass_quantity
+                record.data = row.get('measure')
+                record.save()
+            else:
+                GMInspectRecord.objects.create(general_material=gm_obj,
+                                               num=row.get('num'),
+                                               name=row.get('name'),
+                                               category=row.get('category'),
+                                               mode=row.get('mode'),
+                                               qualified_quantity=pass_quantity,
+                                               data=row.get('measure'),
+                                               operator=None,
+                                               upper=float(row.get('upper')),
+                                               lower=float(row.get('lower')),
+                                               )
+
+        return JsonResponse({"ret": True, "errMsg": "", "total": 0, "rows": rows})
+
+
 def tminspection_index(request):
-    pass
+    material_categorys = MaterialModel.CATEGORY_CHOICE
+    inspection_categorys = Inspection.CATEGORY_CHOICE
+    inspection_modes = Inspection.MODE_CHOICE
+    return render(request, 'Inspection/tminspection_index.html', locals())
 
 
+def getTMaterialInfo(request):
+    if request.method == "POST":
+        sn = request.POST.get('snInput')
+        batch_num = request.POST.get('batchInput')
+
+        if not all([sn, batch_num]):
+            return JsonResponse({"ret": False, "errMsg": "数据不能为空！", "rows": [], "total": 0})
+        if not re.match(r'^[A-Z]\d{9}\d{2}\d{2}[1-9,A-C]\d{2}[1-9,A-Z]{2}\d{4}$', sn):
+            return JsonResponse({"ret": False, "errMsg": 'SN格式不正确！', "rows": [], "total": 0})
+        if len(batch_num) != 6:
+            return JsonResponse({"ret": False, "errMsg": '批次号应为6位！', "rows": [], "total": 0})
+
+        tmp_erp = sn[:10]+'V'+sn[10:12]
+        material_models = MaterialModel.objects.filter_without_isdelete().filter(erp_no__startswith=tmp_erp, is_traced=True)
+        if not material_models:
+            return JsonResponse({"ret": False, "errMsg": '未找到此物料编号！', "rows": [], "total": 0})
+
+        material_model = None
+        for model in material_models:
+            if not material_model:
+                material_model = model
+            else:
+                if int(material_model.erp_no[13:15]) < int(model.erp_no[13:15]):
+                    material_model = model
+
+        materials = TraceMaterial.objects.filter_without_isdelete().filter(material_model=material_model, batch_num=batch_num)
+        pass_materials = TraceMaterial.objects.filter_without_isdelete().filter(material_model=material_model,
+                                                                                batch_num=batch_num,
+                                                                                status=2)
+        try:
+            material = TraceMaterial.objects.get(sn=sn)
+        except TraceMaterial.DoesNotExist:
+            material = None
+
+        batch_num = material.batch_num if material else ''
+        date = '' if not material else material.m_time
+        if materials:
+            batch_quantity = materials.count()
+            qualified_quantity = pass_materials.count()
+            pass_rate = '{:.2%}'.format(qualified_quantity / batch_quantity)
+        else:
+            pass_rate = ''
+            batch_quantity = ''
+            qualified_quantity = ''
+
+        info = {'erp_no': material_model.erp_no,
+                'name': material_model.name,
+                'category': material_model.category,
+                'model': material_model.model,
+                'batch_num': batch_num,
+                'batch_quantity': batch_quantity,
+                'qualified_quantity': qualified_quantity,
+                'pass_rate': pass_rate,
+                'user': 'user',
+                'date': date
+                }
+        rows = []
+        data = {"ret": True, "errMsg": "", "total": 0, "rows": rows, 'info': info}
+
+        return JsonResponse(data)
+
+
+def getTMInspectionData(request):
+    if request.method == "GET":
+        sn = request.GET.get('sn')
+        batch_num = request.GET.get('batch_num')
+        if not (sn and batch_num):
+            return JsonResponse({"ret": True, "errMsg": '', "rows": [], "total": 0})
+        else:
+            tmp_erp = sn[:10] + 'V' + sn[10:12]
+
+        material_models = MaterialModel.objects.filter_without_isdelete().filter(erp_no__startswith=tmp_erp,
+                                                                                 is_traced=True)
+        if not material_models:
+            return JsonResponse({"ret": False, "errMsg": '未找到此物料编号！', "rows": [], "total": 0})
+
+        material_model = None
+        for model in material_models:
+            if not material_model:
+                material_model = model
+            else:
+                if int(material_model.erp_no[13:15]) < int(model.erp_no[13:15]):
+                    material_model = model
+        rows = []
+        data = {"ret": True, "errMsg": "", "total": 0, "rows": rows, 'info': {}}
+        try:
+            material = TraceMaterial.objects.get(sn=sn, material_model=material_model)
+            objs = TMInspectRecord.objects.filter_without_isdelete().filter(trace_material=material)
+            if objs:
+                for obj in objs:
+                    rows.append({'id': obj.id,
+                                 'num': obj.num,
+                                 'name': obj.name,
+                                 'category': obj.category,
+                                 'mode': obj.mode,
+                                 'upper': obj.upper,
+                                 'lower': obj.lower,
+                                 'measure': obj.data,
+                                 'result': str(obj.result),
+                                 'm_time': obj.m_time.strftime("%Y-%m-%d-%H:%M:%S"),
+                                 'c_time': obj.c_time.strftime("%Y-%m-%d-%H:%M:%S"),
+                                 })
+            else:
+                objs = Inspection.objects.filter_without_isdelete().filter(material_model=material_model)
+                for obj in objs:
+                    rows.append({'id': '',
+                                 'num': obj.num,
+                                 'name': obj.name,
+                                 'category': obj.category,
+                                 'mode': obj.mode,
+                                 'upper': obj.upper,
+                                 'lower': obj.lower,
+                                 'measure': '',
+                                 })
+        except TraceMaterial.DoesNotExist:
+            objs = Inspection.objects.filter_without_isdelete().filter(material_model=material_model)
+            for obj in objs:
+                rows.append({'id': '',
+                             'num': obj.num,
+                             'name': obj.name,
+                             'category': obj.category,
+                             'mode': obj.mode,
+                             'upper': obj.upper,
+                             'lower': obj.lower,
+                             'measure': '',
+                             })
+        print(data)
+        return JsonResponse(data)
+
+
+def saveTMInspectionData(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        sn = data.get('snInput')
+        batch_num = data.get('batchInput')
+        rows = data.get('row')
+
+        if not all([sn, batch_num, rows]):
+            return JsonResponse({"ret": False, "errMsg": "数据不能为空！", "rows": [], "total": 0})
+        # if inspect_mode == 1:
+        if not re.match(r'^[A-Z]\d{9}\d{2}\d{2}[1-9,A-C]\d{2}[1-9,A-Z]{2}\d{4}$', sn):
+            return JsonResponse({"ret": False, "errMsg": 'SN格式不正确！', "rows": [], "total": 0})
+        if len(batch_num) != 6:
+            return JsonResponse({"ret": False, "errMsg": '批次号应为6位！', "rows": [], "total": 0})
+
+        for i, row in enumerate(rows):
+            try:
+                if row.get('measuer'):
+                    tmp = float(row.get('measuer'))
+            except TypeError:
+                return JsonResponse(
+                    {"ret": False, "errMsg": "第" + str(i + 1) + "行的测试值数据错误！", "rows": [], "total": 0})
+
+        tmp_erp = sn[:10] + 'V' + sn[10:12]
+        material_models = MaterialModel.objects.filter_without_isdelete().filter(erp_no__startswith=tmp_erp,
+                                                                                 is_traced=True)
+        if not material_models:
+            return JsonResponse({"ret": False, "errMsg": '未找到此物料编号！', "rows": [], "total": 0})
+
+        material_model = None
+        for model in material_models:
+            if not material_model:
+                material_model = model
+            else:
+                if int(material_model.erp_no[13:15]) < int(model.erp_no[13:15]):
+                    material_model = model
+        try:
+            tm_obj = TraceMaterial.objects.get(sn=sn, is_delete=False, material_model=material_model)
+            tm_obj.batch_num = batch_num
+
+            tm_obj.save()
+        except TraceMaterial.DoesNotExist:
+            tm_obj = TraceMaterial.objects.create(sn=sn, material_model=material_model, batch_num=batch_num)
+
+        status = None  # 默认检验中
+        total_result = None
+        for row in rows:
+            if row.get('result') == '':
+                status = 1
+            elif row.get('result') == '0':
+                total_result = False if (total_result is None) else (total_result and False)
+            elif row.get('result') == '1':
+                total_result = True if (total_result is None) else (total_result and True)
+
+            if row.get('measure'):
+                data = float(row.get('measure'))
+            else:
+                data = 0
+            if row.get('id'):
+                record = TMInspectRecord.objects.get(id=row.get('id'))
+                record.data = data
+            else:
+
+                record = TMInspectRecord.objects.create(trace_material=tm_obj,
+                                               num=row.get('num'),
+                                               name=row.get('name'),
+                                               category=row.get('category'),
+                                               mode=row.get('mode'),
+                                               operator=None,
+                                               data=data,
+                                               upper=float(row.get('upper')),
+                                               lower=float(row.get('lower')),
+                                               )
+
+            if row.get('result'):
+                record.result = row.get('result')
+            record.save()
+        if not status:
+            if total_result:
+                status = 2
+            else:
+                status = 3
+        print(status)
+        tm_obj.status = status
+        tm_obj.save()
+
+        return JsonResponse({"ret": True, "errMsg": "", "total": 0, "rows": rows})

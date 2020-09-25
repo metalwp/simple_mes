@@ -52,12 +52,29 @@ class GeneralMaterial(BaseModel):
 
 
 class GMInspectRecord(BaseModel):
+    MODE_CHOICE = (
+        (0, "无"),
+        (1, "目视"),
+        (2, "测量工具"),
+        (3, "手动设备"),
+        (4, "自动设备"))
+
+    CATEGORY_CHOICE = (
+        (0, "无"),
+        (1, "外观"),
+        (2, "功能"),
+        (3, "性能"))
+
     general_material = models.ForeignKey("GeneralMaterial", on_delete=models.SET_NULL, null=True, blank=True, verbose_name='所属一般物料')
     num = models.CharField('检验项编号', max_length=20)
     name = models.CharField('检验项名称', max_length=20)
+    category = models.SmallIntegerField('检验类型', choices=CATEGORY_CHOICE, default=0)
+    mode = models.SmallIntegerField('检验方式', choices=MODE_CHOICE, default=0)
     qualified_quantity = models.DecimalField('检验项合格数量', max_digits=10, decimal_places=2, default=0)
-    data = models.DecimalField('检验项数据', max_digits=10, decimal_places=2)
-    operator = models.ForeignKey('account.User', on_delete=models.SET_NULL, null=True, blank=True,verbose_name='检验员')
+    data = models.CharField('检测数据记录', max_length=200)
+    operator = models.ForeignKey('account.User', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='检验员')
+    upper = models.DecimalField('上限', max_digits=10, decimal_places=2)
+    lower = models.DecimalField('下限', max_digits=10, decimal_places=2)
 
     def __str__(self):
         return self.num + ' ' + self.data
@@ -99,12 +116,30 @@ class TMInspectRecord(BaseModel):
         (0, "Fail"),
         (1, "Pass")
     )
+
+    MODE_CHOICE = (
+        (0, "无"),
+        (1, "目视"),
+        (2, "测量工具"),
+        (3, "手动设备"),
+        (4, "自动设备"))
+
+    CATEGORY_CHOICE = (
+        (0, "无"),
+        (1, "外观"),
+        (2, "功能"),
+        (3, "性能"))
+
     trace_material = models.ForeignKey("TraceMaterial", on_delete=models.SET_NULL, null=True, blank=True, verbose_name='所属一般物料')
     num = models.CharField('检验项编号', max_length=20)
     name = models.CharField('检验项名称', max_length=20)
+    category = models.SmallIntegerField('检验类型', choices=CATEGORY_CHOICE, default=0)
+    mode = models.SmallIntegerField('检验方式', choices=MODE_CHOICE, default=0)
     result = models.SmallIntegerField('检验项结果', choices=RESULT_CHOICE, default=0)
     data = models.DecimalField('检验项数据', max_digits=10, decimal_places=2)
     operator = models.ForeignKey('account.User', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='检验员')
+    upper = models.DecimalField('上限', max_digits=10, decimal_places=2)
+    lower = models.DecimalField('下限', max_digits=10, decimal_places=2)
 
     def __str__(self):
         return self.num + ' ' + str(self.result) + ' ' + self.data

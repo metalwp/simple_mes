@@ -36,6 +36,7 @@ class MaterialModel(BaseModel):
     model = models.CharField('型号描述', max_length=200, blank=True, null=True)
     erp_no = models.CharField('物料号', max_length=30)
     category = models.SmallIntegerField('类别', choices=CATEGORY_CHOICE, default=0)
+    is_traced = models.BooleanField("是否追溯", default=False)
 
     class Meta:
         verbose_name = '物料型号'
@@ -51,7 +52,6 @@ class Bom_MaterialModel(models.Model):
     bom = models.ForeignKey("BOM", on_delete=models.CASCADE)
     material_model = models.ForeignKey("MaterialModel", on_delete=models.CASCADE)
     quantity = models.DecimalField('用量', max_digits=10, decimal_places=2)
-    is_traced = models.BooleanField("是否追溯", default=False)
 
     class Meta:
         db_table = 'sm_bom_material_model'
