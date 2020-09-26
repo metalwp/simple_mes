@@ -14,6 +14,9 @@ from apps.bom_manager.models import MaterialModel, Bom_MaterialModel
 
 def ps_index(request):
     fixtures = Fixture.objects.filter_without_isdelete()
+    if request.session.get('errMsg'):
+        errMsg = request.session['errMsg']
+        del request.session['errMsg']
     return render(request, 'process_manager/ps_index.html', locals())
 
 
@@ -129,9 +132,11 @@ def ps_detail(request, step_id):
     step = ProcessStep.objects.get(pk=step_id)
     route = step.process_route
     if not route:
+        request.session['errMsg'] = '该工序未与工艺路线关联！'
         return redirect(reverse('process_manager:ps_index'), aaa='1231')
     productmodel = route.productmodel_set.all().first()
     if not productmodel:
+        request.session['errMsg'] = '该工艺路线未与产品关联！'
         return redirect(reverse('process_manager:ps_index'), aaa='1231')
     bom = productmodel.bom
     ships = Bom_MaterialModel.objects.filter(bom=bom, material_model__is_traced=True)
