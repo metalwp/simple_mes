@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}生产过程{% endblock %}
+{% block css %}
+
+    <link href="{% static 'css/bootstrap-editable.css' %}" rel="stylesheet"/>
+    <link href="{% static 'bootstrap-table-1.18.0/dist/bootstrap-table.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
+
+{% endblock %}
+
+{% block breadcrumb %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>生产过程<small>Manufacturing</small></h1>
+        <ol class="breadcrumb">
+            <li><a href="#">主页</a></li>
+            <li class="active">生产过程</li>
+        </ol>
+    </section>
+{% endblock %}
+
+{% block content %}
+    <section class="content">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div class="box-header">
+                        <h3 class="box-title">{{ step.name }}</h3>
+                    </div>
+                    <div class="col-xs-4" style="">
+                        <h5 style="color: red">{{ errMsg }}</h5>
+                    </div>
+
+                    <!-- /.box-header -->
+                    <div class="box-body" >
+                        {#        自定义搜索条件区域#}
+                        <div class="col-xs-12">
+                            <div class="form-inline col-xs-12" style="margin: 5px;margin-bottom: 20px;">
+                                <label class="control-label" style="width: 100%;
+                                                                    min-width: 100px;
+                                                                    max-width: 150px;
+                                                                    height: 100%;
+                                                                    min-height: 40px;
+                                                                    font-size: 20px;
+                                                                    margin: 5px;">VIN:</label>
+                                <label id="product_vin" class="control-label" style="width: 100%;
+                                                                                        min-width: 200px;
+                                                                                        max-width: 500px;
+                                                                                        height: 100%;
+                                                                                        min-height: 40px;
+                                                                                        font-size: 20px;
+                                                                                        margin: 5px;"></label>
+
+                                <button id="search" style="margin-left: 5px;" type="button" class="btn btn-lg btn-default" onclick="search()">查询订单情况</button>
+                                <button id="generate" style="margin-left: 5px;" type="button" class="btn btn-lg btn-primary" onclick="generate()">查询并生成VIN</button>
+                            </div>
+                            <div class="col-xs-4">
+                                <div class="form-inline form-group">
+                                    <label class="control-label" >产品物料号:</label>
+                                    <label id="product_erp" class="control-label" ></label>
+                                </div>
+                                <div class="form-inline form-group">
+                                    <label class="control-label" >产品名称:</label>
+                                    <label id="product_name" class="control-label" ></label>
+                                </div>
+                                <div class="form-inline form-group">
+                                    <label class="control-label" >产品型号:</label>
+                                    <label id="product_model" class="control-label" ></label>
+                                </div>
+
+                            </div>
+                            <div class="col-xs-4">
+                                <div class="form-inline form-group">
+                                    <label class="control-label" >订单号:</label>
+                                    <label id="order_num" class="control-label" ></label>
+                                </div>
+                               <div class="form-inline form-group">
+                                    <label class="control-label" >订单数量:</label>
+                                    <label id="order_quantity" class="control-label" ></label>
+                                </div>
+                                <div class="form-inline form-group">
+                                    <label class="control-label" >本工序完成数量:</label>
+                                    <label id="finish_quantity" class="control-label" ></label>
+                                </div>
+                                <div class="form-inline form-group">
+                                    <label class="control-label" >本工序完成率:</label>
+                                    <label id="finish_rate" class="control-label" ></label>
+                                </div>
+
+                            </div>
+                            <div class="col-xs-4">
+                                <div class="form-inline form-group">
+                                    <label class="control-label" >操作员:</label>
+                                    <label id="user" class="control-label" ></label>
+                                </div>
+                                <div class="form-inline form-group">
+                                    <label class="control-label" >操作日期:</label>
+                                    <label id="date" class="control-label" ></label>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        {#        bootstrap table自动渲染区域#}
+                        <div class="col-xs-12">
+                            {% csrf_token %}
+                            <table id="myTab" class="table table-bordered table-hover" style="table-layout:fixed;word-break:break-all;"></table>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock %}
+
+{% block script %}
+
+    <script src="{% static 'bootstrap-table-1.18.0/dist/bootstrap-table.js' %}"></script>
+    <script src="{% static 'bootstrap-table-1.18.0/dist/locale/bootstrap-table-zh-CN.js' %}"></script>
+    <script src="{% static 'js/bootstrap-editable.min.js' %}"></script>
+    <script src="{% static 'bootstrap-table-1.18.0/dist/extensions/editable/bootstrap-table-editable.js' %}"></script>
+
+    <script src="{% static 'js/toastr.min.js' %}"></script>
+    <script src="{% static 'js/jquery.cookie.js' %}"></script>
+    <script src="{% static 'js/myscript.js' %}"></script>
+
+<script>
+
+    toastr.options = {
+            closeButton: true,
+            debug: true,
+            progressBar: true,
+            positionClass: "toast-top-center",
+            onclick: null,
+            showDuration: "300",
+            hideDuration: "1000",
+            timeOut: "2000",
+            extendedTimeOut: "1000",
+            showEasing: "swing",
+            hideEasing: "linear",
+            showMethod: "fadeIn",
+            hideMethod: "fadeOut",
+        };
+
+    let obj = {};
+    {% for category in material_categorys %}
+        obj["{{category.0}}"]= "{{ category.1 }}";
+    {% endfor %}
+
+    function search() {
+        var formdata = new FormData(); //ajax上传文件的时候，需要这个类型，它会将添加给它的键值对加工成formdata的类型
+        var token = $("[name='csrfmiddlewaretoken']").val();
+        {#formdata.append("csrfmiddlewaretoken", token); //别忘了csrf_token#}
+        $.ajax(
+            {
+                //几个参数需要注意一下
+                cache:false,
+                type: "POST",//方法类型
+                dataType: "json",//预期服务器返回的数据类型
+                url: "{% url 'manufacturing:getOrderInfo' step.sequence_no %}" , //url
+                headers:{"X-CSRFToken":$.cookie("csrftoken")},
+                data: formdata, //将模态框的form表单数据序列化，以便提交到后台
+                processData: false,// 不加会报错
+                contentType: false,// 不加会报错
+                async:true,  //必须要为false,必须必须
+
+                success: function (data) {
+                    if(data.ret){
+                        $('#product_erp').text(data.info.product_erp);
+                        $('#product_name').text(data.info.product_name);
+                        $('#product_model').text(data.info.product_model);
+                        $('#order_num').text(data.info.order_num);
+                        $('#order_quantity').text(data.info.order_quantity);
+                        $('#finish_quantity').text(data.info.finish_quantity);
+                        $('#finish_rate').text(data.info.finish_rate);
+                        $('#user').text(data.info.user);
+                        $('#date').text(data.info.date);
+
+                        $("#myTab").bootstrapTable('refresh');
+                     }
+                    else {
+                        toastr.error('Error: ' + data.errMsg)
+                    }
+                 },
+                error : function() {
+                    toastr.error("输入数据有误！");
+                 }
+            });
+    }
+
+    function generate() {
+        data = {};
+        var json_data = JSON.stringify(data);
+        $.ajax({
+            url:"{% url 'manufacturing:generateVIN' sequence_no %}",
+            headers:{"X-CSRFToken":$.cookie("csrftoken")},
+            type:"post",
+            data:json_data, //将添加好数据的formdata放到data这里
+            processData: false,    // 不处理数据
+            contentType: false,    // 不设置内容类型
+            dataType: "json",
+            success:function(data){
+                if (data.ret){
+                    $('#product_vin').text(data.info.vin);
+                    search();
+                    toastr.success("VIN生成成功！");
+
+                    //window.location.reload()
+
+                    }
+                else {
+                    toastr.error("错误：" + data.errMsg);
+                }},
+            error: function(data){
+                toastr.error('导入异常！')
+                }
+        })
+    }
+
+    var columns =  [
+            {
+                field: 'no',
+                title: '序号',
+                align: "center",
+                valign: 'middle',
+                width: "100",
+                formatter: function (value, row, index) {
+                    //获取每页显示的数量
+                    var pageSize = $('#myTab').bootstrapTable('getOptions').pageSize;
+                    //获取当前是第几页
+                    var pageNumber = $('#myTab').bootstrapTable('getOptions').pageNumber;
+                    //返回序号，注意index是从0开始的，所以要加上1
+                    return pageSize * (pageNumber - 1) + index + 1;
+                }
+            },
+            {
+                field: 'vin',
+                title:'VIN',
+                width: '200',
+                align: 'center',
+                valign: 'middle',
+                sortable: false,
+            },
+
+            {   field: 'order_num',
+                title:'订单号',
+                width: '100',
+                align: 'center',
+                valign: 'middle',
+            },
+            {
+                field: 'erp_no',
+                title:'物料号',
+                width: '150',
+                align: 'center',
+                valign: 'middle',
+                sortable: false,
+            },
+            {
+                field: 'name',
+                title:'产品名称',
+                width: '150',
+                align: 'center',
+                valign: 'middle',
+                sortable: false,
+            },
+            {
+                field: 'model',
+                title:'产品型号',
+                width: '200',
+                align: 'center',
+                valign: 'middle',
+                sortable: false,
+            },
+
+        ];
+    var urls = "{% url 'manufacturing:getProductInfo' step.sequence_no %}";
+    tableFresh2(columns, urls, 'id');
+    search()
+
+
+</script>
+
+{% endblock %}

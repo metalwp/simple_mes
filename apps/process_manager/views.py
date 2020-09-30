@@ -14,6 +14,11 @@ from apps.bom_manager.models import MaterialModel, Bom_MaterialModel
 
 def ps_index(request):
     fixtures = Fixture.objects.filter_without_isdelete()
+    categorys = ProcessStep.CATEGORY_CHOICE
+    print(request.session.get('errMsg'))
+    if request.session.get('errMsg'):
+        errMsg = request.session['errMsg']
+        del request.session['errMsg']
     return render(request, 'process_manager/ps_index.html', locals())
 
 
@@ -57,6 +62,7 @@ def getPSData(request):
                          'fixture': fixture,
                          'sequence_no': obj.sequence_no,
                          'process_lock': obj.process_lock,
+                         'category': obj.category,
                          'process_route': route,
                          'remark': obj.remark,
                          'c_time': obj.c_time.strftime("%Y-%m-%d-%H:%M:%S"),
@@ -82,6 +88,7 @@ def addPSData(request):
         name = request.POST.get('nameInput')
         fixture_id = request.POST.get('fixtureSelect')
         remark = request.POST.get('remarkText')
+        category = request.POST.get('categorySelect')
         if request.POST.get('lockInput') == 'on':
             lock = True
         else:
@@ -91,7 +98,7 @@ def addPSData(request):
         except Exception:
             fixture = None
         try:
-            ProcessStep.objects.create(name=name, fixture=fixture, process_lock=lock, remark=remark)
+            ProcessStep.objects.create(name=name, fixture=fixture, process_lock=lock, remark=remark, category=category)
         except Exception as e:
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
             return JsonResponse(return_dict)
@@ -106,17 +113,23 @@ def updatePSData(request):
         name = request.POST.get('u_nameInput')
         fixture_id = request.POST.get('u_fixtureSelect')
         remark = request.POST.get('u_remarkText')
+        category = request.POST.get('u_categorySelect')
+
         if request.POST.get('u_lockInput') == 'on':
             lock = True
         else:
             lock = False
         try:
-            fixture = Fixture.objects.get(id=fixture_id)
+            if fixture_id:
+                fixture = Fixture.objects.get(id=fixture_id)
+            else:
+                fixture = None
             step = ProcessStep.objects.get(id=id)
             step.name = name
             step.fixture = fixture
             step.process_lock = lock
             step.remark = remark
+            step.category = category
             step.save()
         except Exception as e:
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
@@ -129,10 +142,12 @@ def ps_detail(request, step_id):
     step = ProcessStep.objects.get(pk=step_id)
     route = step.process_route
     if not route:
-        return redirect(reverse('process_manager:ps_index'), aaa='1231')
+        request.session['errMsg'] = '该工序未与工艺路线关联！'
+        return redirect(reverse('process_manager:ps_index'))
     productmodel = route.productmodel_set.all().first()
     if not productmodel:
-        return redirect(reverse('process_manager:ps_index'), aaa='1231')
+        request.session['errMsg'] = '该工艺路线未与产品关联！'
+        return redirect(reverse('process_manager:ps_index'))
     bom = productmodel.bom
     ships = Bom_MaterialModel.objects.filter(bom=bom, material_model__is_traced=True)
     # ships = Bom_MaterialModel.objects.filter(is_traced=True).values_list('material_model', 'id').distinct()

@@ -223,6 +223,18 @@ desired effect
 
           </ul>
         </li>
+        <li class="treeview">
+          <a href="#"><i class="fa fa-automobile"></i> <span>生产过程</span>
+            <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+              </span>
+          </a>
+          <ul class="treeview-menu">
+              {% for step in steps %}
+                <li><a href="{% url 'manufacturing:index' step.sequence_no %}">{{ step.name }}</a></li>
+              {% endfor %}
+          </ul>
+        </li>
 
         <li><a href="#"><i class="fa fa-search "></i> <span>查询系统</span></a></li>
         <li><a href="#"><i class="fa fa-user "></i> <span>用户管理</span></a></li>

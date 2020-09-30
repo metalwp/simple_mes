@@ -79,8 +79,11 @@ function tableFresh2(columns, urls, pk){
                 // searchText: params.searchText,
                 // sortName: params.sortName,
                 // sortOrder: params.sortOrder,
-                erp_no: $('#erpInput').val(), // 请求时向服务端传递的参数
-                batch_num:$('#batchInput').val(),
+                //erp_no: $('#erpInput').val(), // 请求时向服务端传递的参数
+                //batch_num:$('#batchInput').val(),
+                input1: $('#Input1').val(), // 请求时向服务端传递的参数
+                input2: $('#Input2').val(),
+                vin:$('#product_vin').text()
             };
             return temp;
         },

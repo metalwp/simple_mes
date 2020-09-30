@@ -1,7 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}订单管理{% endblock %}
-{% block css %}{% endblock %}
+{% block css %}
+    <link href="{% static 'bootstrap-table-1.18.0/dist/bootstrap-table.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/bootstrap-datetimepicker.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/bootstrap-editable.css' %}" rel="stylesheet"/>
+    <link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
+
+{% endblock %}
 
 {% block breadcrumb %}
     <!-- Content Header (Page header) -->
@@ -231,7 +237,7 @@
 
 
                    {#        bootstrap table自动渲染区域#}
-                    <table id="mytab" class="table table-bordered table-hover"></table>
+                    <table id="mytab" class="table table-bordered table-hover" style="table-layout:fixed;word-break:break-all;"></table>
 
                             </div>
                         </div>
@@ -244,18 +250,17 @@
 
 {% block script %}
 
-<link href="{% static 'css/bootstrap-table.min.css' %}" rel="stylesheet">
-<link href="{% static 'css/bootstrap-datetimepicker.min.css' %}" rel="stylesheet">
+    <script src="{% static 'bootstrap-table-1.18.0/dist/bootstrap-table.js' %}"></script>
+    <script src="{% static 'bootstrap-table-1.18.0/dist/locale/bootstrap-table-zh-CN.js' %}"></script>
+    <script src="{% static 'js/bootstrap-editable.min.js' %}"></script>
+    <script src="{% static 'bootstrap-table-1.18.0/dist/extensions/editable/bootstrap-table-editable.js' %}"></script>
 
-<script src="{% static 'js/bootstrap-table.min.js' %}"></script>
-<script src="{% static 'js/bootstrap-table-zh-CN.min.js' %}"></script>
 
-<link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
-<script src="{% static 'js/toastr.min.js' %}"></script>
-<script src="{% static 'js/jquery.cookie.js' %}"></script>
-<script src="{% static 'js/moment-with-locales.js' %}"></script>
-<script src="{% static 'js/bootstrap-datetimepicker.min.js' %}"></script>
-<script src="{% static 'js/myscript.js' %}"></script>
+    <script src="{% static 'js/toastr.min.js' %}"></script>
+    <script src="{% static 'js/jquery.cookie.js' %}"></script>
+    <script src="{% static 'js/moment-with-locales.js' %}"></script>
+    <script src="{% static 'js/bootstrap-datetimepicker.min.js' %}"></script>
+    <script src="{% static 'js/myscript.js' %}"></script>
 
 <script>
 
@@ -449,7 +454,7 @@ var columns = [
             field: 'no',
             title: '序号',
             align: "center",
-            width: "5%",
+            width: "100",
             formatter: function (value, row, index) {
                 //获取每页显示的数量
                 var pageSize=$('#mytab').bootstrapTable('getOptions').pageSize;
@@ -462,49 +467,49 @@ var columns = [
         {
             field: 'num',
             title:'订单号',
-            width: '10%',
+            width: '150',
             sortable: true,
         },
         {
             field: 'customer',
             title:'客户',
-            width: '10%',
+            width: '100',
             sortable: true,
         },
         {
             field: 'erp_no',
             title:'产品编码',
-            width: '10%',
+            width: '200',
             sortable: false,
         },
         {
             field: 'name',
             title:'产品名称',
-            width: '5%',
+            width: '100',
             sortable: false,
         },
         {
             field: 'model',
             title:'产品型号',
-            width: '10%',
+            width: '100',
             sortable: false,
         },
         {
             field: 'quantity',
             title:'数量',
-            width: '5%',
+            width: '100',
             sortable: true,
         },
         {
             field: 'delivery_time',
             title:'计划交付时间',
-            width: '10%',
+            width: '100',
             sortable: true,
         },
         {
             field: 'order_status',
             title:'订单状态',
-            width: '5%',
+            width: '100',
             sortable: true,
             formatter:function (value, row, index) {
                 var obj = {};
@@ -512,17 +517,31 @@ var columns = [
                     obj["{{stats.0}}"]= "{{ stats.1 }}";
                 {% endfor %}
                 return obj[value];
-            }
+            },
+            cellStyle: function (value, row, index) {
+                        if (value == 0) {
+                            return { css: { "background-color": "red"} }
+                        }
+                        if (value == 1) {
+                            return {css: {"background-color": "yellow"}}
+                        }
+                        if(value == 2) {
+                            return { css: { "background-color": "green"} }
+                        }
+                        if(value == 3) {
+                            return { css: { "background-color": "grey"} }
+                        }
+                    },
         },
         {
             field: 'start_time',
             title:'开始时间',
-            width: '10%',
+            width: '150',
             sortable: true,
         },
         {   field: 'end_time',
             title:'结束时间',
-            width: '10%',
+            width: '150',
             sortable: true,
         },
         {

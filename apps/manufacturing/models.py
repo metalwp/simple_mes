@@ -42,8 +42,8 @@ class HistoryRecord(BaseModel):
         return self.sn
 
     class Meta:
-        verbose_name = '装配记录'
-        verbose_name_plural = '装配记录'
+        verbose_name = '历史装配记录'
+        verbose_name_plural = '历史装配记录'
         db_table = 'sm_history_record'
 
 

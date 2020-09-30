@@ -287,7 +287,6 @@ def getGMaterialInfo(request):
         else:
             pass_rate = ''
             qualified_quantity = ''
-        print(qualified_quantity)
 
         info = {'erp_no': material_model.erp_no,
                 'name': material_model.name,
@@ -312,8 +311,9 @@ def getGMInspectionData(request):
         # pageNumber = int(request.POST.get('pageNumber'))
         # sortName = request.POST.get('sortName')
         # sortOrder = request.POST.get('sortOrder')
-        erp_no = request.GET.get('erp_no')
-        batch_num = request.GET.get('batch_num')
+        erp_no = request.GET.get('input1')
+        batch_num = request.GET.get('input2')
+        print(erp_no, batch_num)
 
         try:
             material_model = MaterialModel.objects.get(erp_no=erp_no, is_delete=False, is_traced=False)
@@ -513,8 +513,8 @@ def getTMaterialInfo(request):
 
 def getTMInspectionData(request):
     if request.method == "GET":
-        sn = request.GET.get('sn')
-        batch_num = request.GET.get('batch_num')
+        sn = request.GET.get('input1')
+        batch_num = request.GET.get('input2')
         if not (sn and batch_num):
             return JsonResponse({"ret": True, "errMsg": '', "rows": [], "total": 0})
         else:
@@ -575,7 +575,6 @@ def getTMInspectionData(request):
                              'lower': obj.lower,
                              'measure': '',
                              })
-        print(data)
         return JsonResponse(data)
 
 
@@ -661,7 +660,6 @@ def saveTMInspectionData(request):
                 status = 2
             else:
                 status = 3
-        print(status)
         tm_obj.status = status
         tm_obj.save()
 

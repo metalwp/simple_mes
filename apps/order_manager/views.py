@@ -234,12 +234,23 @@ def updateOrderData(request):
             product = ProductModel.objects.get(id=product_id)
             customer = Customer.objects.get(num=customer_num)
             dilivery_time = datetime.datetime.strptime(dilivery_str, '%Y-%m-%d').date()
-            mat, created = Order.objects.update_or_create(num=num, defaults={"product_model": product,
-                                                                           "quantity": quantity, "delivery_time": dilivery_time,
-                                                                           "customer": customer , 'status':status})
         except Exception as e:
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
             return JsonResponse(return_dict)
+        if str(status) == "1":
+            try:
+                order = Order.objects.get(status=1)
+                return JsonResponse({"ret": False, "errMsg": order.num + "订单进行中，请先关闭", "rows": [], "total": 0})
+            except Order.DoesNotExist:
+                mat, created = Order.objects.update_or_create(num=num, defaults={"product_model": product,
+                                                                             "quantity": quantity,
+                                                                             "delivery_time": dilivery_time,
+                                                                             "customer": customer, 'status': status})
+        else:
+            mat, created = Order.objects.update_or_create(num=num, defaults={"product_model": product,
+                                                                             "quantity": quantity,
+                                                                             "delivery_time": dilivery_time,
+                                                                             "customer": customer, 'status': status})
 
     return_dict = {"ret": True, "errMsg": '', "rows": [], "total": 0}
     return JsonResponse(return_dict)

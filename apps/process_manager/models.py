@@ -19,13 +19,25 @@ class ProcessRoute(BaseModel):
 
 
 class ProcessStep(BaseModel):
+    CATEGORY_CHOICE = (
+        (0, '无'),
+        (1, "组装"),
+        (2, "测试"),
+        (3, "标定"),
+        (4, "检验"),
+        (5, "标签打印"),
+        (6, "VIN生成"),
+        (7, "其他"),
+    )
+
     name = models.CharField('工序名称', unique=True, max_length=100)
     fixture = models.ForeignKey('station_manager.Fixture', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="工装")
     material = models.ManyToManyField("bom_manager.MaterialModel", through='ProcessStep_MaterialModel')
     sequence_no = models.SmallIntegerField('工序顺序号', null=True, blank=True, default=None)
     process_lock = models.BooleanField('工序互锁', default=False)
     process_route = models.ForeignKey("ProcessRoute", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="工艺路线")
-    remark = models.CharField('备注', max_length=200, null=True, blank=True)    
+    remark = models.CharField('备注', max_length=200, null=True, blank=True)
+    category = models.SmallIntegerField('工序类型', choices=CATEGORY_CHOICE, default=0)
     
     class Meta:
         verbose_name = '工序'

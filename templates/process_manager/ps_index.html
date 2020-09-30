@@ -39,6 +39,9 @@
                                     </div>
                             </div>
                         </div>
+                        <div class="col-xs-4" style="">
+                            <h5 style="color: red">{{ errMsg }}</h5>
+                        </div>
 
                             <!-- 新增模态框（Modal） -->
                             <form id="addForm" action="#" method="post" class="form-horizontal" role="form">
@@ -69,6 +72,17 @@
                                                             <option value="">请选择工装</option>
                                                             {% for fixture in fixtures %}
                                                             <option value="{{ fixture.id }}" hassubinfo="true">{{ fixture.name }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="categorySelect" class="col-sm-3 control-label" >工序类型</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <select class="form-control" name="categorySelect" id="categorySelect" required="required">
+                                                            <option value="">请选择工序类型</option>
+                                                            {% for category in categorys %}
+                                                                <option value="{{ category.0 }}" hassubinfo="true">{{ category.1 }}</option>
                                                             {% endfor %}
                                                         </select>
                                                     </div>
@@ -133,6 +147,17 @@
                                                 <option value="">请选择工装</option>
                                                 {% for fixture in fixtures %}
                                                 <option value="{{ fixture.id }}" hassubinfo="true">{{ fixture.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="u_categorySelect" class="col-sm-3 control-label" >工序类型</label>
+                                        <div class="input-group col-sm-7">
+                                            <select class="form-control" name="u_categorySelect" id="u_categorySelect" required="required">
+                                                <option value="">请选择工序类型</option>
+                                                {% for category in categorys %}
+                                                <option value="{{ category.0 }}" hassubinfo="true">{{ category.1 }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
@@ -292,6 +317,11 @@
         $("#u_remarkText").val(data.remark);
         $("#u_fixtureSelect").find("option:contains('" + data.fixture + "')").each(function () {
             $(this).attr('selected', true);});
+        $("#u_categorySelect option").each(function(){
+            if($(this).val()==data.category){
+                $(this).attr('selected', true)
+            }
+        });
 
         if(data.process_lock===true){
             $("#u_lockInput").attr("checked", true);
@@ -310,7 +340,7 @@
                 field: 'no',
                 title: '序号',
                 align: "center",
-                width: "10%",
+                width: "5%",
                 formatter: function (value, row, index) {
                     //获取每页显示的数量
                     var pageSize = $('#myTab').bootstrapTable('getOptions').pageSize;
@@ -338,8 +368,21 @@
             {
                 field: 'sequence_no',
                 title:'顺序号',
-                width: '15%',
+                width: '10%',
                 sortable: true,
+            },
+            {
+                field: 'category',
+                title:'工序类型',
+                width: '10%',
+                sortable: true,
+                formatter: function (value, row, index) {
+                    var obj = {};
+                    {% for category in categorys %}
+                        obj["{{category.0}}"]= "{{ category.1 }}";
+                    {% endfor %}
+                    return obj[value];
+                }
             },
             {
                 field: 'process_lock',

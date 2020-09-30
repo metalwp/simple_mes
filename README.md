@@ -9,3 +9,4 @@
 3. 前端bootstrap-table列排序，有些不属于这个模型的不能实现
 4. admin管理页面 仍然显示is_delete为True的数据库记录，有可能是admin的管理器objects没有使用自定义的管理器
 5. 排序无法按当前模型的外键模型进行排序，如BOM和MaterialModel
+6. 产品的VIN规则修改页面
