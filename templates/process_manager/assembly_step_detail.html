@@ -55,14 +55,27 @@
                                             {# 模态框body #}
                                             <div class="modal-body" style="height: 100%;">
 
+{#                                                <div class="form-group">#}
+{#                                                    <label for="materialSelect" class="col-sm-3 control-label" >物料</label>#}
+{#                                                    <div class="input-group col-sm-7">#}
+{#                                                        <select class="form-control" name="materialSelect" id="materialSelect" required="required">#}
+{#                                                            <option value="">物料号------------------| 总用量 | 物料名称 </option>#}
+{#                                                            {% for ship1 in ship1s %}#}
+{#                                                                {% for ship2 in ship2s  %}#}
+{#                                                                    {% if ship1.material_model.id == ship2.material_model.id%}#}
+{##}
+{#                                                                    {% endif %}#}
+{#                                                                {% endfor %}#}
+{#                                                                <option value="{{ ship.material_model.id }}" hassubinfo="true">{{ ship.material_model.erp_no }} | {{ ship.quantity }} | {{ ship.material_model.name }}</option>#}
+{##}
+{#                                                            {% endfor %}#}
+{#                                                        </select>#}
+{#                                                    </div>#}
+{#                                                </div>#}
                                                 <div class="form-group">
                                                     <label for="materialSelect" class="col-sm-3 control-label" >物料</label>
                                                     <div class="input-group col-sm-7">
                                                         <select class="form-control" name="materialSelect" id="materialSelect" required="required">
-                                                            <option value="">物料号------------------| 总用量 | 物料名称 </option>
-                                                            {% for ship in ships %}
-                                                            <option value="{{ ship.material_model.id }}" hassubinfo="true">{{ ship.material_model.erp_no }} | {{ ship.quantity }} | {{ ship.material_model.name }}</option>
-                                                            {% endfor %}
                                                         </select>
                                                     </div>
                                                 </div>
@@ -78,7 +91,7 @@
                                 {#            模态框底部#}
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                                                <input type="button" data-dissmiss="modal" onclick="add()" class="btn btn-primary"value="提交">
+                                                <input type="button" data-dissmiss="modal" onclick="add()" class="btn btn-primary" value="提交">
                                             </div>
                                         </div><!-- /.modal-content -->
                                     </div><!-- /.modal -->
@@ -136,9 +149,33 @@
 
     $("#updateModal").on("hidden.bs.modal", function() {document.getElementById("updateForm").reset();});
 
+    function refresh_options() {
+        $.ajax({
+        //几个参数需要注意一下
+            cache:false,
+            type: "POST",//方法类型
+            dataType: "json",//预期服务器返回的数据类型
+            url: "{% url 'process_manager:refresh_options' step.id %}" ,//url
+            headers:{"X-CSRFToken":$.cookie("csrftoken")},
+            data: {}, //将模态框的form表单数据序列化，以便提交到后台
+            async:true,  //必须要为false,必须必须
+
+            success: function (json_list) {
+                $("#materialSelect").empty();
+                $("#materialSelect").append("<option value='" + "'>" + "物料号------------------| 总用量 | 物料名称" + "</option>");
+                for (i in json_list) {
+                    $("#materialSelect").append("<option value='" + json_list[i].id + "'>" + json_list[i].erp_no + "------" + json_list[i].quantity + "------" + json_list[i].name + "</option>");
+                }
+            },
+            error : function(data) {
+                toastr.error("输入数据有误！");
+             }
+        });
+    }
 
     function add() {
         var data1 = $('#addForm').serialize();
+        console.log(data1);
         $.ajax({
         //几个参数需要注意一下
             cache:false,
@@ -159,6 +196,7 @@
                 else{
                     toastr.error('错误：' + data.errMsg);
                 }
+                refresh_options();
              },
             error : function(data) {
                 toastr.error("输入数据有误！");
@@ -168,6 +206,7 @@
 
     function actionFormatter(value, row, index) {
         var id = row.id;
+
         row.url = "{% url 'process_manager:deleteMaterialDate' step.id %}";
         var data = JSON.stringify(row);
         var result = "";
@@ -176,24 +215,45 @@
         return result;
         }
 
-     // getData方法获取全部页面数据后，将data转为json对象，使用index当前行号作为下标获取对应数据
-    function EditViewById(index, data){
-        $("#u_fixtureSelect option").each(function () {$(this).removeAttr("selected");});
-        $("#u_idInput").val(data.id);
-        $("#u_nameInput").val(data.name);
-        $("#u_remarkText").val(data.remark);
-        $("#u_fixtureSelect").find("option:contains('" + data.fixture + "')").each(function () {
-            $(this).attr('selected', true);});
 
-        if(data.process_lock===true){
-            $("#u_lockInput").attr("checked", true);
-        }else {
-            $("#u_lockInput").attr("checked", false);
+    function deleteconfirm(data) {
+        var tmp = confirm("确认删除？");
+        if(tmp === true){
+            if(data.id === undefined){
+                num = data.num;
+            }else{
+                num = data.id;
+            }
+            var data1 = {};
+            data1.id = num;
+            $.ajax({
+                type: "POST",
+                url: data.url,
+                headers:{"X-CSRFToken":$.cookie("csrftoken")},
+                data: data1,
+                dataType: "json",
+
+                success: function (data) {
+                    if (data.ret) {
+                        toastr.success("数据删除成功！");
+                        $('table').bootstrapTable('refresh');
+                    }else {if(data.errMsg){
+                            toastr.error(data.errMsg);
+                        }else {
+                            toastr.error("数据删除失败！");
+                            }
+                    }
+                    refresh_options();
+                },
+                error: function (data) {
+                    toastr.error("数据删除失败！");
+                }
+            });
         }
-        //弹出修改模态框，非新增模态框
-        $('#updateModal').modal('show');
     }
 
+
+    refresh_options();
     let columns = [
             //{
                 //checkbox: true
@@ -232,7 +292,7 @@
                 valign: 'middle',
                 formatter:function (value, row, index) {
                     var category_obj = {};
-                    {% for category in categorys %}
+                    {% for category in material_categorys %}
                         category_obj["{{category.0}}"]= "{{ category.1 }}";
                     {% endfor %}
                     return category_obj[value];

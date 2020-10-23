@@ -23,7 +23,7 @@ class ProductModel(BaseModel):
     name = models.CharField('产品名称', max_length=30)
     model = models.CharField('产品型号', max_length=30)
     category = models.ForeignKey("ProductCategory", on_delete=models.SET_NULL, blank=True, null=True, verbose_name='产品分类')
-    erp_no = models.CharField('物料号', unique=True, max_length=100)  # unique=True
+    erp_no = models.CharField('物料号', max_length=100)  # unique=True
     process_route = models.ForeignKey('process_manager.ProcessRoute', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='工艺路线')
 
     class Meta:

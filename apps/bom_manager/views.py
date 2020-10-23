@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from apps.product_manager.models import ProductModel
 from apps.bom_manager.models import MaterialModel, BOM, Bom_MaterialModel
+from apps.order_manager.models import Order
 from simple_mes import settings
 
 # Create your views here.
@@ -46,7 +47,8 @@ def getBomData(request):
         rows = []
         data = {"total": total, "rows": rows}
         for obj in objs:
-            rows.append({"id":obj.id, 'erp_no': obj.product_model.erp_no, 'product_name': obj.product_model.name, 'model_name': obj.product_model.model,
+            if not obj.product_model.is_delete:
+                rows.append({"id":obj.id, 'erp_no': obj.product_model.erp_no, 'product_name': obj.product_model.name, 'model_name': obj.product_model.model,
                          'bom_version': obj.version, 'remark': obj.remark})
         return JsonResponse(data)
 
@@ -68,8 +70,11 @@ def addBomData(request):
 
         # 业务逻辑    
         try:
-            product = ProductModel.objects.get(id = product_id)
-            model.objects.create(product_model=product, version=version, remark=remark)
+            product_model = ProductModel.objects.get(id=product_id)
+            boms = BOM.objects.filter_without_isdelete().filter(product_model=product_model)
+            if boms:
+                return JsonResponse({"ret": False, "errMsg": '该产品已存在一个BOM！', "rows": [], "total": 0})
+            model.objects.create(product_model=product_model, version=version, remark=remark)
         except Exception as e:
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
             return JsonResponse(return_dict)
@@ -108,11 +113,22 @@ def updateBomData(request):
 
 def deleteBomData(request):
         model = BOM 
-        return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
+
         id = request.POST.get('id')
-        obj = model.objects.get(id=id)
-        obj.delete()
-        return JsonResponse(return_dict)
+        try:
+            bom = model.objects.get(id=id)
+        except Exception as e:
+            return_dict = {"ret": True, "errMsg": str(e), "rows": [], "total": 0}
+            return JsonResponse(return_dict)
+
+        order = Order.objects.filter_without_isdelete().filter(product_model=bom.product_model)
+        if not order:
+            bom.delete()
+            return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
+            return JsonResponse(return_dict)
+        else:
+            return_dict = {"ret": False, "errMsg": "该产品已创建订单，无法删除！", "rows": [], "total": 0}
+            return JsonResponse(return_dict)
 
 
 def detail(request, bom_id):
@@ -135,7 +151,7 @@ def get(request, bom_id):
         else:
             sort_str = '-' + sortName
 
-        bom = BOM.objects.get(pk=bom_id)
+        bom = BOM.objects.filter_without_isdelete().get(pk=bom_id)
         if not search_kw:
             total = bom.bom_materialmodel_set.all().count()
             ships = bom.bom_materialmodel_set.all().order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
@@ -159,7 +175,7 @@ def get(request, bom_id):
 
 
 def writeToDB(filename, bom_id):
-    bom = BOM.objects.get(pk=bom_id)
+    bom = BOM.objects.filter_without_isdelete().get(pk=bom_id)
     excel = xlrd.open_workbook(settings.UPLOAD_ROOT + "/" + filename)
     sheet = excel.sheet_by_name('部件清单')
     nrows = sheet.nrows
@@ -172,8 +188,8 @@ def writeToDB(filename, bom_id):
         erp_no = row[1].strip()
         if (not erp_no) or (not re.match(r'^[A-Z]\d{9}V\d{4}A$', erp_no)):
             raise Exception("excel文档的第" + str(i+1) + "存在异常！")
-        name = row[2].strip()
-        model = row[3].strip()
+        name = row[2].replace(" ", "")
+        model = row[3].replace(" ", "")
         if not row[4].strip():
             category = 0
         elif row[4].strip() not in tmp_list or row[4].strip() == '其他':
@@ -241,8 +257,8 @@ def upload(request, bom_id):
 
 
 def delete(request, bom_id):
-    bom = BOM.objects.get(id=bom_id)
-    material_id = request.POST.get('id') # 获取的物料id
+    bom = BOM.objects.filter_without_isdelete().get(id=bom_id)
+    material_id = request.POST.get('id')  # 获取的物料id
     ships = Bom_MaterialModel.objects.filter(bom__id=bom_id, material_model__id=material_id)
     if len(ships)==1:
         ships[0].delete()
@@ -283,11 +299,11 @@ def add(request, bom_id):
             is_traced = False
 
         try:
-            obj = MaterialModel.objects.get(erp_no=erp_no)
+            obj = MaterialModel.objects.filter_without_isdelete().get(erp_no=erp_no)
         except MaterialModel.DoesNotExist:
             obj = None
         try:
-            bom = BOM.objects.get(pk=bom_id)
+            bom = BOM.objects.filter_without_isdelete().get(pk=bom_id)
             if not obj:
                 obj = MaterialModel.objects.create(name=name, model=model, category=category, erp_no=erp_no)
             obj.bom.add(bom)
@@ -327,7 +343,7 @@ def update(request, bom_id):
         else:
             is_traced = False
         try:
-            obj = MaterialModel.objects.get(id=id)
+            obj = MaterialModel.objects.filter_without_isdelete().get(id=id)
             obj.name = name
             obj.model = model
             obj.category = category

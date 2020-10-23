@@ -230,7 +230,7 @@ desired effect
               </span>
           </a>
           <ul class="treeview-menu">
-              {% for step in steps %}
+              {% for step in manufacturing_steps %}
                 <li><a href="{% url 'manufacturing:index' step.sequence_no %}">{{ step.name }}</a></li>
               {% endfor %}
           </ul>

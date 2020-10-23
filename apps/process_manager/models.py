@@ -6,7 +6,7 @@ from db.base_model import BaseModel
 
 
 class ProcessRoute(BaseModel):
-    name = models.CharField('工艺路线名称', unique=True, max_length=100)
+    name = models.CharField('工艺路线名称', max_length=100)
     remark = models.CharField('备注', max_length=200, null=True, blank=True)    
     
     class Meta:
@@ -30,7 +30,7 @@ class ProcessStep(BaseModel):
         (7, "其他"),
     )
 
-    name = models.CharField('工序名称', unique=True, max_length=100)
+    name = models.CharField('工序名称', max_length=100)
     fixture = models.ForeignKey('station_manager.Fixture', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="工装")
     material = models.ManyToManyField("bom_manager.MaterialModel", through='ProcessStep_MaterialModel')
     sequence_no = models.SmallIntegerField('工序顺序号', null=True, blank=True, default=None)

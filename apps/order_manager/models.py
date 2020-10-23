@@ -71,6 +71,7 @@ class Order(BaseModel):
     num = models.CharField('订单编号', primary_key=True, max_length=100)
     status = models.SmallIntegerField('订单状态', choices=order_status_choice, default=0)
     product_model = models.ForeignKey("product_manager.ProductModel", on_delete=models.SET_NULL, blank=True, null=True, verbose_name='产品')
+    # erp_no = models.CharField('产品ERP号', max_length=20)
     quantity = models.SmallIntegerField('数量', default=1)
     delivery_time = models.DateField('交付时间')
     start_time = models.DateTimeField('开始时间', null=True, blank=True) # 系统逻辑自动填写，非人工配置

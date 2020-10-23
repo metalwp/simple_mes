@@ -1,21 +1,22 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}生产过程{% endblock %}
+{% block title %}过程检验{% endblock %}
 {% block css %}
 
     <link href="{% static 'css/bootstrap-editable.css' %}" rel="stylesheet"/>
     <link href="{% static 'bootstrap-table-1.18.0/dist/bootstrap-table.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
 
+
 {% endblock %}
 
 {% block breadcrumb %}
     <!-- Content Header (Page header) -->
     <section class="content-header">
-        <h1>生产过程<small>Manufacturing</small></h1>
+        <h1>过程检验<small>ProcessInspection</small></h1>
         <ol class="breadcrumb">
             <li><a href="#">主页</a></li>
-            <li class="active">生产过程</li>
+            <li class="active">过程检验</li>
         </ol>
     </section>
 {% endblock %}
@@ -35,22 +36,15 @@
                         <div class="col-xs-12">
                             <div class="form-inline col-xs-12" style="margin: 5px;margin-bottom: 20px;">
                                 <input id="Input1" class="form-control" style="width: 100%;
-                                                                                        min-width: 200px;
-                                                                                        max-width: 500px;
+                                                                                        min-width: 400px;
+                                                                                        max-width: 600px;
                                                                                         height: 100%;
                                                                                         min-height: 40px;
                                                                                         font-size: 20px;
                                                                                         margin: 5px;"
-                                       placeholder="请输入车辆VIN或装配物料SN...">
-                                <input id="Input2" class="form-control" style="width: 100%; display: none;
-                                                                                        min-width: 200px;
-                                                                                        max-width: 500px;
-                                                                                        height: 100%;
-                                                                                        min-height: 40px;
-                                                                                        font-size: 20px;
-                                                                                        margin: 5px;"
-                                        placeholder="请输入车辆VIN..." autofocus>
-                                <button id="search" style="margin-left: 5px;" type="button" class="btn btn-lg btn-default" onclick="search()">输入</button>
+                                       placeholder="请输入VIN..." autofocus>
+                                <button id="search" style="margin-left: 5px;" type="button" class="btn btn-lg btn-default" onclick="search()">查询</button>
+                                <button id="save" style="margin-left: 5px;" type="button" class="btn btn-lg btn-primary" onclick="save()">保存检验结果</button>
                             </div>
                             <div class="col-xs-4">
                                 <div class="form-inline form-group">
@@ -159,7 +153,7 @@
         var formdata = new FormData(); //ajax上传文件的时候，需要这个类型，它会将添加给它的键值对加工成formdata的类型
         var token = $("[name='csrfmiddlewaretoken']").val();
         {#formdata.append("csrfmiddlewaretoken", token); //别忘了csrf_token#}
-        formdata.append('snInput', $('#Input1').val());
+        formdata.append("snInput", $("#Input1").val());
         formdata.append('product_vin', $('#product_vin').text());
         $.ajax(
             {
@@ -187,9 +181,9 @@
                         $('#status').text(data.info.status);
                         $('#user').text(data.info.user);
                         $('#date').text(data.info.date);
-                        $('#Input1').val('');
 
                         $("#myTab").bootstrapTable('refresh');
+                        $('#Input1').val('');
                         $('#Input1').focus();
 
                      }
@@ -203,6 +197,36 @@
             });
     }
 
+    function save() {
+        var allTableData = $("#myTab").bootstrapTable("getData");
+        data = {};
+        data.vin = $("#product_vin").text();
+        data.row = allTableData;
+        var json_data = JSON.stringify(data);
+        $.ajax({
+            url:"{% url 'manufacturing:saveInspectionData' sequence_no %}",
+            headers:{"X-CSRFToken":$.cookie("csrftoken")},
+            type:"post",
+            data:json_data, //将添加好数据的formdata放到data这里
+            processData: false,    // 不处理数据
+            contentType: false,    // 不设置内容类型
+            dataType: "json",
+            success:function(data){
+                if (data.ret){
+                    search();
+                    toastr.success("数据保存成功！");
+
+                    }
+                else {
+                    toastr.error("错误：" + data.errMsg);
+                }
+                $('#Input1').focus();
+                },
+            error: function(data){
+                toastr.error('导入异常！')
+                }
+        })
+    }
 
     $('#Input1').keydown(function(e){
         if(e.keyCode==13){
@@ -212,54 +236,16 @@
 
     var columns =  [
             {
-                field: 'no',
-                title: '序号',
-                align: "center",
-                valign: 'middle',
-                width: "100",
-                formatter: function (value, row, index) {
-                    //获取每页显示的数量
-                    var pageSize = $('#myTab').bootstrapTable('getOptions').pageSize;
-                    //获取当前是第几页
-                    var pageNumber = $('#myTab').bootstrapTable('getOptions').pageNumber;
-                    //返回序号，注意index是从0开始的，所以要加上1
-                    return pageSize * (pageNumber - 1) + index + 1;
-                }
-            },
-            {
-                field: 'sn',
-                title:'SN',
-                width: '200',
-                align: 'center',
-                valign: 'middle',
-                sortable: false,
-            },
-
-            {   field: 'batch_num',
-                title:'批次号',
+                field: 'num',
+                title:'检验项编号',
                 width: '100',
-                align: 'center',
-                valign: 'middle',
-            },
-            {
-                field: 'erp_no',
-                title:'物料号',
-                width: '150',
                 align: 'center',
                 valign: 'middle',
                 sortable: false,
             },
             {
                 field: 'name',
-                title:'物料名称',
-                width: '150',
-                align: 'center',
-                valign: 'middle',
-                sortable: false,
-            },
-            {
-                field: 'model',
-                title:'型号描述',
+                title:'检验项名称',
                 width: '200',
                 align: 'center',
                 valign: 'middle',
@@ -267,37 +253,92 @@
             },
             {
                 field: 'category',
-                title:'物料分类',
-                width: '100',
+                title:'检验类型',
+                width: '150',
                 align: 'center',
                 valign: 'middle',
                 sortable: false,
                 formatter: function (value, row, index) {
                     var obj = {};
-                    {% for category in categorys %}
+                    {% for category in inspection_categorys %}
                         obj["{{category.0}}"]= "{{ category.1 }}";
                     {% endfor %}
                     return obj[value];
                 }
             },
             {
-                field: 'c_time',
-                title:'创建时间',
-                width: '200',
+                field: 'mode',
+                title:'检验方法',
+                width: '100',
+                align: 'center',
+                valign: 'middle',
+                sortable: false,
+                formatter: function (value, row, index) {
+                    var obj = {};
+                    {% for mode in inspection_modes %}
+                        obj["{{mode.0}}"]= "{{ mode.1 }}";
+                    {% endfor %}
+                    return obj[value];
+                }
+            },
+            {
+                field: 'upper',
+                title:'上限',
+                width: '100',
                 align: 'center',
                 valign: 'middle',
             },
-            {   field: 'm_time',
-                title:'修改时间',
-                width: '200',
+           {   field: 'lower',
+                title:'下限',
+                width: '100',
                 align: 'center',
                 valign: 'middle',
             },
+            {   field: 'measure',
+                title:'测量值',
+                width: '150',
+                align: 'center',
+                valign: 'middle',
+                editable: {
+                    type: 'text',
+                    emptytext: '空',
+                    mode:'inline',
+                    validate: function (v) {
+                    if (!v) {
+                        return "不能为空";
+                    }
+                },
+                },
+            },
+            {
+            field: 'result',
+            title: '检验结果',
+            width: '150',
+            align: 'center',
+            valign: 'middle',
+            editable: {
+                type: 'select',
+                emptytext: '空',
+                mode:'inline',
+                source:[{value:"0",text:"Fail"},{value:"1", text:"Pass"}]
+            },
+            cellStyle: function (value, row, index) {
+                        if (value == "0") {
+                            return { css: { "background-color": "red"} }
+                        }
+                        if (value == undefined || value == "" || isNaN(value)) {
+                            return {css: {"background-color": "yellow"}}
+                        }
+                        if(value == "1") {
+                            return { css: { "background-color": "green"} }
+                        }
+                    },
+            }
         ];
-    var urls = "{% url 'manufacturing:getAssembleRecord' step.sequence_no %}";
+
+    var urls = "{% url 'manufacturing:getInspectionData' sequence_no %}";
     tableFresh2(columns, urls, 'id');
     $('#Input1').focus();
-
 
 
 </script>

@@ -15,6 +15,13 @@ urlpatterns = [
     path('process_step/detail/<int:step_id>/getMaterialDate', views.getMaterialDate, name='getMaterialDate'),
     path('process_step/detail/<int:step_id>/addMaterialDate', views.addMaterialDate, name='addMaterialDate'),
     path('process_step/detail/<int:step_id>/deleteMaterialDate', views.deleteMaterialDate, name='deleteMaterialDate'),
+    path('process_step/detail/<int:step_id>/refresh_options', views.refresh_options, name='refresh_options'),
+
+    path('process_step/detail/getInspectionData/<int:step_id>/', views.getInspectionData, name='getInspectionData'),
+    path('process_step/detail/addInspectionData/<int:step_id>/', views.addInspectionData, name='addInspectionData'),
+    path('process_step/detail/updateInspectionData/<int:step_id>/', views.updateInspectionData, name='updateInspectionData'),
+    path('process_step/detail/deleteInspectionData/<int:step_id>/', views.deleteInspectionData, name='deleteInspectionData'),
+    path('process_step/detail/<int:step_id>/uploadInspection/', views.uploadInspection, name='uploadInspection'),
 
     path('process_route/index/', views.pr_index, name='pr_index'),
     path('process_route/index/getPRData', views.getPRData, name='getPRData'),

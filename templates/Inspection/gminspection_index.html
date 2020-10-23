@@ -40,7 +40,7 @@
                                                                                         min-height: 40px;
                                                                                         font-size: 20px;
                                                                                         margin: 5px;"
-                                       placeholder="请输入物料号，如ZxxxxxxxxxVxxxxA">
+                                       placeholder="请输入物料号，如ZxxxxxxxxxVxxxxA" autofocus>
                                 <input id="Input2" class="form-control" style="width: 100%;
                                                                                         min-width: 100px;
                                                                                         max-width: 200px;
@@ -195,6 +195,8 @@
                         $('#date').text(data.info.date);
 
                         $("#myTab").bootstrapTable('refresh');
+                        $('#Input1').focus();
+
                      }
                     else {
                         toastr.error('Error: ' + data.errMsg)
@@ -232,7 +234,9 @@
                     }
                 else {
                     toastr.error("错误：" + data.errMsg);
-                }},
+                }
+                $('#Input1').focus();
+                },
             error: function(data){
                 toastr.error('导入异常！')
                 }
@@ -343,6 +347,8 @@
         ];
     var urls = "{% url 'Inspection:getGMInspectionData' %}";
     tableFresh2(columns, urls, 'id');
+    $('#Input1').focus();
+
 
 
 </script>

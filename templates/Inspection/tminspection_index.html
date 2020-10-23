@@ -42,7 +42,7 @@
                                                                                         min-height: 40px;
                                                                                         font-size: 20px;
                                                                                         margin: 5px;"
-                                       placeholder="请输入SN...">
+                                       placeholder="请输入SN..." autofocus>
                                 <input id="Input2" class="form-control" style="width: 100%;
                                                                                         min-width: 100px;
                                                                                         max-width: 200px;
@@ -55,6 +55,10 @@
                                 <button id="save" style="margin-left: 5px;" type="button" class="btn btn-lg btn-primary" onclick="save()">保存检验结果</button>
                             </div>
                             <div class="col-xs-4">
+                                <div class="form-inline form-group">
+                                    <label class="control-label" >SN:</label>
+                                    <label id="sn" class="control-label" ></label>
+                                </div>
                                 <div class="form-inline form-group">
                                     <label class="control-label" >物料号:</label>
                                     <label id="erp_no" class="control-label" ></label>
@@ -92,6 +96,10 @@
 
                             </div>
                             <div class="col-xs-4">
+                                <div class="form-inline form-group">
+                                    <label class="control-label" >当前状态:</label>
+                                    <label id="status" class="control-label" ></label>
+                                </div>
                                 <div class="form-inline form-group">
                                     <label class="control-label" >检验员:</label>
                                     <label id="user" class="control-label" ></label>
@@ -173,6 +181,9 @@
 
                 success: function (data) {
                     if(data.ret){
+                        $('#sn').text(data.info.sn);
+                        $('#status').text(data.info.status);
+
                         $('#erp_no').text(data.info.erp_no);
                         $('#name').text(data.info.name);
                         $('#category').text(obj[data.info.category]);
@@ -185,6 +196,10 @@
                         $('#date').text(data.info.date);
 
                         $("#myTab").bootstrapTable('refresh');
+                        $('#Input1').val('');
+                        $('#Input2').val('');
+                        $('#Input1').focus();
+
                      }
                     else {
                         toastr.error('Error: ' + data.errMsg)
@@ -199,8 +214,10 @@
     function save() {
         var allTableData = $("#myTab").bootstrapTable("getData");
         data = {};
-        data.snInput = $("#Input1").val();
-        data.batchInput = $("#Input2").val();
+        data.snInput = $("#sn").text();
+        data.batchInput = $("#batch_num").text();
+        $('#Input1').val($("#sn").text());
+        $('#Input2').val($("#batch_num").text());
         data.row = allTableData;
         var json_data = JSON.stringify(data);
         $.ajax({
@@ -213,13 +230,15 @@
             dataType: "json",
             success:function(data){
                 if (data.ret){
-                    $('#myTab').bootstrapTable('refresh');
+                    search();
                     toastr.success("数据保存成功！");
 
                     }
                 else {
                     toastr.error("错误：" + data.errMsg);
-                }},
+                }
+                $('#Input1').focus();
+                },
             error: function(data){
                 toastr.error('导入异常！')
                 }
@@ -329,6 +348,7 @@
         ];
     var urls = "{% url 'Inspection:getTMInspectionData' %}";
     tableFresh2(columns, urls, 'id');
+    $('#Input1').focus();
 
 
 </script>

@@ -11,6 +11,7 @@ from django.views import View
 
 from apps.product_manager.models import ProductModel
 from .models import Order, Customer
+from apps.manufacturing.models import Product
 # Create your views here.
 
 
@@ -90,7 +91,7 @@ def deleteCustomerData(request):
         model = Customer 
         return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
         num = request.POST.get('id')
-        obj = model.objects.get(num=num)
+        obj = model.objects.filter_without_isdelete().get(num=num)
         obj.delete()
         return JsonResponse(return_dict)
 
@@ -133,6 +134,7 @@ def om_index(request):
     orders = Order.objects.filter_without_isdelete()
     status_choice = Order.order_status_choice
     products = ProductModel.objects.filter_without_isdelete()
+    all_products = ProductModel.objects.all()
     customers = Customer.objects.filter_without_isdelete()
     return render(request, 'order_manager/om_index.html', locals())
 
@@ -183,11 +185,18 @@ def getOrderData(request):
 
 
 def deleteOrderData(request):
-    return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
+
     id = request.POST.get('id')
-    order = Order.objects.get(num=id)
-    order.delete()
-    return JsonResponse(return_dict)
+    try:
+        order = Order.objects.filter_without_isdelete().get(num=id)
+        products = Product.objects.filter_without_isdelete().filter(order_num=order)
+        if products:
+            return JsonResponse({"ret": False, "errMsg": "该工单已存在生产的产品，无法删除！", "rows": [], "total": 0})
+        else:
+            order.delete()
+            return JsonResponse({"ret": True, "errMsg": "", "rows": [], "total": 0})
+    except Exception as e:
+        return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
 
 
 def addOrderData(request):
@@ -206,8 +215,8 @@ def addOrderData(request):
         try:
             # 业务逻辑
             dilivery_time = datetime.datetime.strptime(dilivery_str, '%Y-%m-%d').date()
-            product = ProductModel.objects.get(id=product_id)
-            customer = Customer.objects.get(num=customer_num)
+            product = ProductModel.objects.filter_without_isdelete().get(id=product_id)
+            customer = Customer.objects.filter_without_isdelete().get(num=customer_num)
             Order.objects.create(num=num, product_model=product, quantity=quantity, delivery_time=dilivery_time, customer=customer)
         except Exception as e:
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
@@ -231,17 +240,20 @@ def updateOrderData(request):
             return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
 
         try:
-            product = ProductModel.objects.get(id=product_id)
-            customer = Customer.objects.get(num=customer_num)
+            product = ProductModel.objects.filter_without_isdelete().get(id=product_id)
+            customer = Customer.objects.filter_without_isdelete().get(num=customer_num)
             dilivery_time = datetime.datetime.strptime(dilivery_str, '%Y-%m-%d').date()
         except Exception as e:
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
             return JsonResponse(return_dict)
         if str(status) == "1":
             try:
-                order = Order.objects.get(status=1)
+                order = Order.objects.filter_without_isdelete().get(status=1)
                 return JsonResponse({"ret": False, "errMsg": order.num + "订单进行中，请先关闭", "rows": [], "total": 0})
             except Order.DoesNotExist:
+                order1 = Order.objects.filter_without_isdelete().get(num=num)
+                if order1.product_model.is_delete:
+                    return JsonResponse({"ret": False, "errMsg": "该订单关联的产品已经删除，无法打开该订单！", "rows": [], "total": 0})
                 mat, created = Order.objects.update_or_create(num=num, defaults={"product_model": product,
                                                                              "quantity": quantity,
                                                                              "delivery_time": dilivery_time,

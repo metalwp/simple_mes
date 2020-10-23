@@ -10,6 +10,8 @@ urlpatterns = [
     path('assemble/getOrderInfo/<int:sequence_no>/', views.getOrderInfo, name='getOrderInfo'),
     path('assemble/getProductInfo/<int:sequence_no>/', views.getProductInfo, name='getProductInfo'),
     path('assemble/generateVIN/<int:sequence_no>/', views.generateVIN, name='generateVIN'),
+    path('assemble/getInspectionData/<int:sequence_no>/', views.getInspectionData, name='getInspectionData'),
+    path('assemble/saveInspectionData/<int:sequence_no>/', views.saveInspectionData, name='saveInspectionData'),
 
     path('assemble/getAssembleRecord/<int:sequence_no>/', views.getAssembleRecord, name='getAssembleRecord'),
 

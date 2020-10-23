@@ -164,6 +164,8 @@ function clean(){
             }
 
 function deleteconfirm(data) {
+    console.log(data);
+
     var tmp = confirm("确认删除？")
     if(tmp === true){
         if(data.id === undefined){
@@ -184,8 +186,12 @@ function deleteconfirm(data) {
                 if (data.ret) {
                     toastr.success("数据删除成功！");
                     $('table').bootstrapTable('refresh');
-                }else {
-                    toastr.error("数据删除失败！");
+                }else {if(data.errMsg){
+                        toastr.error(data.errMsg);
+                    }else {
+                        toastr.error("数据删除失败！");
+                        }
+
                 }
             },
             error: function (data) {

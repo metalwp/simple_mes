@@ -4,7 +4,6 @@
 {% block css %}
     <link href="{% static 'bootstrap-table-1.18.0/dist/bootstrap-table.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/bootstrap-datetimepicker.min.css' %}" rel="stylesheet">
-    <link href="{% static 'css/bootstrap-editable.css' %}" rel="stylesheet"/>
     <link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
 
 {% endblock %}
@@ -154,9 +153,9 @@
                                                 <div class="form-group">
                                                     <label for="u_productSelect" class="col-sm-3 control-label" >产品</label>
                                                     <div class="input-group col-sm-7">
-                                                        <select class="form-control" name="u_productSelect" id="u_productSelect" required="required">
+                                                        <select class="form-control" name="u_productSelect" id="u_productSelect" required="required" disabled="disabled">
                                                             <option value="">请选择产品</option>
-                                                            {% for product in products %}
+                                                            {% for product in all_products %}
                                                             <option value="{{ product.id }}" hassubinfo="true">{{ product.erp_no }} | {{ product.name }}</option>
                                                             {% endfor %}
                                                         </select>
@@ -252,8 +251,6 @@
 
     <script src="{% static 'bootstrap-table-1.18.0/dist/bootstrap-table.js' %}"></script>
     <script src="{% static 'bootstrap-table-1.18.0/dist/locale/bootstrap-table-zh-CN.js' %}"></script>
-    <script src="{% static 'js/bootstrap-editable.min.js' %}"></script>
-    <script src="{% static 'bootstrap-table-1.18.0/dist/extensions/editable/bootstrap-table-editable.js' %}"></script>
 
 
     <script src="{% static 'js/toastr.min.js' %}"></script>
@@ -346,8 +343,10 @@
 
     function update(){
         $('#u_numInput').removeAttr('disabled');
+        $('#u_productSelect').removeAttr('disabled');
         var data1 = $('#updateForm').serialize();
         $('#u_numInput').attr('disabled', 'disabled');
+        $('#u_productSelect').attr('disabled', 'disabled');
         $.ajax(
             {
                 //几个参数需要注意一下

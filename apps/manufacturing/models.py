@@ -62,14 +62,34 @@ class AssemblyRecord(BaseModel):
 
 
 class TestRecord(BaseModel):
-    RESULT_CHOICE = ((0, 'Fail'), (1, 'Pass'))
+    RESULT_CHOICE = (
+        (0, "Fail"),
+        (1, "Pass")
+    )
+
+    MODE_CHOICE = (
+        (0, "无"),
+        (1, "目视"),
+        (2, "测量工具"),
+        (3, "手动设备"),
+        (4, "自动设备"))
+
+    CATEGORY_CHOICE = (
+        (0, "无"),
+        (1, "外观"),
+        (2, "功能"),
+        (3, "性能"))
+
     process_record = models.ForeignKey("ProcessRecord", on_delete=models.SET_NULL, blank=True, null=True, verbose_name='产品过程记录')
-    num = models.SmallIntegerField('测试项编号')
-
-    name = models.CharField('测试项名称', max_length=100)
-    result = models.SmallIntegerField('测试项结果', choices=RESULT_CHOICE)
-
-    data = models.DecimalField('测试项数据', max_digits=10, decimal_places=2)
+    num = models.CharField('检验项编号', max_length=20)
+    name = models.CharField('检验项名称', max_length=20)
+    category = models.SmallIntegerField('检验类型', choices=CATEGORY_CHOICE, default=0)
+    mode = models.SmallIntegerField('检验方式', choices=MODE_CHOICE, default=0)
+    result = models.SmallIntegerField('检验项结果', choices=RESULT_CHOICE, default=0)
+    data = models.DecimalField('检验项数据', max_digits=10, decimal_places=2)
+    operator = models.ForeignKey('account.User', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='检验员')
+    upper = models.DecimalField('上限', max_digits=10, decimal_places=2)
+    lower = models.DecimalField('下限', max_digits=10, decimal_places=2)
 
     def __str__(self):
         return self.name + ' ' + str(self.result)

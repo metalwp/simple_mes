@@ -275,6 +275,21 @@
                 valign: 'middle',
                 sortable: false,
             },
+             {
+                field: 'c_time',
+                title:'创建时间',
+                width: '200',
+                align: 'center',
+                valign: 'middle',
+                sortable: false,
+            },
+            {   field: 'm_time',
+                title:'修改时间',
+                width: '200',
+                align: 'center',
+                valign: 'middle',
+                sortable: false,
+            },
 
         ];
     var urls = "{% url 'manufacturing:getProductInfo' step.sequence_no %}";

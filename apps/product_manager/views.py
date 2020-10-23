@@ -9,6 +9,8 @@ from django.db.models import Q
 
 from .models import ProductModel, ProductCategory
 from apps.process_manager.models import ProcessRoute
+from apps.bom_manager.models import BOM
+from apps.order_manager.models import Order
 
 
 # Create your views here.
@@ -119,9 +121,12 @@ def deletePcData(request):
 
         # 业务处理
         try:
-            catagory = ProductCategory.objects.get(id=_id)
-            # category = get_object_or_404(ProductCategory, id=_id)
-            catagory.delete()
+            catagory = ProductCategory.objects.filter_without_isdelete().get(id=_id)
+            product_model = ProductModel.objects.filter_without_isdelete().filter(catagory=catagory)
+            if product_model:
+                return JsonResponse({"ret": False, "errMsg": "该产品类型已创建产品型号，无法删除！", "rows": [], "total": 0})
+            else:
+                catagory.delete()
         except Exception as e:
             return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
 
@@ -192,7 +197,7 @@ def addPmData(request):
 
         if category_id:
             try:
-                category = ProductCategory.objects.get(id=category_id)
+                category = ProductCategory.objects.filter_without_isdelete().get(id=category_id)
             except Exception as e:
                 return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
         else:
@@ -200,20 +205,29 @@ def addPmData(request):
 
         if process_route_id:
             try:
-                process_route = ProcessRoute.objects.get(id=process_route_id)
+                process_route = ProcessRoute.objects.filter_without_isdelete().get(id=process_route_id)
+                if process_route.productmodel_set.all().filter(is_delete=False):
+                    return JsonResponse({"ret": False, "errMsg": "该工艺路线已被其他产品使用，请新建工艺路线！", "rows": [], "total": 0})
             except Exception as e:
                 return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
         else:
             process_route = None
         try:
-            product = ProductModel(name=name, model=modal, erp_no=erp_no, category=category,
-                                   process_route=process_route)
-            product.save()
-        except Exception as e:
-            return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
+            product_model = ProductModel.objects.filter_without_isdelete().get(erp_no=erp_no)
+        except ProductModel.DoesNotExist:
+            product_model = None
+        if product_model is None:
+            try:
+                product = ProductModel(name=name, model=modal, erp_no=erp_no, category=category,
+                                       process_route=process_route)
+                product.save()
+            except Exception as e:
+                return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
 
-        # 返回应答
-        return JsonResponse({"ret": True, "errMsg": '', "rows": [], "total": 0})
+            # 返回应答
+            return JsonResponse({"ret": True, "errMsg": '', "rows": [], "total": 0})
+        else:
+            return JsonResponse({"ret": False, "errMsg": "该产品型号已存在！", "rows": [], "total": 0})
 
 
 def updatePmData(request):
@@ -225,7 +239,6 @@ def updatePmData(request):
         erp_no = request.POST.get('erpInputUpdate')
         category_id = request.POST.get('categorySelectUpdate')
         process_route_id = request.POST.get('processRouteSelectUpdate')
-        print(request.POST)
 
         # 校验数据有效性
         if not all([name, model, erp_no]):
@@ -266,14 +279,22 @@ def deletePmData(request):
 
         # 业务处理
         try:
-            product = ProductModel.objects.get(id=_id)
-            # category = get_object_or_404(ProductCategory, id=_id)
-            product.delete()
+            product_model = ProductModel.objects.filter_without_isdelete().get(id=_id)
+            boms = BOM.objects.filter_without_isdelete().filter(product_model=product_model)
+            orders = Order.objects.filter_without_isdelete().filter(product_model=product_model)
+            if orders:
+                return JsonResponse({"ret": False, "errMsg": "该产品已创建订单，无法删除！", "rows": [], "total": 0})
+            else:
+                product_model.delete()
+                for bom in boms:
+                    bom.delete()
+                # 返回应答
+                return JsonResponse({"ret": True, "errMsg": '', "rows": [], "total": 0})
+
         except Exception as e:
             return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
 
-        # 返回应答
-        return JsonResponse({"ret": True, "errMsg": '', "rows": [], "total": 0})
+
 
 
 

@@ -18,7 +18,8 @@ class Inspection(BaseModel):
             (2, "功能"),
             (3, "性能"))
 
-    material_model = models.ForeignKey("bom_manager.MaterialModel", on_delete=models.CASCADE, verbose_name='物料型号')
+    material_model = models.ForeignKey("bom_manager.MaterialModel", on_delete=models.SET_NULL, null=True, blank=True, verbose_name='物料型号')
+    process_step = models.ForeignKey('process_manager.ProcessStep', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='所属工序')
     num = models.CharField('检验编号',  max_length=20)
     name = models.CharField('检验名称', max_length=50)
     category = models.SmallIntegerField('检验类型', choices=CATEGORY_CHOICE, default=0)

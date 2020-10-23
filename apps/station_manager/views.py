@@ -100,7 +100,7 @@ def deleteStationData(request):
     return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
     id = request.POST.get('id')
     try:
-        station = Station.objects.get(id=id)
+        station = Station.objects.filter_without_isdelete().get(id=id)
         station.delete()
         return JsonResponse(return_dict)
     except Exception as e:
@@ -161,7 +161,7 @@ def updateStationData(request):
         if not re.match(r'^192.168.\d{1,3}\.\d{1,3}$', ip):
             return JsonResponse({"ret": False, "errMsg": 'IP格式不正确！', "rows": [], "total": 0})
         try:
-            station = Station.objects.get(id=id)
+            station = Station.objects.filter_without_isdelete().get(id=id)
         except Exception as e:
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
             return JsonResponse(return_dict)
@@ -271,7 +271,7 @@ def addFixtureData(request):
         if not all([name, station_id]):
             return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
         try:
-            station = Station.objects.get(id=station_id)
+            station = Station.objects.filter_without_isdelete().get(id=station_id)
             fixture_no = genFixtureNo()
             Fixture.objects.create(num=fixture_no, name=name,
                                     station=station, remarks=remarks)
@@ -293,8 +293,8 @@ def updateFixtureData(request):
             return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
         
         try:
-            station = Station.objects.get(id=station_id)
-            fixture = Fixture.objects.get(id=id)
+            station = Station.objects.filter_without_isdelete().get(id=station_id)
+            fixture = Fixture.objects.filter_without_isdelete().get(id=id)
             fixture.name = name
             fixture.station = station
             fixture.remarks = remarks
@@ -310,7 +310,7 @@ def deleteFixtureData(request):
     return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
     id = request.POST.get('id')
     try:
-        fixture = Fixture.objects.get(id=id)
+        fixture = Fixture.objects.filter_without_isdelete().get(id=id)
         fixture.delete()
         return JsonResponse(return_dict)
     except Exception as e:
@@ -319,7 +319,7 @@ def deleteFixtureData(request):
 
 
 def testStandard(request, fixture_id):
-    fixture = Fixture.objects.get(id=fixture_id)
+    fixture = Fixture.objects.filter_without_isdelete().get(id=fixture_id)
     teststandard = TestStandard.objects.filter_without_isdelete().filter(fixture=fixture).first()
     return render(request, 'station_manager/fixture_teststandard.html', locals())
 
@@ -337,7 +337,7 @@ def getTestStandard(request, fixture_id):
         # else:
         #     sort_str = '-' + sortName
         try:
-            fixture = Fixture.objects.get(id=fixture_id)
+            fixture = Fixture.objects.filter_without_isdelete().get(id=fixture_id)
         except Exception as e:
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
             return JsonResponse(return_dict)
@@ -377,7 +377,7 @@ def addTestStandard(request, fixture_id):
             return JsonResponse({"ret": False, "errMsg": "上限大于等于下限！", "rows": [], "total": 0})
 
         try:
-            fixture = Fixture.objects.get(id=fixture_id)
+            fixture = Fixture.objects.filter_without_isdelete().get(id=fixture_id)
             temp_obj = TestStandard.objects.filter_without_isdelete().first()
             TestStandard.objects.create(num=num, name=name, upper=upper, lower=lower, fixture=fixture, version=temp_obj.version)
         except Exception as e:
@@ -401,7 +401,7 @@ def updateTestStandard(request, fixture_id):
             return JsonResponse({"ret": False, "errMsg": "上限大于等于下限！", "rows": [], "total": 0})
         
         try:
-            test_standard = TestStandard.objects.get(id=id)
+            test_standard = TestStandard.objects.filter_without_isdelete().get(id=id)
             test_standard.num = num
             test_standard.name = name
             test_standard.upper = upper
@@ -418,7 +418,7 @@ def deleteTestStandard(request, fixture_id):
     return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
     id = request.POST.get('id')
     try:
-        obj = TestStandard.objects.get(id=id)
+        obj = TestStandard.objects.filter_without_isdelete().get(id=id)
         obj.delete()
         return JsonResponse(return_dict)
     except Exception as e:
@@ -436,7 +436,7 @@ def writeToDB(**kwargs):
     ncols = sheet.ncols
 
     try:
-        fixture = Fixture.objects.get(id=fixture_id)
+        fixture = Fixture.objects.filter_without_isdelete().get(id=fixture_id)
     except Exception as e:
         raise e
 
@@ -472,7 +472,7 @@ def uploadTestStandard(request, fixture_id):
     file = request.FILES.get('uploadFile')
     version = request.POST.get('version')
     try:
-        fixture = Fixture.objects.get(id=fixture_id)
+        fixture = Fixture.objects.filter_without_isdelete().get(id=fixture_id)
     except Exception as e:
         return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
         return HttpResponse(json.dumps(return_dict))

@@ -242,7 +242,7 @@
         var data = JSON.stringify(row);
         var result = "";
         result += "<a href='javascript:;' class='btn btn-xs blue' onclick=" + "EditViewById(" + index + "," + data + ")" + " title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";
-        result += "<a href='javascript:;' class='btn btn-xs red' onclick=" + "deleteconfirm(" + data + ")" + " title='删除'><span class='glyphicon glyphicon-remove'></span></a>";
+        {#result += "<a href='javascript:;' class='btn btn-xs red' onclick=" + "deleteconfirm(" + data + ")" + " title='删除'><span class='glyphicon glyphicon-remove'></span></a>";#}
         return result;
         }
 

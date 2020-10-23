@@ -6,7 +6,7 @@ from db.base_model import BaseModel
 
 
 class BOM(BaseModel):
-    product_model = models.OneToOneField("product_manager.ProductModel", on_delete=models.SET_NULL, blank=True, null=True, verbose_name='产品型号')
+    product_model = models.ForeignKey("product_manager.ProductModel", on_delete=models.SET_NULL, blank=True, null=True, verbose_name='产品型号')
     version = models.CharField('BOM版本', max_length=10)
     remark = models.CharField('备注', max_length=200, null=True, blank=True)        
 

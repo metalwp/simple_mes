@@ -1,41 +1,41 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Hello, Bootstrap Table!</title>
+<html lang="zh-ch">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A sample webpage showing how to print to a Zebra printer via javascript and XMLHttpRequest">
+  <meta name="author" content="Robin West">
+  <title>HTTP Post Sample</title>
+</head>
+<body>
+  Printer IP Address: <br>
+  <input type="text" id="ip_addr" style="width:500px"><br><br>
+  Script: <br>
+  <textarea id="zpl" style="width:500px" rows = '20'>^XA^PW400^LL200^FO20,20^A0N,30,30^FDThis is a TEST^FS我是中文^XZ</textarea><br><br>
+  <button οnclick="print(); return false;">Print</button>
+  <div id="output"></div>
+  <script>
+      function print() {
+          var zpl = document.getElementById("zpl").value;
+          var ip_addr = document.getElementById("ip_addr").value;
+          var output = document.getElementById("output");
+          var url = "http://" + ip_addr + "/pstprnt";
+          var method = "POST";
+          var async = true;
+          var request = new XMLHttpRequest();
 
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.0/dist/bootstrap-table.min.css">
-  </head>
-  <body>
-    <table data-toggle="table">
-      <thead>
-        <tr>
-          <th>Item ID</th>
-          <th>Item Name</th>
-          <th>Item Price</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>1</td>
-          <td>Item 1</td>
-          <td>$1</td>
-        </tr>
-        <tr>
-          <td>2</td>
-          <td>Item 2</td>
-          <td>$2</td>
-        </tr>
-      </tbody>
-    </table>
+          request.onload = function () {
+              var status = request.status; // HTTP response status, e.g., 200 for "200 OK"
+              var data = request.responseText; // Returned data, e.g., an HTML document.
+              output.innerHTML = "Status: " + status + "<br>" + data;
+          }
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/bootstrap-table@1.18.0/dist/bootstrap-table.min.js"></script>
-  </body>
+          request.open(method, url, async);
+          request.setRequestHeader("Content-Length", zpl.length);
+
+          // Actually sends the request to the server.
+          request.send(zpl);
+      }
+  </script>
+</body>
 </html>
