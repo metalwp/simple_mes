@@ -251,7 +251,12 @@ def updatePmData(request):
             category = None
 
         if process_route_id:
-            process_route = get_object_or_404(ProcessRoute, id=process_route_id)
+            try:
+                process_route = ProcessRoute.objects.filter_without_isdelete().get(id=process_route_id)
+                if process_route.productmodel_set.all().filter(is_delete=False):
+                    return JsonResponse({"ret": False, "errMsg": "该工艺路线已被其他产品使用，请新建工艺路线！", "rows": [], "total": 0})
+            except Exception as e:
+                return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
         else:
             process_route = None
 
