@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect, reverse
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Q
 from django.core import serializers
+from django.contrib.auth.decorators import login_required
 
 from apps.product_manager.models import ProductModel
 from apps.station_manager.models import Station, Fixture
@@ -17,6 +18,7 @@ from simple_mes import settings
 # Create your views here.
 
 
+@login_required
 def ps_index(request):
     fixtures = Fixture.objects.filter_without_isdelete()
     categorys = ProcessStep.CATEGORY_CHOICE
@@ -134,7 +136,7 @@ def updatePSData(request):
                 fixture = Fixture.objects.filter_without_isdelete().get(id=fixture_id)
             else:
                 fixture = None
-            tmp = ProcessStep.objects.filter_without_isdelete().filter(name=name)
+            tmp = ProcessStep.objects.filter_without_isdelete().filter(name=name).exclude(id=id)
             if tmp:
                 return_dict = {"ret": False, "errMsg": "工序名称不能重复！", "rows": [], "total": 0}
                 return JsonResponse(return_dict)
@@ -152,6 +154,7 @@ def updatePSData(request):
         return JsonResponse(return_dict)
 
 
+@login_required
 def ps_detail(request, step_id):
     step = ProcessStep.objects.filter_without_isdelete().get(pk=step_id)
     route = step.process_route
@@ -188,6 +191,7 @@ def ps_detail(request, step_id):
         return HttpResponse('后续添加VIN规则编辑')
     else:
         return HttpResponse('无')
+
 
 
 def getMaterialDate(request, step_id):
@@ -509,9 +513,12 @@ def uploadInspection(request, step_id):
         return HttpResponse(json.dumps(return_dict))
 
 
+@login_required
 def pr_index(request):
     product = ProductModel.objects.all()
     return render(request, "process_manager/pr_index.html", locals())
+
+
 
 
 def getPRData(request):
@@ -608,6 +615,7 @@ def updatePRData(request):
         return JsonResponse(return_dict)
 
 
+@login_required
 def pr_detail(request, route_id):
     route = ProcessRoute.objects.filter_without_isdelete().get(pk=route_id)
     steps = ProcessStep.objects.filter_without_isdelete().filter(process_route=None)

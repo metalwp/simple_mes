@@ -7,6 +7,7 @@ from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView, DetailView
 from django.db.models import Q
 from django.http import JsonResponse, HttpResponse
+from django.contrib.auth.decorators import login_required
 
 from apps.station_manager.models import Station, Fixture, TestStandard
 from simple_mes import settings
@@ -19,16 +20,23 @@ CATEGORY_CHOICE = ((0, 'NON'),
                                                 (4, 'INS'),
                                                 (5, 'OTH'))
 
-class IndexView(ListView):
-    """视图类"""
-    model = Station
-    template_name = "station_manager/station_index.html"
-    context_object_name = 'stations'
 
-    def get_context_data(self, **kwargs):
-        context = super(IndexView, self).get_context_data(**kwargs)
-        context['categorys'] = self.model.STATION_CATEGORY_CHOICE
-        return context
+@login_required
+def station_index(request):
+    stations = Station.objects.filter_without_isdelete()
+    categorys = Station.STATION_CATEGORY_CHOICE
+    return render(request, 'station_manager/station_index.html', locals())
+
+# class IndexView(ListView):
+#     """视图类"""
+#     model = Station
+#     template_name = "station_manager/station_index.html"
+#     context_object_name = 'stations'
+#
+#     def get_context_data(self, **kwargs):
+#         context = super(IndexView, self).get_context_data(**kwargs)
+#         context['categorys'] = self.model.STATION_CATEGORY_CHOICE
+#         return context
 
     # def get_queryset(self):
     #     print(self.request.GET.dict())
@@ -218,6 +226,7 @@ def genFixtureNo():
     return fixture_no
 
 
+@login_required
 def fixture_index(request):
     fixtures = Fixture.objects.filter_without_isdelete()
     stations = Station.objects.filter_without_isdelete()
@@ -318,6 +327,7 @@ def deleteFixtureData(request):
         return JsonResponse(return_dict)
 
 
+@login_required
 def testStandard(request, fixture_id):
     fixture = Fixture.objects.filter_without_isdelete().get(id=fixture_id)
     teststandard = TestStandard.objects.filter_without_isdelete().filter(fixture=fixture).first()

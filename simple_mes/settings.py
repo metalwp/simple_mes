@@ -63,6 +63,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'apps.account.middleware.rbac.RbacMiddleware',  #添加自定义中间件
 ]
 
 ROOT_URLCONF = 'simple_mes.urls'
@@ -147,3 +148,33 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"),]
 
 # 文件上传配置
 UPLOAD_ROOT = os.path.join(BASE_DIR, 'upload')
+
+
+# 全局登陆URL,用于在视图中使用装饰器检查是否登陆
+LOGIN_URL = '/account/login/'
+
+REGEX_URL = r'^{url}$'  # url作严格匹配
+
+# 配置url权限白名单
+SAFE_URL = [
+    r'/account/login/',
+    '/account/logout/',
+    '/admin/.*',
+    '/test/',
+    '/index/',
+    '/',
+    '^/rbac/',
+    '^/rbac/menus/',
+]
+
+# 定义session 键：
+# 保存用户权限url列表
+# 保存 权限菜单 和所有 菜单
+SESSION_PERMISSION_URL_KEY = 'cool'
+
+SESSION_MENU_KEY = 'awesome'
+ALL_MENU_KEY = 'k1'
+PERMISSION_MENU_KEY = 'k2'
+
+
+

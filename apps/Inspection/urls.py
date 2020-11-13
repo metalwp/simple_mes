@@ -13,7 +13,7 @@ urlpatterns = [
     path('material/detail/addData/<int:material_id>/', views.addInspectionData, name='addInspectionData'),
     path('material/detail/updateData/<int:material_id>/', views.updateInspectionData, name='updateInspectionData'),
     path('material/detail/deleteData/<int:material_id>/', views.deleteInspectionData, name='deleteInspectionData'),
-    path('material/detail/<int:material_id>/uploadData/', views.uploadInspection, name='uploadInspection'),
+    path('material/detail/uploadData/<int:material_id>/', views.uploadInspection, name='uploadInspection'),
 
     path('gminspection/index/', views.gminspection_index, name='gminspection_index'),
     path('gminspection/getGMaterialInfo/', views.getGMaterialInfo, name='getGMaterialInfo'),

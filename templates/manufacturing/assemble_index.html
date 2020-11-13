@@ -167,7 +167,7 @@
                 cache:false,
                 type: "POST",//方法类型
                 dataType: "json",//预期服务器返回的数据类型
-                url: "{% url 'manufacturing:getOrderInfo' step.sequence_no %}" , //url
+                url: "{% url 'manufacturing:getOrderInfo' step.id %}" , //url
                 headers:{"X-CSRFToken":$.cookie("csrftoken")},
                 data: formdata, //将模态框的form表单数据序列化，以便提交到后台
                 processData: false,// 不加会报错
@@ -294,7 +294,7 @@
                 valign: 'middle',
             },
         ];
-    var urls = "{% url 'manufacturing:getAssembleRecord' step.sequence_no %}";
+    var urls = "{% url 'manufacturing:getAssembleRecord' step.id %}";
     tableFresh2(columns, urls, 'id');
     $('#Input1').focus();
 

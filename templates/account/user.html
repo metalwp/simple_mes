@@ -1,0 +1,418 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}用户管理{% endblock %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/bootstrap-table.min.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'css/bootstrap-multiselect.css' %}" type="text/css"/>
+
+{% endblock %}
+
+{% block breadcrumb %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>用户管理<small>UserManager</small></h1>
+        <ol class="breadcrumb">
+            <li><a href="#">主页</a></li>
+            <li class="active">用户管理</li>
+        </ol>
+    </section>
+{% endblock %}
+
+{% block content %}
+    <section class="content">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box">
+                        <div class="box-header">
+                            <h3 class="box-title">用户管理</h3>
+                        </div>
+
+
+                        <!-- /.box-header -->
+                        <div class="box-body" >
+                            {#        自定义搜索条件区域#}
+                            <div class="fixed-table-toolbar">
+                                <div class="pull-left search">
+                                    <input id="search_keyword" class="form-control" placeholder="请输入名称以查询">
+                                </div>
+
+                                <div class="columns columns-left btn-group pull-left">
+                                    <button id="search_button" type="button" class="btn btn-primary">查询</button>
+                                </div>
+                                <div class="columns columns-left btn-group pull-left">
+                                    <button id="reset-button" type="button" class="btn btn-primary" onclick="clean()">重置</button>
+                                </div>
+                                <!-- 按钮触发模态框 -->
+                                <div class="columns columns-right btn-group pull-right">
+                                   <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addModal">新增用户</button>
+                                </div>
+
+                                <!-- 新增模态框（Modal） -->
+                                <form id="addForm" action="#" method="post" class="form-horizontal" role="form">
+                                    {% csrf_token %}
+                                    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                                                    &times;
+                                                    </button>
+                                                    <h4 class="modal-title">新增用户</h4>
+                                                </div>
+                                                {# 模态框body #}
+                                                <div class="modal-body" style="height: 100%;">
+
+                                                    <div class="form-group">
+                                                        <label for="usernameInput" class="col-sm-3 control-label" >用户名</label>
+                                                        <div class="input-group col-sm-7">
+                                                            <input type="text" class="form-control"  name="usernameInput" id="usernameInput" required="required" placeholder="用户名"
+                                                                style="text-align: left">
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="emailInput" class="col-sm-3 control-label" >邮箱</label>
+                                                        <div class="input-group col-sm-7">
+                                                            <input type="text" class="form-control"  name="emailInput" id="emailInput" required="required" placeholder="邮箱"
+                                                                style="text-align: left">
+                                                        </div>
+                                                    </div>
+                                                     <div class="form-group">
+                                                        <label for="pwdInput" class="col-sm-3 control-label" >密码</label>
+                                                        <div class="input-group col-sm-7">
+                                                            <input type="password" class="form-control"  name="pwdInput" id="pwdInput" required="required" placeholder="密码"
+                                                                    style="text-align: left">
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="repwdInput" class="col-sm-3 control-label" >重复密码</label>
+                                                        <div class="input-group col-sm-7">
+                                                            <input type="password" class="form-control"  name="repwdInput" id="repwdInput" required="required" placeholder="重复密码"
+                                                                    style="text-align: left">
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="activeInput" class="col-sm-3 control-label" >是否激活</label>
+                                                        <div class="input-group col-sm-7">
+                                                            <input type="checkbox" class="checkbox checkbox-inline"  name="activeInput" id="activeInput"
+                                                                style="text-align: left">
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="roleSelect" class="col-sm-3 control-label" >角色选择</label>
+                                                        <div class="input-group col-sm-7">
+                                                            <select class="form-control" name="roleSelect" id="roleSelect" required="required" multiple>
+
+                                                                {% for role in roles %}
+                                                                <option value="{{ role.id }}" hassubinfo="true">{{ role.title }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                    {#            模态框底部#}
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                                    <input type="button" data-dissmiss="modal" onclick="add()" class="btn btn-primary" value="提交">
+                                                </div>
+                                            </div><!-- /.modal-content -->
+                                        </div><!-- /.modal -->
+                                    </div>
+                                </form>
+
+                                <!-- 修改数据模态框（Modal） -->
+                            <form id="updateForm" action="#" method="post" class="form-horizontal" role="form">
+                                <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true" >
+                                                &times;
+                                                </button>
+                                                <h4 class="modal-title" id="updateModalLabel">
+                                                    修改产品
+                                                </h4>
+                                            </div>
+                                            {# 模态框body #}
+                                             <div class="modal-body" style="height: 100%;">
+                                                 <div class="form-group">
+                                                    <div class="col-sm-7">
+                                                        <input type="text" class="form-control"  name="u_idInput" id="u_idInput" required="required"
+                                                              style="text-align: left;
+                                                              display:none;">
+                                                    </div>
+                                                 </div>
+
+                                                <div class="form-group">
+                                                        <label for="u_productSelect" class="col-sm-3 control-label" >产品</label>
+                                                        <div class="input-group col-sm-7">
+                                                            <select class="form-control" name="u_productSelect" id="u_productSelect" required="required">
+                                                                <option value="">请选择产品</option>
+                                                                {% for product in products %}
+                                                                <option value="{{ product.id }}" hassubinfo="true">{{ product.erp_no }} | {{ product.name }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="u_versionInput" class="col-sm-3 control-label" >BOM版本</label>
+                                                        <div class="input-group col-sm-7">
+                                                            <input type="text" class="form-control"  name="u_versionInput" id="u_versionInput" required="required" placeholder="请输入BOM版本，如Vxx.xxx或Vx.xxx"
+                                                                style="text-align: left">
+                                                        </div>
+                                                    </div>
+                                                     <div class="form-group">
+                                                    <label for="u_remarkText" class="col-sm-3 control-label" >备注</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <textarea class="form-control" name="u_remarkText" id="u_remarkText"
+                                                                  placeholder="请输入备注信息..." style="text-align: left"></textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                {#            模态框底部#}
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal"  >关闭</button>
+                                                <input type="button" class="btn btn-primary" onclick="update()" value="提交"/>
+                                            </div>
+                                        </div><!-- /.modal-content -->
+                                    </div><!-- /.modal -->
+                                </div>
+                                {##}
+                                </form>
+
+
+                               {#        bootstrap table自动渲染区域#}
+                                <table id="mytab" class="table table-bordered table-hover"></table>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript" src="{% static 'js/bootstrap-table.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap-table-zh-CN.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/toastr.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/myscript.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap-multiselect.min.js' %}"></script>
+
+<script>
+
+    $(document).ready(function() {
+        $('#roleSelect').multiselect({
+            nonSelectedText: '请选择角色!',
+            nSelectedText: ' 个被选择!',
+            includeSelectAllOption: true,
+            selectAllText: '全选'
+            //includeResetOption: true,
+            //includeResetDivider: true,
+            //resetText: "Reset all",
+
+            });
+    });
+
+    toastr.options = {
+        closeButton: true,
+        debug: true,
+        progressBar: true,
+        positionClass: "toast-top-center",
+        onclick: null,
+        showDuration: "300",
+        hideDuration: "1000",
+        timeOut: "2000",
+        extendedTimeOut: "1000",
+        showEasing: "swing",
+        hideEasing: "linear",
+        showMethod: "fadeIn",
+        hideMethod: "fadeOut",
+    };
+
+$("#addModal").on("hidden.bs.modal", function() {
+    document.getElementById("addForm").reset();
+    $('#roleSelect').multiselect('refresh');
+});
+
+$("#updateModal").on("hidden.bs.modal", function() {
+    document.getElementById("updateForm").reset();
+    $('#u_roleSelect').multiselect('refresh');
+});
+
+function update(){
+        var data1 = $('#updateForm').serialize();
+        console.log(typeof(data1));
+        //var formdata = new FormData(); //ajax上传文件的时候，需要这个类型，它会将添加给它的键值对加工成formdata的类型
+        //var token = $("[name='csrfmiddlewaretoken']").val();
+        //formdata.append("csrfmiddlewaretoken", token); //别忘了csrf_token
+        //formdata.append("uploadFile",$("#uploadFile")[0].files[0]);
+        $.ajax(
+            {
+                //几个参数需要注意一下
+                cache:false,
+                type: "POST",//方法类型
+                dataType: "json",//预期服务器返回的数据类型
+                url: "{% url 'bom_manager:updateBomData' %}" ,//url
+                headers:{"X-CSRFToken":$.cookie("csrftoken")},
+                data: data1, //将模态框的form表单数据序列化，以便提交到后台
+                processData: false,// 不加会报错
+                //contentType: false,// 不加会报错
+                async:true,  //必须要为false,必须必须
+
+                success: function (data) {
+                    $('#updateModal').modal('hide');
+                    document.getElementById("updateForm").reset();
+                    $("#mytab").bootstrapTable('refresh');
+                    if(data.ret){
+                        toastr.success('提交数据成功');
+                     }else {
+                    toastr.error('错误：' + data.errMsg);
+                        }
+                     },
+                error : function(data) {
+                        toastr.error("输入数据有误！");
+                     }
+                    });
+        }
+
+function add() {
+        var data1 = $('#addForm').serialize();
+        //var formdata = new FormData(); //ajax上传文件的时候，需要这个类型，它会将添加给它的键值对加工成formdata的类型
+        //var token = $("[name='csrfmiddlewaretoken']").val();
+        //formdata.append("csrfmiddlewaretoken", token); //别忘了csrf_token
+        //formdata.append("uploadFile",$("#uploadFile")[0].files[0]);
+        $.ajax({
+        //几个参数需要注意一下
+            cache:false,
+            type: "POST",//方法类型
+            dataType: "json",//预期服务器返回的数据类型
+            url: "{% url 'account:addUser' %}" ,//url
+            headers:{"X-CSRFToken":$.cookie("csrftoken")},
+            data: data1, //将模态框的form表单数据序列化，以便提交到后台
+            async:true,  //必须要为false,必须必须
+
+            success: function (data) {
+                $('#addModal').modal('hide');
+                document.getElementById("addForm").reset();
+                $("#mytab").bootstrapTable('refresh');
+                if(data.ret){
+                    toastr.success('提交数据成功');
+                 }
+                else{
+                    toastr.error('错误：' + data.errMsg);
+                }
+             },
+            error : function(data) {
+                document.getElementById("addForm").reset();
+                toastr.error("输入数据有误！");
+             }
+        });}
+
+function actionFormatter(value, row, index) {
+    var id = row.id;
+    row.url = "{% url 'bom_manager:deleteBomData' %}";
+    var data = JSON.stringify(row);
+
+    var result = "";
+    {#result += "<a href='javascript:;' class='btn btn-xs green' onclick=\"EditViewById('" + id + "', view='view')\" title='查看'><span class='glyphicon glyphicon-search'></span></a>";#}
+    {#result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"EditViewById('" + JSON.stringify(row) + "','" + id + "')\" title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";#}
+    result += "<a href='javascript:;' class='btn btn-xs blue' onclick=" + "EditViewById(" + index + "," + data + ")" + " title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";
+    //result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"EditViewById('" + index + "','" + data + "')\" title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";
+    {#result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"edit()\" title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";#}
+    result += "<a href='javascript:;' class='btn btn-xs red' onclick=" + "deleteconfirm(" + data + ")" + " title='删除'><span class='glyphicon glyphicon-remove'></span></a>";
+    return result;}
+
+
+// getData方法获取全部页面数据后，将data转为json对象，使用index当前行号作为下标获取对应数据
+function EditViewById(index, data){
+    //$("#updateModal option:selected").each(function () {$(this).removeAttr("selected");});
+    $("#u_productSelect option").each(function () {$(this).removeAttr("selected");});
+
+    $("#u_idInput").val(data.id);
+    $("#u_productSelect").find("option:contains('" + data.erp_no + "')").each(function(){
+                    $(this).attr('selected', true);});
+    $("#u_versionInput").val(data.bom_version);
+    $("#u_remarkText").val(data.remark);
+    $('#updateModal').modal('show');}
+
+var columns =  [
+        {
+            field: 'no',
+            title: '序号',
+            align: "center",
+            width: "10%",
+            formatter: function (value, row, index) {
+                //获取每页显示的数量
+                var pageSize=$('#mytab').bootstrapTable('getOptions').pageSize;
+                //获取当前是第几页
+                var pageNumber=$('#mytab').bootstrapTable('getOptions').pageNumber;
+                //返回序号，注意index是从0开始的，所以要加上1
+                return pageSize * (pageNumber - 1) + index + 1;
+            }
+        },
+        {
+            field: 'username',
+            title:'用户名',
+            width: '10%',
+            sortable: true,
+
+        },
+        {
+            field: 'email',
+            title:'邮箱',
+            width: '20%',
+            sortable: false,
+        },
+        {
+            field: 'is_super',
+            title:'是否超级用户',
+            width: '10%',
+            sortable: false,
+            formatter:function (value, row, index) {
+                if (value){
+                    return '是'
+                }else {
+                    return "否"
+                }
+            }
+        },
+        {
+            field: 'is_active',
+            title:'是否激活',
+            width: '10%',
+            sortable: false,
+            formatter:function (value, row, index) {
+                if (value){
+                    return '是'
+                }else {
+                    return "否"
+                }
+            }
+        },
+        {
+            field: 'role',
+            title:'角色',
+            width: '20%',
+            sortable: false,
+            formatter:function (value, row, index) {
+                return value
+            }
+        },
+        {
+            field: 'operate',
+            title: '操作',
+            align: 'center',
+            valign: 'middle',
+            formatter: actionFormatter,
+        },
+    ];
+var urls = "{% url 'account:getUser' %}";
+tableFresh(columns, urls,  'id');
+
+</script>
+
+{% endblock %}

@@ -8,6 +8,8 @@ def test(request):
     except (Order.DoesNotExist, Order.MultipleObjectsReturned):
         return {'manufacturing_steps': []}
     route = order.product_model.process_route
+    if not route:
+        return {'manufacturing_steps': []}
     steps = ProcessStep.objects.filter_without_isdelete().filter(fixture=None, process_route=route).\
         order_by('sequence_no')
     return {'manufacturing_steps': steps}

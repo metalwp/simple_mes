@@ -12,16 +12,16 @@ urlpatterns = [
     path('process_step/index/updatePSData', views.updatePSData, name='updatePSData'),
 
     path('process_step/detail/<int:step_id>/', views.ps_detail, name='ps_detail'),
-    path('process_step/detail/<int:step_id>/getMaterialDate', views.getMaterialDate, name='getMaterialDate'),
-    path('process_step/detail/<int:step_id>/addMaterialDate', views.addMaterialDate, name='addMaterialDate'),
-    path('process_step/detail/<int:step_id>/deleteMaterialDate', views.deleteMaterialDate, name='deleteMaterialDate'),
-    path('process_step/detail/<int:step_id>/refresh_options', views.refresh_options, name='refresh_options'),
+    path('process_step/detail/getMaterialDate/<int:step_id>/', views.getMaterialDate, name='getMaterialDate'),
+    path('process_step/detail/addMaterialDate/<int:step_id>/', views.addMaterialDate, name='addMaterialDate'),
+    path('process_step/detail/deleteMaterialDate/<int:step_id>/', views.deleteMaterialDate, name='deleteMaterialDate'),
+    path('process_step/detail/refresh_options/<int:step_id>/', views.refresh_options, name='refresh_options'),
 
     path('process_step/detail/getInspectionData/<int:step_id>/', views.getInspectionData, name='getInspectionData'),
     path('process_step/detail/addInspectionData/<int:step_id>/', views.addInspectionData, name='addInspectionData'),
     path('process_step/detail/updateInspectionData/<int:step_id>/', views.updateInspectionData, name='updateInspectionData'),
     path('process_step/detail/deleteInspectionData/<int:step_id>/', views.deleteInspectionData, name='deleteInspectionData'),
-    path('process_step/detail/<int:step_id>/uploadInspection/', views.uploadInspection, name='uploadInspection'),
+    path('process_step/detail/uploadInspection/<int:step_id>/', views.uploadInspection, name='uploadInspection'),
 
     path('process_route/index/', views.pr_index, name='pr_index'),
     path('process_route/index/getPRData', views.getPRData, name='getPRData'),
@@ -30,6 +30,6 @@ urlpatterns = [
     path('process_route/index/updatePRData', views.updatePRData, name='updatePRData'),
 
     path('process_route/detail/<int:route_id>/', views.pr_detail, name='pr_detail'),
-    path('process_route/detail/<int:route_id>/edit', views.pr_edit, name='pr_edit'),
+    path('process_route/detail/edit/<int:route_id>/', views.pr_edit, name='pr_edit'),
 
 ]

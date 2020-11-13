@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
-
+from django.contrib.auth.decorators import login_required
 
 from .models import ProductModel, ProductCategory
 from apps.process_manager.models import ProcessRoute
@@ -16,6 +16,7 @@ from apps.order_manager.models import Order
 # Create your views here.
 
 
+@login_required
 def pc_index(request):
     product_category = ProductCategory.objects.filter_without_isdelete()
     return render(request, 'product_manager/pc_index.html', locals())
@@ -134,6 +135,7 @@ def deletePcData(request):
         return JsonResponse({"ret": True, "errMsg": '', "rows": [], "total": 0})
 
 
+@login_required
 def pm_index(request):
     products = ProductModel.objects.filter_without_isdelete()
     categorys = ProductCategory.objects.filter_without_isdelete()

@@ -175,7 +175,84 @@ desired effect
       <ul class="sidebar-menu" data-widget="tree">
         <li class="header">导航栏</li>
         <!-- Optionally, you can add icons to the links -->
-          {% rbac_menu request %}
+        <li><a href="/"><i class="fa fa-dashboard"></i> <span>仪表盘</span></a></li>
+
+        <li class="treeview">
+          <a href="#"><i class="fa fa-automobile"></i> <span>产品管理</span>
+            <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+              </span>
+          </a>
+          <ul class="treeview-menu">
+            <li><a href="{% url 'product_manager:pc_index' %}">产品分类</a></li>
+            <li><a href="{% url 'product_manager:pm_index' %}">产品配置</a></li>
+          </ul>
+        </li>
+
+        <li><a href="{% url 'bom_manager:index' %}"><i class="fa fa-list"></i> <span>BOM管理</span></a></li>
+        
+        <li class="treeview">
+          <a href="#"><i class="fa fa-sort-amount-desc"></i> <span>过程管理</span>
+            <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+              </span>
+          </a>
+          <ul class="treeview-menu">
+              <li><a href="{% url 'process_manager:pr_index' %}">工艺路线</a></li>
+              <li><a href="{% url 'process_manager:ps_index' %}">工序管理</a></li>
+          </ul>
+        </li>
+        <li class="treeview">
+          <a href="#"><i class="fa fa-square"></i> <span>工站&工装</span>
+            <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+              </span>
+          </a>
+          <ul class="treeview-menu">
+            <li><a href="{% url 'station_manager:station_index' %}">工站管理</a></li>
+            <li><a href="{% url 'station_manager:fixture_index' %}">工装管理</a></li>
+          </ul>
+        </li>
+        <li class="treeview">
+          <a href="#"><i class="fa fa-file-text-o"></i> <span>客户&订单</span>
+            <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+              </span>
+          </a>
+          <ul class="treeview-menu">
+            <li><a href="{% url 'order_manager:cm_index' %}">客户管理</a></li>
+            <li><a href="{% url 'order_manager:om_index' %}">订单管理</a></li>
+          </ul>
+        </li>
+
+        <li class="treeview">
+          <a href="#"><i class="fa fa-code-fork"></i> <span>检验管理</span>
+            <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+              </span>
+          </a>
+          <ul class="treeview-menu">
+            <li><a href="{% url 'Inspection:material_index' %}">检验项配置</a></li>
+            <li><a href="{% url 'Inspection:gminspection_index' %}">一般物料来料检验</a></li>
+            <li><a href="{% url 'Inspection:tminspection_index' %}">追溯物料来料检验</a></li>
+
+          </ul>
+        </li>
+        <li class="treeview">
+          <a href="#"><i class="fa fa-wrench"></i> <span>生产过程</span>
+            <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+              </span>
+          </a>
+          <ul class="treeview-menu">
+              {% for step in manufacturing_steps %}
+                <li><a href="{% url 'manufacturing:index' step.sequence_no %}">{{ step.name }}</a></li>
+              {% endfor %}
+          </ul>
+        </li>
+
+        <li><a href="#"><i class="fa fa-search "></i> <span>查询系统</span></a></li>
+        <li><a href="#"><i class="fa fa-user "></i> <span>用户管理</span></a></li>
       </ul>
       <!-- /.sidebar-menu -->
     </section>
@@ -202,80 +279,80 @@ desired effect
     <section class="content container-fluid">
 
         <!-- 修改数据模态框（Modal） -->
-{#        <form id="userinfoForm" action="#" method="post" class="form-horizontal" role="form">#}
-{#            <div class="modal fade" id="userinfoModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">#}
-{#                <div class="modal-dialog">#}
-{#                    <div class="modal-content">#}
-{#                        <div class="modal-header">#}
-{#                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="closeModal()">#}
-{#                            &times;#}
-{#                            </button>#}
-{#                <h4 class="modal-title">#}
-{#                    修改项目#}
-{#                </h4>#}
-{#            </div>#}
+        <form id="userinfoForm" action="#" method="post" class="form-horizontal" role="form">
+            <div class="modal fade" id="userinfoModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="closeModal()">
+                            &times;
+                            </button>
+                <h4 class="modal-title">
+                    修改项目
+                </h4>
+            </div>
             {# 模态框body #}
-{#             <div class="modal-body" style="height: 100%;">#}
-{#                <div class="form-group">#}
-{#                    <div class="input-group col-sm-7">#}
-{#                        <input type="text" class="form-control"  name="u_idInput" id="u_idInput" required="required" style="text-align: left; display: none;">#}
-{#                    </div>#}
-{#                </div>#}
-{#                <div class="form-group">#}
-{#                    <label for="u_nameInput" class="col-sm-3 control-label" >工序名</label>#}
-{#                    <div class="input-group col-sm-7">#}
-{#                        <input type="text" class="form-control"  name="u_nameInput" id="u_nameInput" required="required"#}
-{#                             style="text-align: left">#}
-{#                    </div>#}
-{#                </div>#}
-{#                <div class="form-group">#}
-{#                    <label for="u_fixtureSelect" class="col-sm-3 control-label" >工站</label>#}
-{#                    <div class="input-group col-sm-7">#}
-{#                        <select class="form-control" name="u_fixtureSelect" id="u_fixtureSelect" required="required">#}
-{#                            <option value="">请选择工装</option>#}
-{#                            {% for fixture in fixtures %}#}
-{#                            <option value="{{ fixture.id }}" hassubinfo="true">{{ fixture.name }}</option>#}
-{#                            {% endfor %}#}
-{#                        </select>#}
-{#                    </div>#}
-{#                </div>#}
-{#                <div class="form-group">#}
-{#                    <label for="u_categorySelect" class="col-sm-3 control-label" >工序类型</label>#}
-{#                    <div class="input-group col-sm-7">#}
-{#                        <select class="form-control" name="u_categorySelect" id="u_categorySelect" required="required">#}
-{#                            <option value="">请选择工序类型</option>#}
-{#                            {% for category in categorys %}#}
-{#                            <option value="{{ category.0 }}" hassubinfo="true">{{ category.1 }}</option>#}
-{#                            {% endfor %}#}
-{#                        </select>#}
-{#                    </div>#}
-{#                </div>#}
-{#                <div class="form-group">#}
-{#                    <label for="u_lockInput" class="col-sm-3 control-label" >工序互锁</label>#}
-{#                    <div class="input-group col-sm-7">#}
-{#                        <input type="checkbox" class="checkbox checkbox-inline"  name="u_lockInput" id="u_lockInput"#}
-{#                            style="text-align: left">#}
-{#                    </div>#}
-{#                </div>#}
-{#                <div class="form-group">#}
-{#                    <label for="u_remarkText" class="col-sm-3 control-label" >备注</label>#}
-{#                    <div class="col-sm-7">#}
-{#                        <textarea class="form-control" name="u_remarkText" id="u_remarkText"#}
-{#                                  placeholder="请输入备注信息..." style="text-align: left"></textarea>#}
-{#                    </div>#}
-{#                </div>#}
-{##}
-{#            </div>#}
+             <div class="modal-body" style="height: 100%;">
+                <div class="form-group">
+                    <div class="input-group col-sm-7">
+                        <input type="text" class="form-control"  name="u_idInput" id="u_idInput" required="required" style="text-align: left; display: none;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="u_nameInput" class="col-sm-3 control-label" >工序名</label>
+                    <div class="input-group col-sm-7">
+                        <input type="text" class="form-control"  name="u_nameInput" id="u_nameInput" required="required"
+                             style="text-align: left">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="u_fixtureSelect" class="col-sm-3 control-label" >工站</label>
+                    <div class="input-group col-sm-7">
+                        <select class="form-control" name="u_fixtureSelect" id="u_fixtureSelect" required="required">
+                            <option value="">请选择工装</option>
+                            {% for fixture in fixtures %}
+                            <option value="{{ fixture.id }}" hassubinfo="true">{{ fixture.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="u_categorySelect" class="col-sm-3 control-label" >工序类型</label>
+                    <div class="input-group col-sm-7">
+                        <select class="form-control" name="u_categorySelect" id="u_categorySelect" required="required">
+                            <option value="">请选择工序类型</option>
+                            {% for category in categorys %}
+                            <option value="{{ category.0 }}" hassubinfo="true">{{ category.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="u_lockInput" class="col-sm-3 control-label" >工序互锁</label>
+                    <div class="input-group col-sm-7">
+                        <input type="checkbox" class="checkbox checkbox-inline"  name="u_lockInput" id="u_lockInput"
+                            style="text-align: left">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="u_remarkText" class="col-sm-3 control-label" >备注</label>
+                    <div class="col-sm-7">
+                        <textarea class="form-control" name="u_remarkText" id="u_remarkText"
+                                  placeholder="请输入备注信息..." style="text-align: left"></textarea>
+                    </div>
+                </div>
+
+            </div>
 {#            模态框底部#}
-{#            <div class="modal-footer">#}
-{#                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="closeModal()" >关闭</button>#}
-{#                <input type="button" class="btn btn-primary" onclick="update()" value="提交"/>#}
-{#            </div>#}
-{#        </div><!-- /.modal-content -->#}
-{#    </div><!-- /.modal -->#}
-{#</div>#}
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="closeModal()" >关闭</button>
+                <input type="button" class="btn btn-primary" onclick="update()" value="提交"/>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
 {##}
-{#</form>#}
+</form>
 
       <!--------------------------
         | Your Page Content Here |
@@ -320,6 +397,8 @@ desired effect
 {#<script src="https://cdn.bootcss.com/jquery-validate/1.17.0/additional-methods.js"></script>#}
 {#<script src="https://cdn.bootcss.com/jquery-validate/1.17.0/localization/messages_zh.js"></script>#}
 
+
+
 {% block script %}
 
 {% endblock %}
@@ -329,7 +408,7 @@ desired effect
 <script>
     $(function () {
             {% rbac_js %}
-        })
+        });
     $('ul.sidebar-menu li').each(function () {
             if($(this).children().attr('href')==='{{ request.path }}'){
                 $(this).addClass('active');

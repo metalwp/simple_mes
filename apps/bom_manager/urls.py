@@ -12,9 +12,9 @@ urlpatterns = [
     path('index/updateData/', views.updateBomData, name='updateBomData'),   
 
     path('detail/<int:bom_id>/', views.detail, name='detail'),
-    path('detail/<int:bom_id>/upload/', views.upload, name='upload'),
-    path('detail/<int:bom_id>/get/', views.get, name='get'),
-    path('detail/<int:bom_id>/delete/', views.delete, name='delete'),
-    path('detail/<int:bom_id>/add/', views.add, name='add'),
-    path('detail/<int:bom_id>/update/', views.update, name='update'),
+    path('detail/upload/<int:bom_id>/', views.upload, name='upload'),
+    path('detail/get/<int:bom_id>/', views.get, name='get'),
+    path('detail/delete/<int:bom_id>/', views.delete, name='delete'),
+    path('detail/add/<int:bom_id>/', views.add, name='add'),
+    path('detail/update/<int:bom_id>/', views.update, name='update'),
 ]

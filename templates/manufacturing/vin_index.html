@@ -160,7 +160,7 @@
                 cache:false,
                 type: "POST",//方法类型
                 dataType: "json",//预期服务器返回的数据类型
-                url: "{% url 'manufacturing:getOrderInfo' step.sequence_no %}" , //url
+                url: "{% url 'manufacturing:getOrderInfo' step.id %}" , //url
                 headers:{"X-CSRFToken":$.cookie("csrftoken")},
                 data: formdata, //将模态框的form表单数据序列化，以便提交到后台
                 processData: false,// 不加会报错
@@ -195,7 +195,7 @@
         data = {};
         var json_data = JSON.stringify(data);
         $.ajax({
-            url:"{% url 'manufacturing:generateVIN' sequence_no %}",
+            url:"{% url 'manufacturing:generateVIN' step.id %}",
             headers:{"X-CSRFToken":$.cookie("csrftoken")},
             type:"post",
             data:json_data, //将添加好数据的formdata放到data这里
@@ -292,7 +292,7 @@
             },
 
         ];
-    var urls = "{% url 'manufacturing:getProductInfo' step.sequence_no %}";
+    var urls = "{% url 'manufacturing:getProductInfo' step.id %}";
     tableFresh2(columns, urls, 'id');
     search()
 

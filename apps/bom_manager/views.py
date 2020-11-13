@@ -3,7 +3,7 @@ import os
 import xlrd
 import re
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect, reverse
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
@@ -19,7 +19,12 @@ from simple_mes import settings
 def index(request):
     products = ProductModel.objects.filter_without_isdelete()
     # boms = BOM.objects.filter_without_isdelete()
-    return render(request, "bom_manager/index.html", locals())
+    user = request.user
+    if user.is_authenticated:
+        return render(request, "bom_manager/index.html", locals())
+    else:
+        request.session['errMsg'] = '请先登陆！'
+        return redirect(reverse('account:login'))
 
 
 def getBomData(request):
@@ -136,7 +141,12 @@ def detail(request, bom_id):
     bom_id = bom_id
     product = bom.product_model
     categorys = MaterialModel.CATEGORY_CHOICE
-    return render(request, 'bom_manager/detail.html', locals())
+    user = request.user
+    if user.is_authenticated:
+        return render(request, 'bom_manager/detail.html', locals())
+    else:
+        request.session['errMsg'] = '请先登陆！'
+        return redirect(reverse('account:login'))
 
 
 def get(request, bom_id):

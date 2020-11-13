@@ -2,7 +2,7 @@ import datetime
 import re
 import json
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect, reverse
 from django.http import JsonResponse, HttpResponse
 
 from apps.order_manager.models import Order
@@ -14,28 +14,35 @@ from apps.bom_manager.models import MaterialModel
 # Create your views here.
 
 
-def index(request, sequence_no):
+def index(request, step_id):
     if request.method == "GET":
         try:
             order = Order.objects.filter_without_isdelete().get(status=1)
             categorys = MaterialModel.CATEGORY_CHOICE
             inspection_categorys = Inspection.CATEGORY_CHOICE
             inspection_modes = Inspection.MODE_CHOICE
+            process_step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
         except Exception as e:
             return HttpResponse(str(e))
         route = order.product_model.process_route
-        step = ProcessStep.objects.filter_without_isdelete().get(process_route=route, sequence_no=sequence_no)
-        if step.category == 1:  # 组装
-            return render(request, 'manufacturing/assemble_index.html', locals())
-        elif step.category == 3 or step.category == 4:  # 标定 检验
-            return render(request, 'manufacturing/process_inspection_index.html', locals())
-        elif step.category == 5:  # 标签打印
-            return HttpResponse('标签打印页面待补充！')
-        elif step.category == 6:  # VIN生成
-            return render(request, 'manufacturing/vin_index.html', locals())
-        else:  # 其他
-            return HttpResponse('其他！')
+        # step = ProcessStep.objects.filter_without_isdelete().get(process_route=route, sequence_no=sequence_no)
+        step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
 
+        user = request.user
+        if user.is_authenticated:
+            if step.category == 1:  # 组装
+                return render(request, 'manufacturing/assemble_index.html', locals())
+            elif step.category == 3 or step.category == 4:  # 标定 检验
+                return render(request, 'manufacturing/process_inspection_index.html', locals())
+            elif step.category == 5:  # 标签打印
+                return HttpResponse('标签打印页面待补充！')
+            elif step.category == 6:  # VIN生成
+                return render(request, 'manufacturing/vin_index.html', locals())
+            else:  # 其他
+                return HttpResponse('其他！')
+        else:
+            request.session['errMsg'] = '请先登陆！'
+            return redirect(reverse('account:login'))
 
 # def getOrderInfo(request, sequence_no):
 #     if request.method == "POST":
@@ -201,7 +208,7 @@ def index(request, sequence_no):
 #         return JsonResponse(data)
 
 
-def getOrderInfo(request, sequence_no):
+def getOrderInfo(request, step_id):
     if request.method == "POST":
         vin_or_sn = request.POST.get('snInput')
         current_vin = request.POST.get('product_vin')
@@ -211,10 +218,11 @@ def getOrderInfo(request, sequence_no):
         except Order.DoesNotExist:
             return JsonResponse({"ret": False, "errMsg": '订单未打开！', "rows": [], "total": 0})
         route = order.product_model.process_route
-        step = ProcessStep.objects.filter_without_isdelete().get(process_route=route, sequence_no=sequence_no)
+        # step = ProcessStep.objects.filter_without_isdelete().get(process_route=route, sequence_no=sequence_no)
+        step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
 
         if step.category == 6:
-            data = vinGenStepProcess(order, sequence_no)
+            data = vinGenStepProcess(order, step.sequence_no)
             return JsonResponse(data)
         else:
             if len(vin_or_sn) == 18:
@@ -228,24 +236,26 @@ def getOrderInfo(request, sequence_no):
 
                 if step.process_lock:
                     try:
-                        r = ProcessRecord.objects.filter_without_isdelete().get(product=product, sequence_no=int(sequence_no) - 1)
+                        # r = ProcessRecord.objects.filter_without_isdelete().get(product=product, sequence_no=int(sequence_no) - 1)
+                        r = ProcessRecord.objects.filter_without_isdelete().get(product=product, sequence_no=int(step.sequence_no) - 1)
+
                         if not r.result:
                             return JsonResponse({"ret": False, "errMsg": '请先完成上道工序！', "rows": [], "total": 0})
                     except ProcessRecord.DoesNotExist:
                         return JsonResponse({"ret": False, "errMsg": '请先完成上道工序！', "rows": [], "total": 0})
 
                 if step.category == 1:  # 装配工序
-                    data = assemblyStepVinProcess(vin, order, product, sequence_no)
+                    data = assemblyStepVinProcess(vin, order, product, step.sequence_no)
                     return JsonResponse(data)
 
                 elif step.category == 3 or step.category == 4:  # 标定或检验工序
 
-                    data = inspectStepProcesss(vin, order, product, step, sequence_no)
+                    data = inspectStepProcesss(vin, order, product, step, step.sequence_no)
                     return JsonResponse(data)
 
             elif len(vin_or_sn) == 23:
                 sn = vin_or_sn
-                data = assemblyStepMatProcess(sn, current_vin, sequence_no, order)
+                data = assemblyStepMatProcess(sn, current_vin, step.sequence_no, order)
                 return JsonResponse(data)
 
             else:
@@ -254,12 +264,11 @@ def getOrderInfo(request, sequence_no):
                         product = Product.objects.filter_without_isdelete().get(vin=current_vin, order_num=order)
                     except Product.DoesNotExist:
                         return JsonResponse({"ret": False, "errMsg": '该VIN不属于该订单！', "rows": [], "total": 0})
-                    data = inspectStepProcesss(current_vin, order, product, step, sequence_no)
+                    data = inspectStepProcesss(current_vin, order, product, step, step.sequence_no)
                     return JsonResponse(data)
                 else:
                     # return JsonResponse({"ret": False, "errMsg": '输入长度不正确！', "rows": [], "total": 0})
                     return JsonResponse({"ret": True})
-
 
 
 def assemblyStepMatProcess(sn, current_vin, sequence_no, order):
@@ -489,7 +498,7 @@ def vinGenStepProcess(order, sequence_no):
     return data
 
 
-def getInspectionData(request, sequence_no):
+def getInspectionData(request, step_id):
     if request.method == "GET":
         vin = request.GET.get('vin')
         input1 = request.GET.get('input1')
@@ -501,10 +510,11 @@ def getInspectionData(request, sequence_no):
         except Order.DoesNotExist:
             return JsonResponse({"ret": False, "errMsg": '无打开工单！', "rows": [], "total": 0})
         route = order.product_model.process_route
-        step = ProcessStep.objects.filter_without_isdelete().get(process_route=route, sequence_no=sequence_no)
+        # step = ProcessStep.objects.filter_without_isdelete().get(process_route=route, sequence_no=sequence_no)
+        step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
         inspections = Inspection.objects.filter_without_isdelete().filter(process_step=step)
         try:
-            process_record = ProcessRecord.objects.filter_without_isdelete().get(product=product, sequence_no=sequence_no)
+            process_record = ProcessRecord.objects.filter_without_isdelete().get(product=product, sequence_no=step.sequence_no)
         except ProcessRecord.DoesNotExist:
             process_record = None
         rows = []
@@ -553,7 +563,7 @@ def getInspectionData(request, sequence_no):
         return JsonResponse(data)
 
 
-def saveInspectionData(request, sequence_no):
+def saveInspectionData(request, step_id):
     if request.method == 'POST':
         data = json.loads(request.body)
         vin = data.get('vin')
@@ -575,9 +585,13 @@ def saveInspectionData(request, sequence_no):
         except Product.DoesNotExist:
             return JsonResponse({"ret": False, "errMsg": "该VIN不存在", "rows": [], "total": 0})
         try:
-            process_record = ProcessRecord.objects.filter_without_isdelete().get(product=product, sequence_no=sequence_no)
+            step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
+        except ProcessStep.DoesNotExist:
+            return JsonResponse({"ret": False, "errMsg": "该产品无此工序！", "rows": [], "total": 0})
+        try:
+            process_record = ProcessRecord.objects.filter_without_isdelete().get(product=product, sequence_no=step.sequence_no)
         except ProcessRecord.DoesNotExist:
-            process_record = ProcessRecord.objects.create(product=product, sequence_no=sequence_no)
+            process_record = ProcessRecord.objects.create(product=product, sequence_no=step.sequence_no)
 
         total_result = None
         for row in rows:
@@ -611,7 +625,7 @@ def saveInspectionData(request, sequence_no):
         return JsonResponse({"ret": True, "errMsg": "", "total": 0, "rows": rows})
 
 
-def getProductInfo(request, sequence_no):
+def getProductInfo(request, step_id):
     if request.method == "GET":
         info = {}
         rows = []
@@ -641,7 +655,7 @@ def getProductInfo(request, sequence_no):
             return JsonResponse(data)
 
 
-def generateVIN(request, sequence_no):
+def generateVIN(request, step_id):
     if request.method == "POST":
         info = {}
         try:
@@ -656,8 +670,12 @@ def generateVIN(request, sequence_no):
                 return_dict = {"ret": False, "errMsg": 'VIN获取失败！', "rows": [], "total": 0}
                 return JsonResponse(return_dict)
             product = Product.objects.create(order_num=order, vin=vin)
+            try:
+                step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
+            except ProcessStep.DoesNotExist:
+                return JsonResponse({"ret": False, "errMsg": "该产品无此工序！", "rows": [], "total": 0})
 
-            ProcessRecord.objects.create(product=product, sequence_no=sequence_no, result=1)
+            ProcessRecord.objects.create(product=product, sequence_no=step.sequence_no, result=1)
             info['vin'] = vin
             return_dict = {"ret": True, "errMsg": '', "rows": [], "total": 0, 'info': info}
             return JsonResponse(return_dict)
@@ -698,7 +716,7 @@ def get_vin(order):
     return vin
 
 
-def getAssembleRecord(request, sequence_no):
+def getAssembleRecord(request, step_id):
     if request.method == "GET":
         vin = request.GET.get('vin')
         input1 = request.GET.get('input1')
@@ -710,7 +728,11 @@ def getAssembleRecord(request, sequence_no):
         else:
             product = Product.objects.filter_without_isdelete().get(vin=vin)
             try:
-                process_record = ProcessRecord.objects.filter_without_isdelete().get(product=product, sequence_no=sequence_no)
+                step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
+            except ProcessStep.DoesNotExist:
+                return JsonResponse({"ret": False, "errMsg": "该产品无此工序！", "rows": [], "total": 0})
+            try:
+                process_record = ProcessRecord.objects.filter_without_isdelete().get(product=product, sequence_no=step.sequence_no)
             except ProcessRecord.DoesNotExist:
                 process_record = None
             rows = []

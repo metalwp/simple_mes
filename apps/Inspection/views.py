@@ -16,7 +16,13 @@ from simple_mes import settings
 
 def material_index(request):
     categorys = MaterialModel.CATEGORY_CHOICE
-    return render(request, 'Inspection/material_index.html', locals())
+    user = request.user
+    if user.is_authenticated:
+        return render(request, 'Inspection/material_index.html', locals())
+    else:
+        request.session['errMsg'] = '请先登陆！'
+        return redirect(reverse('account:login'))
+
 
 
 def getMaterialData(request):
@@ -56,7 +62,13 @@ def material_detail(request, material_id):
     material = MaterialModel.objects.filter_without_isdelete().get(id=material_id)
     modes = Inspection.MODE_CHOICE
     categorys = Inspection.CATEGORY_CHOICE
-    return render(request, 'Inspection/material_detail.html', locals())
+    user = request.user
+    if user.is_authenticated:
+        return render(request, 'Inspection/material_detail.html', locals())
+    else:
+        request.session['errMsg'] = '请先登陆！'
+        return redirect(reverse('account:login'))
+
 
 
 def getInspectionData(request, material_id):
@@ -255,7 +267,13 @@ def gminspection_index(request):
     material_categorys = MaterialModel.CATEGORY_CHOICE
     inspection_categorys = Inspection.CATEGORY_CHOICE
     inspection_modes = Inspection.MODE_CHOICE
-    return render(request, 'Inspection/gminspection_index.html', locals())
+    user = request.user
+    if user.is_authenticated:
+        return render(request, 'Inspection/gminspection_index.html', locals())
+    else:
+        request.session['errMsg'] = '请先登陆！'
+        return redirect(reverse('account:login'))
+
 
 
 def getGMaterialInfo(request):
@@ -445,7 +463,13 @@ def tminspection_index(request):
     material_categorys = MaterialModel.CATEGORY_CHOICE
     inspection_categorys = Inspection.CATEGORY_CHOICE
     inspection_modes = Inspection.MODE_CHOICE
-    return render(request, 'Inspection/tminspection_index.html', locals())
+    user = request.user
+    if user.is_authenticated:
+        return render(request, 'Inspection/tminspection_index.html', locals())
+    else:
+        request.session['errMsg'] = '请先登陆！'
+        return redirect(reverse('account:login'))
+
 
 
 def getTMaterialInfo(request):
@@ -502,6 +526,7 @@ def getTMaterialInfo(request):
 
         info = {'sn': sn,
                 'status': status,
+                'erp_no':material_model.erp_no,
                 'name': material_model.name,
                 'category': material_model.category,
                 'model': material_model.model,

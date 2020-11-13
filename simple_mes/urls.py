@@ -20,14 +20,15 @@ from apps.dashboard import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('index/', views.index),
+    path('index/', views.index, name='index'),
     path('', views.index),
-    path('product_category/', include('apps.product_manager.urls')),
+    path('account/', include('apps.account.urls')),
+    path('product_manager/', include('apps.product_manager.urls')),
     path('bom_manager/', include('apps.bom_manager.urls')),
     path('order_manager/', include('apps.order_manager.urls')),
     path('station_manager/', include('apps.station_manager.urls')),
     path('process_manager/', include('apps.process_manager.urls')),
-    path('inspection/', include('apps.Inspection.urls')),
+    path('Inspection/', include('apps.Inspection.urls')),
     path('manufacturing/', include('apps.manufacturing.urls'))
 
 ]

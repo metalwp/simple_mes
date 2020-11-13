@@ -2,7 +2,7 @@ import datetime
 import time
 import re
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect, reverse
 from django.http import JsonResponse
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
@@ -17,7 +17,13 @@ from apps.manufacturing.models import Product
 
 def cm_index(request):
     customers = Customer.objects.filter_without_isdelete()
-    return render(request, 'order_manager/cm_index.html', locals())
+    user = request.user
+    if user.is_authenticated:
+        return render(request, 'order_manager/cm_index.html', locals())
+    else:
+        request.session['errMsg'] = '请先登陆！'
+        return redirect(reverse('account:login'))
+
 
 
 def getCustomerData(request):
@@ -136,7 +142,13 @@ def om_index(request):
     products = ProductModel.objects.filter_without_isdelete()
     all_products = ProductModel.objects.all()
     customers = Customer.objects.filter_without_isdelete()
-    return render(request, 'order_manager/om_index.html', locals())
+    user = request.user
+    if user.is_authenticated:
+        return render(request, 'order_manager/om_index.html', locals())
+    else:
+        request.session['errMsg'] = '请先登陆！'
+        return redirect(reverse('account:login'))
+
 
 
 def getOrderData(request):
