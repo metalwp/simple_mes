@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}角色权限管理{% endblock %}
+{% block css %}
+{#    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">#}
+{#    <link href="https://cdn.bootcss.com/bootstrap-table/1.11.1/bootstrap-table.min.css" rel="stylesheet">#}
+{#    <link rel="stylesheet" href="https://cdn.bootcss.com/jquery-treegrid/0.2.0/css/jquery.treegrid.min.css">#}
+    <link rel="stylesheet" href="{% static 'css/jquery.treegrid.min.css' %}">
+
+    <style>
+        .changeblueColor{
+            background-color: #31b0d5  !important;
+            color: white;
+            }
+    </style>
+{% endblock %}
+
+{% block breadcrumb %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>角色权限管理<small>RolePermissionManager</small></h1>
+        <ol class="breadcrumb">
+            <li><a href="#">主页</a></li>
+            <li class="active">角色权限管理</li>
+        </ol>
+    </section>
+{% endblock %}
+
+{% block content %}
+    <section class="content">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box">
+                        <div class="box-header">
+                            <h3 class="box-title">角色权限管理</h3>
+                        </div>
+
+                        <!-- /.box-header -->
+                        <div class="box-body" >
+                            <div class="col-xs-3">
+                                <div class="fixed-table-toolbar">
+                                    <div class="columns columns-left btn-group pull-right">
+                                        <button id="update_permission" type="button" class="btn btn-primary" onclick="update_permission()">更新所选权限</button>
+                                    </div>
+                                        {#        bootstrap table自动渲染区域#}
+                                    <div >
+                                        <table id="myTab1" class="table table-bordered table-hover" style="display: block;"></table>
+                                    </div>
+                                </div>
+
+                            </div>
+                            {#        自定义搜索条件区域#}
+                            <div class="col-xs-9">
+                               <table id="myTab2"></table>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+{% endblock %}
+
+{% block script %}
+    {% csrf_token %}
+{#<script src="https://cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>#}
+{#<script src="https://cdn.bootcss.com/bootstrap-table/1.12.1/bootstrap-table.min.js"></script>#}
+{#<script src="https://cdn.bootcss.com/bootstrap-table/1.12.0/extensions/treegrid/bootstrap-table-treegrid.js"></script>#}
+{#<script src="https://cdn.bootcss.com/jquery-treegrid/0.2.0/js/jquery.treegrid.min.js"></script>#}
+    <script src="{% static 'js/bootstrap-table-treegrid.js' %}"></script>
+    <script src="{% static 'js/jquery.treegrid.min.js' %}"></script>
+
+<script>
+    {#$(document).ready(function() {#}
+    {##}
+    {#    });#}
+
+    {#$("#myTab1").on('click','tr',function() {#}
+	{#			$("#myTab1").find("tbody").find("tr").each(function(){#}
+	{#				$(this).removeClass('changeblueColor');#}
+	{#			});#}
+	{#			$(this).addClass('changeblueColor');#}
+	{#		});#}
+    var role_id;
+    var datas;
+    function getChecked(role_id) {
+        var data = {};
+        data.id = role_id;
+        var json_data = JSON.stringify(data);
+        $.ajax({
+            url:"{% url 'account:getChecked' %}",
+            headers:{"X-CSRFToken":$.cookie("csrftoken")},
+            type:"post",
+            data:json_data, //将添加好数据的formdata放到data这里
+            processData: false,    // 不处理数据
+            contentType: false,    // 不设置内容类型
+            dataType: "json",
+            success:function(data){
+                if (data.ret)
+                {
+                    datas = $table.bootstrapTable('getData');
+                    for(var i in datas)
+                    {
+                        for(var j in data.info){
+                            if (datas[i]["id"] == data.info[j])
+                            {
+                                //console.log(datas[i]["id"]);
+                                datas[i].check = true;
+                            }
+                        }
+                    }
+                    $table.bootstrapTable('load', datas);
+                }
+            },
+        });
+    }
+
+    var $table = $('#myTab2');
+    function permissinTableFresh() {
+      $table.bootstrapTable({
+        url: "{% url 'account:getPermission2' %}",    //请求后台的URL（*）
+        method: 'GET',   //请求方式（*）
+        //idField: 'id',
+        dataType: "json",
+        uniqueId: 'id',
+        striped: true, //间隔行颜色
+        cache: false,
+        undefinedText: '--',
+        columns: [
+            {   field: 'check',
+                checkbox: true,
+            },
+            { field: 'no',
+                title: '序号',
+                align: "center",
+                formatter: function (value, row, index) {
+                    return index + 1;
+            }},
+            { field: 'title',  title: '名称' },
+            { field: 'URL',  title: 'URL' },
+            { field: 'menu', title: '菜单'  },
+        ],
+
+            // bootstrap-table-treegrid.js 插件配置 -- start
+
+            //在哪一列展开树形
+            treeShowField: 'title',
+            //指定父id列
+            parentIdField: 'pid',
+
+            onResetView: function() {
+                //console.log('load');
+                $table.treegrid({
+                    initialState: 'collapsed',// 所有节点都折叠
+                    //initialState: 'expanded',// 所有节点都展开，默认展开
+                    treeColumn: 2, // 第二列可展开
+                    //saveState: true,
+                    {#expanderExpandedClass: 'glyphicon glyphicon-minus',  //图标样式#}
+                    {#expanderCollapsedClass: 'glyphicon glyphicon-plus',#}
+                    onChange: function() {
+                        $table.bootstrapTable('resetWidth');
+                    }
+                });
+                var Nodes = $table.treegrid('getAllNodes');
+
+                if(Nodes.length !== 0){
+                    var table_datas = $table.bootstrapTable('getData');
+
+                    Nodes.each(function (index, element) {
+                        //console.log(index);
+                        //console.log($(this).treegrid('getNodeId'));
+                        if(table_datas[index].check === true){
+                            var temp = $(this).treegrid('getParentNode');
+                            if(temp){
+                                temp.treegrid('expand');
+                            }
+                        }
+                    })
+                }
+                //只展开树形的第一级节点
+                //$table.treegrid('getRootNodes').treegrid('expand');
+            },
+            onCheck:function(row){
+                // 勾选子类
+                selectChilds(datas,row,"id","pid",true);
+                // 刷新数据
+                $table.bootstrapTable('load', datas);
+            },
+            onUncheck:function(row){
+                selectChilds(datas,row,"id","pid",false);
+                $table.bootstrapTable('load', datas);
+            },
+            onLoadSuccess:function () {
+                getChecked(role_id);
+            }
+        });
+    }
+
+    //初始化操作按钮的方法
+    window.operateEvents = {
+        'click .RoleOfadd': function (e, value, row, index) {
+            add(row.id);
+        },
+        'click .RoleOfdelete': function (e, value, row, index) {
+            del(row.id);
+        },
+        'click .RoleOfedit': function (e, value, row, index) {
+            update(row.id);
+        }
+    };
+
+    function selectChilds(datas,row,id,pid,checked) {
+        for(var i in datas){
+            if(datas[i][pid] == row[id]){
+                datas[i].check=checked;
+                selectChilds(datas, datas[i], id, pid, checked);
+            };
+        }
+    }
+
+    function selectParentChecked(datas,row,id,pid){
+        for(var i in datas){
+            if(datas[i][id] == row[pid]){
+                datas[i].check=true;
+                selectParentChecked(datas,datas[i], id,pid);
+            };
+        }
+    }
+
+    function update_permission() {
+        var selRows = $table.bootstrapTable("getSelections");
+        if(selRows.length == 0){
+            alert("请至少选择一行");
+            return;
+        }
+        var postData = {};
+        var Array1 = [];
+        $.each(selRows,function(i) {
+            Array1.push(this.id);
+        });
+        postData.idList = Array1;
+        postData.role_id = role_id;
+        console.log(postData);
+        var json_data = JSON.stringify(postData);
+        $.ajax(
+            {
+                //几个参数需要注意一下
+                cache:false,
+                type: "POST",//方法类型
+                dataType: "json",//预期服务器返回的数据类型
+                url: "{% url 'account:updatePermission2' %}" , //url
+                headers:{"X-CSRFToken":$.cookie("csrftoken")},
+                data: json_data, //将模态框的form表单数据序列化，以便提交到后台
+                processData: false,// 不加会报错
+                contentType: false,// 不加会报错
+                async:true,  //必须要为false,必须必须
+
+                success: function (data) {
+                    if(data.ret){
+                        toastr.success('提交数据成功');
+                     }
+                    else {
+                        toastr.error('Error: ' + data.errMsg)
+                    }
+                 },
+                error : function() {
+                    toastr.error("输入数据有误！");
+                 }
+            });
+    }
+
+    function test() {
+        var selRows = $table.bootstrapTable("getSelections");
+        if(selRows.length == 0){
+            alert("请至少选择一行");
+            return;
+        }
+
+        var postData = "";
+        $.each(selRows,function(i) {
+            postData +=  this.id;
+            if (i < selRows.length - 1) {
+                postData += "， ";
+            }
+        });
+        alert("你选中行的 id 为："+postData);
+
+    }
+
+    function add(id) {
+        alert("add 方法 , id = " + id);
+    }
+    function del(id) {
+        alert("del 方法 , id = " + id);
+    }
+    function update(id) {
+        alert("update 方法 , id = " + id);
+    }
+
+    var columns1 =  [
+            {
+                field: 'no',
+                title: '序号',
+                align: "center",
+                valign: 'middle',
+                width: "5%",
+                formatter: function (value, row, index) {
+                    //获取每页显示的数量
+                    var pageSize=$('#myTab1').bootstrapTable('getOptions').pageSize;
+                    //获取当前是第几页
+                    var pageNumber=$('#myTab1').bootstrapTable('getOptions').pageNumber;
+                    //返回序号，注意index是从0开始的，所以要加上1
+                    return pageSize * (pageNumber - 1) + index + 1;
+                }
+            },
+            {
+                field: 'title',
+                title:'角色名称',
+                width: '10%',
+                align: 'center',
+                valign: 'middle',
+                sortable: true,
+            },
+        ];
+    var urls1 = "{% url 'account:getRole2' %}";
+
+    function tableFresh4(columns, urls, pk){
+    $('#myTab1').bootstrapTable({
+        url:urls,    //请求后台的URL（*）
+        method: 'GET',   //请求方式（*）
+        dataType: "json",
+        uniqueId: pk,
+        striped: true, //间隔行颜色
+        cache: false,
+        undefinedText: '--',
+        singleSelect: false,
+        search: false,
+        strictSearch: true,
+        clickToSelect: true,
+        columns: columns,
+        onLoadSuccess: function(data) {
+            },
+        onLoadError: function () {
+            toastr.error("数据加载失败！", "错误提示");
+        },
+        onClickRow: function (row, $element) {
+            $("#myTab1 .changeblueColor").removeClass('changeblueColor');//移除class
+            $($element).addClass('changeblueColor');//添加class
+            role_id = row.id;
+            $table.bootstrapTable('refresh');
+
+        }
+    });
+}
+    tableFresh4(columns1, urls1, 'id');
+    permissinTableFresh();
+
+
+</script>
+
+{% endblock %}

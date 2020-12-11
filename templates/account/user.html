@@ -2,9 +2,7 @@
 {% load static %}
 {% block title %}用户管理{% endblock %}
 {% block css %}
-    <link rel="stylesheet" href="{% static 'css/bootstrap-table.min.css' %}" type="text/css"/>
-    <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}" type="text/css"/>
-    <link rel="stylesheet" href="{% static 'css/bootstrap-multiselect.css' %}" type="text/css"/>
+
 
 {% endblock %}
 
@@ -131,10 +129,10 @@
                                                 &times;
                                                 </button>
                                                 <h4 class="modal-title" id="updateModalLabel">
-                                                    修改产品
+                                                    修改用户
                                                 </h4>
                                             </div>
-                                            {# 模态框body #}
+{#                                             模态框body#}
                                              <div class="modal-body" style="height: 100%;">
                                                  <div class="form-group">
                                                     <div class="col-sm-7">
@@ -145,32 +143,40 @@
                                                  </div>
 
                                                 <div class="form-group">
-                                                        <label for="u_productSelect" class="col-sm-3 control-label" >产品</label>
-                                                        <div class="input-group col-sm-7">
-                                                            <select class="form-control" name="u_productSelect" id="u_productSelect" required="required">
-                                                                <option value="">请选择产品</option>
-                                                                {% for product in products %}
-                                                                <option value="{{ product.id }}" hassubinfo="true">{{ product.erp_no }} | {{ product.name }}</option>
-                                                                {% endfor %}
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label for="u_versionInput" class="col-sm-3 control-label" >BOM版本</label>
-                                                        <div class="input-group col-sm-7">
-                                                            <input type="text" class="form-control"  name="u_versionInput" id="u_versionInput" required="required" placeholder="请输入BOM版本，如Vxx.xxx或Vx.xxx"
-                                                                style="text-align: left">
-                                                        </div>
-                                                    </div>
-                                                     <div class="form-group">
-                                                    <label for="u_remarkText" class="col-sm-3 control-label" >备注</label>
+                                                    <label for="u_usernameInput" class="col-sm-3 control-label" >用户名</label>
                                                     <div class="input-group col-sm-7">
-                                                        <textarea class="form-control" name="u_remarkText" id="u_remarkText"
-                                                                  placeholder="请输入备注信息..." style="text-align: left"></textarea>
+                                                        <input type="text" class="form-control"  name="u_usernameInput" id="u_usernameInput" required="required" placeholder="用户名"
+                                                            style="text-align: left">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="u_emailInput" class="col-sm-3 control-label" >邮箱</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <input type="text" class="form-control"  name="u_emailInput" id="u_emailInput" required="required" placeholder="邮箱"
+                                                            style="text-align: left">
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="u_activeInput" class="col-sm-3 control-label" >是否激活</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <input type="checkbox" class="checkbox checkbox-inline"  name="u_activeInput" id="u_activeInput"
+                                                            style="text-align: left">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="u_roleSelect" class="col-sm-3 control-label" >角色选择</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <select class="form-control" name="u_roleSelect" id="u_roleSelect" required="required" multiple>
+
+                                                            {% for role in roles %}
+                                                            <option value="{{ role.id }}" hassubinfo="true">{{ role.title }}</option>
+                                                            {% endfor %}
+                                                        </select>
                                                     </div>
                                                 </div>
                                             </div>
-                                {#            模态框底部#}
+{#                                            模态框底部#}
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-default" data-dismiss="modal"  >关闭</button>
                                                 <input type="button" class="btn btn-primary" onclick="update()" value="提交"/>
@@ -178,8 +184,8 @@
                                         </div><!-- /.modal-content -->
                                     </div><!-- /.modal -->
                                 </div>
-                                {##}
-                                </form>
+
+                            </form>
 
 
                                {#        bootstrap table自动渲染区域#}
@@ -195,12 +201,6 @@
 {% endblock %}
 
 {% block script %}
-    <script type="text/javascript" src="{% static 'js/bootstrap-table.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/bootstrap-table-zh-CN.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/toastr.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/myscript.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/bootstrap-multiselect.min.js' %}"></script>
 
 <script>
 
@@ -213,25 +213,17 @@
             //includeResetOption: true,
             //includeResetDivider: true,
             //resetText: "Reset all",
-
             });
+        $('#u_roleSelect').multiselect({
+            nonSelectedText: '请选择角色!',
+            nSelectedText: ' 个被选择!',
+            includeSelectAllOption: true,
+            selectAllText: '全选'
+            });
+
     });
 
-    toastr.options = {
-        closeButton: true,
-        debug: true,
-        progressBar: true,
-        positionClass: "toast-top-center",
-        onclick: null,
-        showDuration: "300",
-        hideDuration: "1000",
-        timeOut: "2000",
-        extendedTimeOut: "1000",
-        showEasing: "swing",
-        hideEasing: "linear",
-        showMethod: "fadeIn",
-        hideMethod: "fadeOut",
-    };
+
 
 $("#addModal").on("hidden.bs.modal", function() {
     document.getElementById("addForm").reset();
@@ -245,18 +237,13 @@ $("#updateModal").on("hidden.bs.modal", function() {
 
 function update(){
         var data1 = $('#updateForm').serialize();
-        console.log(typeof(data1));
-        //var formdata = new FormData(); //ajax上传文件的时候，需要这个类型，它会将添加给它的键值对加工成formdata的类型
-        //var token = $("[name='csrfmiddlewaretoken']").val();
-        //formdata.append("csrfmiddlewaretoken", token); //别忘了csrf_token
-        //formdata.append("uploadFile",$("#uploadFile")[0].files[0]);
         $.ajax(
             {
                 //几个参数需要注意一下
                 cache:false,
                 type: "POST",//方法类型
                 dataType: "json",//预期服务器返回的数据类型
-                url: "{% url 'bom_manager:updateBomData' %}" ,//url
+                url: "{% url 'account:updateUser' %}" ,//url
                 headers:{"X-CSRFToken":$.cookie("csrftoken")},
                 data: data1, //将模态框的form表单数据序列化，以便提交到后台
                 processData: false,// 不加会报错
@@ -312,32 +299,73 @@ function add() {
              }
         });}
 
+function ResetById(index, data) {
+        ret = confirm("确定重置密码？");
+        if(ret===true){
+            var data1 = {};
+        data1.id = data.id;
+        $.ajax(
+            {
+                //几个参数需要注意一下
+                cache:false,
+                type: "POST",//方法类型
+                dataType: "json",//预期服务器返回的数据类型
+                url: "{% url 'account:resetPassword' %}" ,//url
+                headers:{"X-CSRFToken":$.cookie("csrftoken")},
+                data: data, //将模态框的form表单数据序列化，以便提交到后台
+                dataType: "json",
+
+                success: function (data) {
+                    if(data.ret){
+                        toastr.success('密码重置成功, 请重新登陆！');
+                        setTimeout(function () {
+                        window.location.reload();
+                    },3000)
+                     }
+                    else {
+                    toastr.error('错误：' + data.errMsg);
+                        }
+                     },
+                error : function(data) {
+                        toastr.error("输入数据有误！");
+                     }
+                    });
+            }
+        }
+
 function actionFormatter(value, row, index) {
     var id = row.id;
-    row.url = "{% url 'bom_manager:deleteBomData' %}";
+    row.url = "{% url 'account:deleteUser' %}";
     var data = JSON.stringify(row);
 
     var result = "";
-    {#result += "<a href='javascript:;' class='btn btn-xs green' onclick=\"EditViewById('" + id + "', view='view')\" title='查看'><span class='glyphicon glyphicon-search'></span></a>";#}
-    {#result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"EditViewById('" + JSON.stringify(row) + "','" + id + "')\" title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";#}
+    result += "<a href='javascript:;' class='btn btn-xs blue' onclick=" + "ResetById(" + index + "," + data + ")" + " title='重置密码'><span class='glyphicon glyphicon-refresh'></span></a>";
     result += "<a href='javascript:;' class='btn btn-xs blue' onclick=" + "EditViewById(" + index + "," + data + ")" + " title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";
-    //result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"EditViewById('" + index + "','" + data + "')\" title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";
-    {#result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"edit()\" title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";#}
     result += "<a href='javascript:;' class='btn btn-xs red' onclick=" + "deleteconfirm(" + data + ")" + " title='删除'><span class='glyphicon glyphicon-remove'></span></a>";
     return result;}
 
 
 // getData方法获取全部页面数据后，将data转为json对象，使用index当前行号作为下标获取对应数据
-function EditViewById(index, data){
-    //$("#updateModal option:selected").each(function () {$(this).removeAttr("selected");});
-    $("#u_productSelect option").each(function () {$(this).removeAttr("selected");});
+function EditViewById(index, data) {
+    $("#u_roleSelect option").removeAttr("selected");
+    $("#u_roleSelect option").each(function () {
+        if (data.role.includes($(this).text())) {
+            $(this).attr('selected', true)
+        }
+    });
 
     $("#u_idInput").val(data.id);
-    $("#u_productSelect").find("option:contains('" + data.erp_no + "')").each(function(){
-                    $(this).attr('selected', true);});
-    $("#u_versionInput").val(data.bom_version);
-    $("#u_remarkText").val(data.remark);
-    $('#updateModal').modal('show');}
+    $("#u_usernameInput").val(data.username);
+    $("#u_emailInput").val(data.email);
+    if(data.is_active===true){
+            $("#u_activeInput").attr("checked", true);
+        }else {
+            $("#u_activeInput").attr("checked", false);
+        }
+    $('#u_roleSelect').multiselect('refresh');
+
+    $('#updateModal').modal('show');
+}
 
 var columns =  [
         {

@@ -37,3 +37,6 @@ class BaseModel(models.Model):
         """重写数据库删除方法实现逻辑删除"""
         self.is_delete = True
         self.save()
+
+    def o_delete(self):
+        super().delete()

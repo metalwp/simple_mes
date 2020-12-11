@@ -27,6 +27,8 @@ class RbacMiddleware(MiddlewareMixin):
         request_url = request.path_info
 
         permission_url = request.session.get(settings.SESSION_PERMISSION_URL_KEY)
+        # for url in permission_url:
+        #     print(url)
         # print('访问url', request_url)
         # print('权限--', permission_url)
         # 如果请求url在白名单，放行
@@ -42,8 +44,11 @@ class RbacMiddleware(MiddlewareMixin):
         # 循环permission_url，作为正则，匹配用户request_url
         # 正则应该进行一些限定，以处理：/user/ -- /user/add/匹配成功的情况
         flag = False
+        print(flag)
+
         for url in permission_url:
             url_pattern = settings.REGEX_URL.format(url=url)
+            print(url_pattern)
             if re.match(url_pattern, request_url):
                 flag = True
                 break

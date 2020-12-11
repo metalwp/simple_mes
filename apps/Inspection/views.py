@@ -70,7 +70,6 @@ def material_detail(request, material_id):
         return redirect(reverse('account:login'))
 
 
-
 def getInspectionData(request, material_id):
     model = Inspection
     if request.method == "GET":

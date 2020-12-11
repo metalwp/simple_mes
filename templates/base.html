@@ -24,6 +24,10 @@ scratch. This page gets rid of all links and provides the needed markup only.
         page. However, you can choose any other skin. Make sure you
         apply the skin class to the body tag so the changes take effect. -->
   <link rel="stylesheet" href="{% static 'AdminLTE-2.4.10/dist/css/skins/skin-blue.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-table.min.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'css/bootstrap-multiselect.css' %}" type="text/css"/>
+
     <style>
         {% rbac_css %}
     </style>
@@ -114,10 +118,10 @@ desired effect
               <li class="user-footer">
                   <div class="row">
                   <div class="col-xs-6 text-center">
-                    <a href="#" class="btn btn-default btn-flat">修改信息</a>
+                    <a href="#" id="edit_profile" class="btn btn-default btn-flat">修改信息</a>
                   </div>
                   <div class="col-xs-6 text-center">
-                    <a href="#" class="btn btn-default btn-flat">修改密码</a>
+                    <a href="#" id="edit_password" class="btn btn-default btn-flat">修改密码</a>
                   </div>
 
                 </div>
@@ -200,88 +204,113 @@ desired effect
 
     <!-- Main content -->
     <section class="content container-fluid">
-
-        <!-- 修改数据模态框（Modal） -->
-{#        <form id="userinfoForm" action="#" method="post" class="form-horizontal" role="form">#}
-{#            <div class="modal fade" id="userinfoModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">#}
-{#                <div class="modal-dialog">#}
-{#                    <div class="modal-content">#}
-{#                        <div class="modal-header">#}
-{#                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="closeModal()">#}
-{#                            &times;#}
-{#                            </button>#}
-{#                <h4 class="modal-title">#}
-{#                    修改项目#}
-{#                </h4>#}
-{#            </div>#}
-            {# 模态框body #}
-{#             <div class="modal-body" style="height: 100%;">#}
-{#                <div class="form-group">#}
-{#                    <div class="input-group col-sm-7">#}
-{#                        <input type="text" class="form-control"  name="u_idInput" id="u_idInput" required="required" style="text-align: left; display: none;">#}
-{#                    </div>#}
-{#                </div>#}
-{#                <div class="form-group">#}
-{#                    <label for="u_nameInput" class="col-sm-3 control-label" >工序名</label>#}
-{#                    <div class="input-group col-sm-7">#}
-{#                        <input type="text" class="form-control"  name="u_nameInput" id="u_nameInput" required="required"#}
-{#                             style="text-align: left">#}
-{#                    </div>#}
-{#                </div>#}
-{#                <div class="form-group">#}
-{#                    <label for="u_fixtureSelect" class="col-sm-3 control-label" >工站</label>#}
-{#                    <div class="input-group col-sm-7">#}
-{#                        <select class="form-control" name="u_fixtureSelect" id="u_fixtureSelect" required="required">#}
-{#                            <option value="">请选择工装</option>#}
-{#                            {% for fixture in fixtures %}#}
-{#                            <option value="{{ fixture.id }}" hassubinfo="true">{{ fixture.name }}</option>#}
-{#                            {% endfor %}#}
-{#                        </select>#}
-{#                    </div>#}
-{#                </div>#}
-{#                <div class="form-group">#}
-{#                    <label for="u_categorySelect" class="col-sm-3 control-label" >工序类型</label>#}
-{#                    <div class="input-group col-sm-7">#}
-{#                        <select class="form-control" name="u_categorySelect" id="u_categorySelect" required="required">#}
-{#                            <option value="">请选择工序类型</option>#}
-{#                            {% for category in categorys %}#}
-{#                            <option value="{{ category.0 }}" hassubinfo="true">{{ category.1 }}</option>#}
-{#                            {% endfor %}#}
-{#                        </select>#}
-{#                    </div>#}
-{#                </div>#}
-{#                <div class="form-group">#}
-{#                    <label for="u_lockInput" class="col-sm-3 control-label" >工序互锁</label>#}
-{#                    <div class="input-group col-sm-7">#}
-{#                        <input type="checkbox" class="checkbox checkbox-inline"  name="u_lockInput" id="u_lockInput"#}
-{#                            style="text-align: left">#}
-{#                    </div>#}
-{#                </div>#}
-{#                <div class="form-group">#}
-{#                    <label for="u_remarkText" class="col-sm-3 control-label" >备注</label>#}
-{#                    <div class="col-sm-7">#}
-{#                        <textarea class="form-control" name="u_remarkText" id="u_remarkText"#}
-{#                                  placeholder="请输入备注信息..." style="text-align: left"></textarea>#}
-{#                    </div>#}
-{#                </div>#}
-{##}
-{#            </div>#}
-{#            模态框底部#}
-{#            <div class="modal-footer">#}
-{#                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="closeModal()" >关闭</button>#}
-{#                <input type="button" class="btn btn-primary" onclick="update()" value="提交"/>#}
-{#            </div>#}
-{#        </div><!-- /.modal-content -->#}
-{#    </div><!-- /.modal -->#}
-{#</div>#}
-{##}
-{#</form>#}
-
       <!--------------------------
         | Your Page Content Here |
         -------------------------->
         {#        主体内容全放到这里！#}
         {% block content %}{% endblock %}
+
+        <!-- 修改数据模态框（Modal） -->
+        <form id="userinfoForm" action="#" method="post" class="form-horizontal" role="form">
+            {% csrf_token %}
+            <div class="modal fade" id="userinfoModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                            &times;
+                            </button>
+                            <h4 class="modal-title">
+                                修改用户信息
+                            </h4>
+                        </div>
+{#             模态框body#}
+                         <div class="modal-body" style="height: 100%;">
+                            <div class="form-group">
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control" value="{{ request.user.id }}" name="_idInput" id="_idInput" required="required" style="text-align: left; display:none;" >
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="_usernameInput" class="col-sm-3 control-label" >用户名</label>
+                                <div class="input-group col-sm-7">
+                                    <input type="text" class="form-control"  name="_usernameInput" id="_usernameInput" required="required" placeholder="用户名"
+                                        style="text-align: left" value="{{ request.user.username }}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="_emailInput" class="col-sm-3 control-label" >邮箱</label>
+                                <div class="input-group col-sm-7">
+                                    <input type="text" class="form-control"  name="_emailInput" id="_emailInput" required="required" placeholder="邮箱"
+                                        style="text-align: left" value="{{ request.user.email }}">
+                                </div>
+                            </div>
+
+                        </div>
+            {#            模态框底部#}
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal" >关闭</button>
+                            <input type="button" class="btn btn-primary" onclick="profile()" value="提交"/>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal -->
+            </div>
+        </form>
+
+        <form id="passwordForm" action="#" method="post" class="form-horizontal" role="form">
+            <div class="modal fade" id="passwordModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                            &times;
+                            </button>
+                            <h4 class="modal-title">
+                                修改密码
+                            </h4>
+                        </div>
+{#             模态框body#}
+                         <div class="modal-body" style="height: 100%;">
+                            <div class="form-group">
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control" value="{{ request.user.id }}" name="p_idInput" id="p_idInput" required="required" style="text-align: left; display:none;" >
+                                </div>
+                            </div>
+
+                             <div class="form-group">
+                                <label for="o_pwdInput" class="col-sm-3 control-label" >原密码</label>
+                                <div class="input-group col-sm-7">
+                                    <input type="password" class="form-control"  name="o_pwdInput" id="o_pwdInput" required="required" placeholder="密码"
+                                            style="text-align: left">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="n_pwdInput" class="col-sm-3 control-label" >新密码</label>
+                                <div class="input-group col-sm-7">
+                                    <input type="password" class="form-control"  name="n_pwdInput" id="n_pwdInput" required="required" placeholder="密码"
+                                            style="text-align: left">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="r_pwdInput" class="col-sm-3 control-label" >重复密码</label>
+                                <div class="input-group col-sm-7">
+                                    <input type="password" class="form-control"  name="r_pwdInput" id="r_pwdInput" required="required" placeholder="重复密码"
+                                            style="text-align: left">
+                                </div>
+                            </div>
+
+                        </div>
+            {#            模态框底部#}
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal" >关闭</button>
+                            <input type="button" class="btn btn-primary" onclick="password()" value="提交"/>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal -->
+            </div>
+        </form>
 
     </section>
     <!-- /.content -->
@@ -313,7 +342,14 @@ desired effect
 <script src="{% static 'AdminLTE-2.4.10/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>
 <script src="{% static 'AdminLTE-2.4.10/bower_components/jquery-slimscroll/jquery.slimscroll.min.js' %}"></script>
 <script src="{% static 'AdminLTE-2.4.10/bower_components/fastclick/lib/fastclick.js' %}"></script>
-<script src="{% static 'AdminLTE-2.4.10/dist/js/demo.js' %}"></script>
+{#<script src="{% static 'AdminLTE-2.4.10/dist/js/demo.js' %}"></script>#}
+<script type="text/javascript" src="{% static 'js/bootstrap-table.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/bootstrap-table-zh-CN.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/toastr.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/myscript.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/bootstrap-multiselect.min.js' %}"></script>
+
 
 <!-- jquery-validate -->
 {#<script src="https://cdn.bootcss.com/jquery-validate/1.17.0/jquery.validate.js"></script>#}
@@ -327,9 +363,24 @@ desired effect
      Both of these plugins are recommended to enhance the
      user experience. -->
 <script>
+    toastr.options = {
+        closeButton: true,
+        debug: true,
+        progressBar: true,
+        positionClass: "toast-top-center",
+        onclick: null,
+        showDuration: "300",
+        hideDuration: "1000",
+        timeOut: "2000",
+        extendedTimeOut: "1000",
+        showEasing: "swing",
+        hideEasing: "linear",
+        showMethod: "fadeIn",
+        hideMethod: "fadeOut",
+    };
     $(function () {
             {% rbac_js %}
-        })
+        });
     $('ul.sidebar-menu li').each(function () {
             if($(this).children().attr('href')==='{{ request.path }}'){
                 $(this).addClass('active');
@@ -338,24 +389,33 @@ desired effect
                 $(this).parent().parent().addClass('menu-open');
             }
         });
-    function profile() {
-        var data1 = $('#addForm').serialize();
+
+    $("#edit_profile").on("click", function(event) {
+        $('#userinfoModal').modal('show');
+        });
+    $("#edit_password").on("click", function(event) {
+        $('#passwordModal').modal('show');
+        });
+
+    function password() {
+        var data1 = $('#passwordForm').serialize();
         $.ajax({
         //几个参数需要注意一下
             cache:false,
             type: "POST",//方法类型
             dataType: "json",//预期服务器返回的数据类型
-            url: "{% url 'process_manager:addPSData' %}" ,//url
+            url: "{% url 'account:editPassword' %}" ,//url
             headers:{"X-CSRFToken":$.cookie("csrftoken")},
             data: data1, //将模态框的form表单数据序列化，以便提交到后台
             async:true,  //必须要为false,必须必须
 
             success: function (data) {
-                $('#addModal').modal('hide');
-                document.getElementById("addForm").reset();
-                $("#myTab").bootstrapTable('refresh');
+                $('#passwordModal').modal('hide');
                 if(data.ret){
-                    toastr.success('提交数据成功');
+                    toastr.success('提交数据成功, 请重新登陆！');
+                    setTimeout(function () {
+                        window.location.reload();
+                    },3000)
                  }
                 else{
                     toastr.error('错误：' + data.errMsg);
@@ -364,8 +424,37 @@ desired effect
             error : function(data) {
                 toastr.error("输入数据有误！");
              }
-        });
+        })
     }
+
+    function profile() {
+        var data1 = $('#userinfoForm').serialize();
+        $.ajax({
+        //几个参数需要注意一下
+            cache:false,
+            type: "POST",//方法类型
+            dataType: "json",//预期服务器返回的数据类型
+            url: "{% url 'account:editProfile' %}" ,//url
+            headers:{"X-CSRFToken":$.cookie("csrftoken")},
+            data: data1, //将模态框的form表单数据序列化，以便提交到后台
+            async:true,  //必须要为false,必须必须
+
+            success: function (data) {
+                $('#userinfoModal').modal('hide');
+                if(data.ret){
+                    toastr.success('提交数据成功');
+                    window.location.reload();
+                 }
+                else{
+                    toastr.error('错误：' + data.errMsg);
+                }
+             },
+            error : function(data) {
+                toastr.error("输入数据有误！");
+             }
+        })
+    }
+
 </script>
 </body>
 </html>

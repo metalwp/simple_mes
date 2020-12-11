@@ -63,7 +63,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'apps.account.middleware.rbac.RbacMiddleware',  #添加自定义中间件
+    'apps.account.middleware.rbac.RbacMiddleware',  #添加自定义中间件
 ]
 
 ROOT_URLCONF = 'simple_mes.urls'
@@ -175,6 +175,8 @@ SESSION_PERMISSION_URL_KEY = 'cool'
 SESSION_MENU_KEY = 'awesome'
 ALL_MENU_KEY = 'k1'
 PERMISSION_MENU_KEY = 'k2'
+
+DEFAULT_PASSWORD = "123456"
 
 
 

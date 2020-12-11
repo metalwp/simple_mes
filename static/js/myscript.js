@@ -164,9 +164,7 @@ function clean(){
             }
 
 function deleteconfirm(data) {
-    console.log(data);
-
-    var tmp = confirm("确认删除？")
+    var tmp = confirm("确认删除？");
     if(tmp === true){
         if(data.id === undefined){
             num = data.num;
@@ -186,6 +184,7 @@ function deleteconfirm(data) {
                 if (data.ret) {
                     toastr.success("数据删除成功！");
                     $('table').bootstrapTable('refresh');
+                    window.location.reload();
                 }else {if(data.errMsg){
                         toastr.error(data.errMsg);
                     }else {

@@ -1,6 +1,6 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-from db.base_model import BaseModel
+from django.contrib.auth.models import AbstractUser, UserManager
+from db.base_model import BaseModel, MyManager
 
 
 class Menu(models.Model):
@@ -36,6 +36,7 @@ class Permission(models.Model):
     title = models.CharField(max_length=32, unique=True, verbose_name="权限")
     url = models.CharField(max_length=128)
     menu = models.ForeignKey("Menu", null=True, blank=True, on_delete=models.CASCADE)
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
 
     def __str__(self):
         # 显示带菜单前缀的权限
@@ -65,9 +66,15 @@ class Role(models.Model):
         verbose_name_plural = verbose_name
 
 
+class MyUserManager(UserManager, MyManager):
+    pass
+
+
 class User(AbstractUser, BaseModel):
     """用户模型类"""
     roles = models.ManyToManyField(to='Role', verbose_name='角色')
+
+    objects = MyUserManager()
 
     class Meta:
         db_table = 'sm_user'
