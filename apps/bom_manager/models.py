@@ -8,7 +8,8 @@ from db.base_model import BaseModel
 class BOM(BaseModel):
     product_model = models.ForeignKey("product_manager.ProductModel", on_delete=models.SET_NULL, blank=True, null=True, verbose_name='产品型号')
     version = models.CharField('BOM版本', max_length=10)
-    remark = models.CharField('备注', max_length=200, null=True, blank=True)        
+    remark = models.CharField('备注', max_length=200, null=True, blank=True)
+    erp_no = models.CharField('物料号', max_length=100)  # unique=True
 
     class Meta:
         db_table = 'sm_bom'

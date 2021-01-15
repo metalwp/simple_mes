@@ -17,7 +17,7 @@ from simple_mes import settings
 
 
 def index(request):
-    products = ProductModel.objects.filter_without_isdelete()
+    products = ProductModel.objects.filter_without_isdelete().all()
     # boms = BOM.objects.filter_without_isdelete()
     user = request.user
     if user.is_authenticated:
@@ -53,8 +53,12 @@ def getBomData(request):
         data = {"total": total, "rows": rows}
         for obj in objs:
             if not obj.product_model.is_delete:
-                rows.append({"id":obj.id, 'erp_no': obj.product_model.erp_no, 'product_name': obj.product_model.name, 'model_name': obj.product_model.model,
-                         'bom_version': obj.version, 'remark': obj.remark})
+                rows.append({"id": obj.id,
+                             'erp_no': obj.erp_no,
+                             'product_name': obj.product_model.name,
+                             'model_name': obj.product_model.model,
+                             'bom_version': obj.version,
+                             'remark': obj.remark})
         return JsonResponse(data)
 
 
@@ -65,21 +69,31 @@ def addBomData(request):
         product_id = request.POST.get('productSelect')
         version = request.POST.get('versionInput')
         remark = request.POST.get('remarkText')
+        erp_no = request.POST.get('erpInputUpdate')
 
         # 数据校验
-        if not all([product_id, version]):
+        if not all([product_id, version, erp_no]):
             return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
         # 校验版本格式
         if not re.match(r'^V(\d{1,2})\.(\d{3})$', version):
             return JsonResponse({"ret": False, "errMsg": '版本格式不正确！', "rows": [], "total": 0})
+        # 校验物料号格式
+        if not re.match(r'^[A-Z]\d{9}V\d{4}A$', erp_no):
+            return JsonResponse({"ret": False, "errMsg": '物料号格式不正确！', "rows": [], "total": 0})
 
         # 业务逻辑    
         try:
             product_model = ProductModel.objects.get(id=product_id)
-            boms = BOM.objects.filter_without_isdelete().filter(product_model=product_model)
+            # boms = BOM.objects.filter_without_isdelete().filter(product_model=product_model)
+            # if boms:
+            #     return JsonResponse({"ret": False, "errMsg": '该产品已存在一个BOM！', "rows": [], "total": 0})
+            boms = BOM.objects.filter_without_isdelete().filter(erp_no=erp_no)
             if boms:
-                return JsonResponse({"ret": False, "errMsg": '该产品已存在一个BOM！', "rows": [], "total": 0})
-            model.objects.create(product_model=product_model, version=version, remark=remark)
+                return JsonResponse({"ret": False, "errMsg": '该ERP号已经使用！', "rows": [], "total": 0})
+            model.objects.create(product_model=product_model,
+                                 version=version,
+                                 erp_no=erp_no,
+                                 remark=remark)
         except Exception as e:
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
             return JsonResponse(return_dict)
@@ -96,13 +110,17 @@ def updateBomData(request):
         product_id = request.POST.get('u_productSelect')
         version = request.POST.get('u_versionInput')
         remark = request.POST.get('u_remarkText')
+        erp_no = request.POST.get('u_erpInputUpdate')
 
          # 数据校验
-        if not all([id, product_id, version]):
+        if not all([id, product_id, version, erp_no]):
             return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
         # 校验版本格式
         if not re.match(r'^V(\d{1,2})\.(\d{3})$', version):
             return JsonResponse({"ret": False, "errMsg": '版本格式不正确！', "rows": [], "total": 0})
+        # 校验物料号格式
+        if not re.match(r'^[A-Z]\d{9}V\d{4}A$', erp_no):
+            return JsonResponse({"ret": False, "errMsg": '物料号格式不正确！', "rows": [], "total": 0})
 
         try:
             product = ProductModel.objects.get(id=product_id)

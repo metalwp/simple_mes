@@ -150,7 +150,6 @@ def om_index(request):
         return redirect(reverse('account:login'))
 
 
-
 def getOrderData(request):
     #获取订单数据视图
     if request.method == 'GET':
@@ -183,16 +182,17 @@ def getOrderData(request):
                 end_time = order.end_time.strftime("%Y-%m-%d-%H:%M:%S")
             else:
                 end_time = ''
+
             rows.append({'num': order.num, 
-                                        'erp_no': order.product_model.erp_no,
-                                        'name': order.product_model.name, 
-                                        'model': order.product_model.model,
-                                        'quantity': order.quantity, 
-                                        'delivery_time': order.delivery_time,
-                                        'order_status': order.status, 
-                                        'start_time': start_time, 
-                                        'end_time': end_time,
-                                        'customer': order.customer.name})
+                        'erp_no': order.product_model.bom_set.order_by('-c_time').first().erp_no,
+                        'name': order.product_model.name,
+                        'model': order.product_model.model,
+                        'quantity': order.quantity,
+                        'delivery_time': order.delivery_time,
+                        'order_status': order.status,
+                        'start_time': start_time,
+                        'end_time': end_time,
+                        'customer': order.customer.name})
         return JsonResponse(data)
 
 
