@@ -42,8 +42,10 @@ def getMaterialData(request):
             objs = MaterialModel.objects.filter_without_isdelete().order_by(sort_str)[
                     (pageNumber - 1) * pageSize:(pageNumber) * pageSize]
         else:
-            total = MaterialModel.objects.filter_without_isdelete().filter(Q(name__contains=search_kw)).count()
-            objs = MaterialModel.objects.filter_without_isdelete().filter(Q(name__contains=search_kw)).order_by(sort_str)[
+            total = MaterialModel.objects.filter_without_isdelete().filter(Q(name__contains=search_kw) \
+                                                                           | Q(erp_no__contains=search_kw)).count()
+            objs = MaterialModel.objects.filter_without_isdelete().filter(Q(name__contains=search_kw)
+                                                                          | Q(erp_no__contains=search_kw)).order_by(sort_str)[
                     (pageNumber - 1) * pageSize:(pageNumber) * pageSize]
         rows = []
         for obj in objs:
@@ -52,6 +54,8 @@ def getMaterialData(request):
                          'model': obj.model,
                          'erp_no': obj.erp_no,
                          'category': obj.category,
+                         'is_traced': obj.is_traced,
+                         "is_inspected": obj.is_inspected,
                          })
 
         data = {"total": total, "rows": rows}
@@ -128,16 +132,22 @@ def addInspectionData(request, material_id):
 
         try:
             material = MaterialModel.objects.filter_without_isdelete().get(id=material_id)
-
-            Inspection.objects.create(num=num,
-                                      name=name,
-                                      upper=upper,
-                                      lower=lower,
-                                      material_model=material,
-                                      category=category,
-                                      mode=mode)
+            inspections = Inspection.objects.filter_without_isdelete().filter(material_model=material).\
+                filter(Q(name=name) | Q(num=num))
         except Exception as e:
             return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
+        if inspections:
+            return JsonResponse({"ret": False, "errMsg": "检验名称或序号重复！", "rows": [], "total": 0})
+        Inspection.objects.create(num=num,
+                                  name=name,
+                                  upper=upper,
+                                  lower=lower,
+                                  material_model=material,
+                                  category=category,
+                                  mode=mode)
+        material.is_inspected = True
+        material.save()
+
         return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
         return JsonResponse(return_dict)
 
@@ -159,6 +169,15 @@ def updateInspectionData(request, material_id):
             return JsonResponse({"ret": False, "errMsg": "上限大于等于下限！", "rows": [], "total": 0})
 
         try:
+            material = MaterialModel.objects.filter_without_isdelete().get(id=material_id)
+            inspections = Inspection.objects.filter_without_isdelete().filter(material_model=material).exclude(id=id).\
+                filter(Q(name=name) | Q(num=num))
+        except Exception as e:
+            return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
+        if inspections:
+            return JsonResponse({"ret": False, "errMsg": "检验名称或序号重复！", "rows": [], "total": 0})
+
+        try:
             obj = Inspection.objects.filter_without_isdelete().get(id=id)
             obj.num = num
             obj.name = name
@@ -178,8 +197,12 @@ def deleteInspectionData(request, material_id):
     return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
     id = request.POST.get('id')
     try:
+        material_model = MaterialModel.objects.filter_without_isdelete().get(id=material_id)
         obj = Inspection.objects.filter_without_isdelete().get(id=id)
         obj.delete()
+        if not Inspection.objects.filter_without_isdelete().filter(material_model=material_model):
+            material_model.is_inspected = False
+            material_model.save()
         return JsonResponse(return_dict)
     except Exception as e:
         return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
@@ -236,6 +259,10 @@ def writeToDB(**kwargs):
 
     for obj in obj_list:
         try:
+            inspections = Inspection.objects.filter_without_isdelete().filter(material_model=material). \
+                filter(Q(name=obj[1]) | Q(num=obj[0]))
+            if inspections:
+                raise Exception("检验项序号或检验项名称不能重复！")
             Inspection.objects.create(num=obj[0], name=obj[1], category=obj[2], mode=obj[3], upper=obj[4], lower=obj[5],
                                       material_model=material)
         except Exception as e:
@@ -255,6 +282,9 @@ def uploadInspection(request, material_id):
             for i in file.readlines():
                 f.write(i)
         writeToDB(filename=file.name, material_id=material_id)
+        material = MaterialModel.objects.filter_without_isdelete().get(id=material_id)
+        material.is_inspected = True
+        material.save()
         return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
         return HttpResponse(json.dumps(return_dict))
     except Exception as e:
@@ -470,7 +500,6 @@ def tminspection_index(request):
         return redirect(reverse('account:login'))
 
 
-
 def getTMaterialInfo(request):
     if request.method == "POST":
         sn = request.POST.get('snInput')
@@ -525,7 +554,7 @@ def getTMaterialInfo(request):
 
         info = {'sn': sn,
                 'status': status,
-                'erp_no':material_model.erp_no,
+                'erp_no': material_model.erp_no,
                 'name': material_model.name,
                 'category': material_model.category,
                 'model': material_model.model,
@@ -567,7 +596,7 @@ def getTMInspectionData(request):
         data = {"ret": True, "errMsg": "", "total": 0, "rows": rows, 'info': {}}
         try:
             material = TraceMaterial.objects.filter_without_isdelete().get(sn=sn, material_model=material_model)
-            objs = TMInspectRecord.objects.filter_without_isdelete().filter(trace_material=material)
+            objs = TMInspectRecord.objects.filter_without_isdelete().filter(trace_material=material).exclude(mode=4)
             if objs:
                 for obj in objs:
                     rows.append({'id': obj.id,
@@ -583,7 +612,7 @@ def getTMInspectionData(request):
                                  'c_time': obj.c_time.strftime("%Y-%m-%d-%H:%M:%S"),
                                  })
             else:
-                objs = Inspection.objects.filter_without_isdelete().filter(material_model=material_model)
+                objs = Inspection.objects.filter_without_isdelete().filter(material_model=material_model).exclude(mode=4)
                 for obj in objs:
                     rows.append({'id': '',
                                  'num': obj.num,
@@ -595,7 +624,7 @@ def getTMInspectionData(request):
                                  'measure': '',
                                  })
         except TraceMaterial.DoesNotExist:
-            objs = Inspection.objects.filter_without_isdelete().filter(material_model=material_model)
+            objs = Inspection.objects.filter_without_isdelete().filter(material_model=material_model).exclude(mode=4)
             for obj in objs:
                 rows.append({'id': '',
                              'num': obj.num,
@@ -626,8 +655,8 @@ def saveTMInspectionData(request):
 
         for i, row in enumerate(rows):
             try:
-                if row.get('measuer'):
-                    tmp = float(row.get('measuer'))
+                if row.get('measure'):
+                    tmp = float(row.get('measure'))
             except TypeError:
                 return JsonResponse(
                     {"ret": False, "errMsg": "第" + str(i + 1) + "行的测试值数据错误！", "rows": [], "total": 0})
@@ -653,16 +682,7 @@ def saveTMInspectionData(request):
         except TraceMaterial.DoesNotExist:
             tm_obj = TraceMaterial.objects.create(sn=sn, material_model=material_model, batch_num=batch_num)
 
-        status = None  # 默认检验中
-        total_result = None
         for row in rows:
-            if row.get('result') == '':
-                status = 1
-            elif row.get('result') == '0':
-                total_result = False if (total_result is None) else (total_result and False)
-            elif row.get('result') == '1':
-                total_result = True if (total_result is None) else (total_result and True)
-
             if row.get('measure'):
                 data = float(row.get('measure'))
             else:
@@ -670,27 +690,32 @@ def saveTMInspectionData(request):
             if row.get('id'):
                 record = TMInspectRecord.objects.filter_without_isdelete().get(id=row.get('id'))
                 record.data = data
+                record.result = row.get('result') if row.get('result') else 0
             else:
-
                 record = TMInspectRecord.objects.create(trace_material=tm_obj,
-                                               num=row.get('num'),
-                                               name=row.get('name'),
-                                               category=row.get('category'),
-                                               mode=row.get('mode'),
-                                               operator=None,
-                                               data=data,
-                                               upper=float(row.get('upper')),
-                                               lower=float(row.get('lower')),
-                                               )
-
-            if row.get('result'):
-                record.result = row.get('result')
+                                                        num=row.get('num'),
+                                                        name=row.get('name'),
+                                                        category=row.get('category'),
+                                                        mode=row.get('mode'),
+                                                        operator=None,
+                                                        data=data,
+                                                        upper=float(row.get('upper')),
+                                                        lower=float(row.get('lower')),
+                                                        result=row.get('result') if row.get('result') else 0
+                                                        )
             record.save()
-        if not status:
-            if total_result:
-                status = 2
-            else:
-                status = 3
+
+        all_records = TMInspectRecord.objects.filter_without_isdelete().filter(trace_material=tm_obj)
+        all_inspections = Inspection.objects.filter_without_isdelete().filter(material_model=material_model)
+        if len(all_records) != len(all_inspections):
+            status = 1
+        else:
+            status = 2
+            for record in all_records:
+                if record.result == 0:
+                    status = 3
+                    break
+
         tm_obj.status = status
         tm_obj.save()
 

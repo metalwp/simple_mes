@@ -29,6 +29,7 @@ urlpatterns = [
     path('station_manager/', include('apps.station_manager.urls')),
     path('process_manager/', include('apps.process_manager.urls')),
     path('Inspection/', include('apps.Inspection.urls')),
-    path('manufacturing/', include('apps.manufacturing.urls'))
+    path('manufacturing/', include('apps.manufacturing.urls')),
+    path('api/', include('apps.WebApi.urls')),
 
 ]

@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.product_manager.models import ProductModel
 from apps.bom_manager.models import MaterialModel, BOM, Bom_MaterialModel
 from apps.order_manager.models import Order
+from apps.process_manager.models import ProcessStep, ProcessStep_MaterialModel
 from simple_mes import settings
 
 # Create your views here.
@@ -69,7 +70,7 @@ def addBomData(request):
         product_id = request.POST.get('productSelect')
         version = request.POST.get('versionInput')
         remark = request.POST.get('remarkText')
-        erp_no = request.POST.get('erpInputUpdate')
+        erp_no = request.POST.get('erpInput')
 
         # 数据校验
         if not all([product_id, version, erp_no]):
@@ -84,9 +85,19 @@ def addBomData(request):
         # 业务逻辑    
         try:
             product_model = ProductModel.objects.get(id=product_id)
-            # boms = BOM.objects.filter_without_isdelete().filter(product_model=product_model)
-            # if boms:
-            #     return JsonResponse({"ret": False, "errMsg": '该产品已存在一个BOM！', "rows": [], "total": 0})
+            orders = Order.objects.filter_without_isdelete().filter(product_model=product_model)
+            for order in orders:
+                if order.status == 0 or order.status == 1:
+                    return_dict = {"ret": False, "errMsg": '该产品存在未完成的订单，不能修改BOM！', "rows": [], "total": 0}
+                    return HttpResponse(json.dumps(return_dict))
+
+            steps = ProcessStep.objects.filter_without_isdelete().filter(process_route=product_model.process_route) \
+                .filter(category=1)
+            for step in steps:
+                ships = ProcessStep_MaterialModel.objects.filter(process_step=step)
+                for ship in ships:
+                    ship.delete()
+
             boms = BOM.objects.filter_without_isdelete().filter(erp_no=erp_no)
             if boms:
                 return JsonResponse({"ret": False, "errMsg": '该ERP号已经使用！', "rows": [], "total": 0})
@@ -110,7 +121,7 @@ def updateBomData(request):
         product_id = request.POST.get('u_productSelect')
         version = request.POST.get('u_versionInput')
         remark = request.POST.get('u_remarkText')
-        erp_no = request.POST.get('u_erpInputUpdate')
+        erp_no = request.POST.get('u_erpInput')
 
          # 数据校验
         if not all([id, product_id, version, erp_no]):
@@ -124,34 +135,54 @@ def updateBomData(request):
 
         try:
             product = ProductModel.objects.get(id=product_id)
+            orders = Order.objects.filter_without_isdelete().filter(product_model=product)
+            for order in orders:
+                if order.status == 0 or order.status == 1:
+                    return_dict = {"ret": False, "errMsg": '该产品存在未完成的订单，不能修改BOM！', "rows": [], "total": 0}
+                    return HttpResponse(json.dumps(return_dict))
+
+            steps = ProcessStep.objects.filter_without_isdelete().filter(process_route=product.process_route) \
+                .filter(category=1)
+            for step in steps:
+                ships = ProcessStep_MaterialModel.objects.filter(process_step=step)
+                for ship in ships:
+                    ship.delete()
             mat, created = model.objects.update_or_create(id=id, defaults={"product_model": product,
-                                                                        "version": version, "remark": remark})
+                                                                            "version": version,
+                                                                            "remark": remark})
         except Exception as e:
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
             return JsonResponse(return_dict)
+
 
         return_dict = {"ret": True, "errMsg": '', "rows": [], "total": 0}
         return JsonResponse(return_dict)
 
 
 def deleteBomData(request):
-        model = BOM 
-
+        model = BOM
         id = request.POST.get('id')
         try:
             bom = model.objects.get(id=id)
         except Exception as e:
             return_dict = {"ret": True, "errMsg": str(e), "rows": [], "total": 0}
             return JsonResponse(return_dict)
+        orders = Order.objects.filter_without_isdelete().filter(product_model=bom.product_model)
+        for order in orders:
+            if order.status == 0 or order.status == 1:
+                return_dict = {"ret": False, "errMsg": '该产品存在未完成的订单，不能修改BOM！', "rows": [], "total": 0}
+                return HttpResponse(json.dumps(return_dict))
 
-        order = Order.objects.filter_without_isdelete().filter(product_model=bom.product_model)
-        if not order:
-            bom.delete()
-            return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
-            return JsonResponse(return_dict)
-        else:
-            return_dict = {"ret": False, "errMsg": "该产品已创建订单，无法删除！", "rows": [], "total": 0}
-            return JsonResponse(return_dict)
+        steps = ProcessStep.objects.filter_without_isdelete().filter(process_route=bom.product_model.process_route) \
+            .filter(category=1)
+        for step in steps:
+            ships = ProcessStep_MaterialModel.objects.filter(process_step=step)
+            for ship in ships:
+                ship.delete()
+
+        bom.delete()
+        return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
+        return JsonResponse(return_dict)
 
 
 def detail(request, bom_id):
@@ -184,21 +215,25 @@ def get(request, bom_id):
             total = bom.bom_materialmodel_set.all().count()
             ships = bom.bom_materialmodel_set.all().order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
         else:
-            total = bom.bom_materialmodel_set.filter(Q(material_model_name__contains=search_kw)).count()
-            ships = bom.bom_materialmodel_set.filter(Q(material_model_name__contains=search_kw)).order_by(sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+            total = bom.bom_materialmodel_set.filter(Q(material_model__name__contains=search_kw) |\
+                                                     Q(material_model__erp_no__contains=search_kw)).count()
+            ships = bom.bom_materialmodel_set.filter(Q(material_model__name__contains=search_kw)
+                                                     |Q(material_model__erp_no__contains=search_kw)).order_by(sort_str) \
+                                                    [(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
         rows = []
         for ship in ships:
             rows.append({'id': ship.material_model.id, 
-                                        'name': ship.material_model.name,
-                                        'model': ship.material_model.model,  
-                                        'erp_no': ship.material_model.erp_no,
-                                        'category': ship.material_model.category, 
-                                        'quantity': ship.quantity,
-                                        'is_traced': ship.material_model.is_traced,
-                                        'c_time': ship.material_model.c_time.strftime("%Y-%m-%d %H:%M:%S"),
-                                        'm_time': ship.material_model.m_time.strftime("%Y-%m-%d %H:%M:%S")})
-   
+                        'name': ship.material_model.name,
+                        'model': ship.material_model.model,
+                        'erp_no': ship.material_model.erp_no,
+                        'category': ship.material_model.category,
+                        'quantity': ship.quantity,
+                        'is_traced': ship.material_model.is_traced,
+                        'c_time': ship.material_model.c_time.strftime("%Y-%m-%d-%H:%M:%S"),
+                        'm_time': ship.material_model.m_time.strftime("%Y-%m-%d-%H:%M:%S")})
+
         data = {"total": total, "rows": rows}
+        print(data)
         return JsonResponse(data)
 
 
@@ -208,6 +243,7 @@ def writeToDB(filename, bom_id):
     sheet = excel.sheet_by_name('部件清单')
     nrows = sheet.nrows
     ncols = sheet.ncols
+    print(nrows, ncols)
     category_choice = MaterialModel.CATEGORY_CHOICE
     tmp_list = [x[1] for x in category_choice]
     materials_list = []
@@ -216,8 +252,8 @@ def writeToDB(filename, bom_id):
         erp_no = row[1].strip()
         if (not erp_no) or (not re.match(r'^[A-Z]\d{9}V\d{4}A$', erp_no)):
             raise Exception("excel文档的第" + str(i+1) + "存在异常！")
-        name = row[2].replace(" ", "")
-        model = row[3].replace(" ", "")
+        name = str(row[2]).replace(" ", "").strip()
+        model = str(row[3]).replace(" ", "").strip()
         if not row[4].strip():
             category = 0
         elif row[4].strip() not in tmp_list or row[4].strip() == '其他':
@@ -243,29 +279,49 @@ def writeToDB(filename, bom_id):
 
         else:
             materials_list.append([erp_no, name, model, category, is_traced, quantity])
+
+    ships = Bom_MaterialModel.objects.filter(bom=bom)
+    for ship in ships:
+        ship.delete()
+
     for mat in materials_list:
         try:
             material, created = MaterialModel.objects.update_or_create(erp_no=mat[0], defaults={"name": mat[1],
                                                                                                 "model": mat[2],
                                                                                                 "category": mat[3],
                                                                                                 'is_traced': mat[4]})
+            Bom_MaterialModel.objects.create(bom=bom, material_model=material, quantity=mat[5])
         except Exception as e:
             raise e
-        ship = None
-        if not created:
-            try:
-                ship = material.bom_materialmodel_set.get(bom=bom)
-            except Bom_MaterialModel.DoesNotExist:
-                ship = None
-        if ship:
-            ship.quantity = mat[5]
-            ship.save()
-        else:
-            Bom_MaterialModel.objects.create(bom=bom, material_model=material, quantity=mat[5])
+
+        # if not created:
+        #     try:
+        #         ship = material.bom_materialmodel_set.get(bom=bom)
+        #     except Bom_MaterialModel.DoesNotExist:
+        #         ship = None
+        # if ship:
+        #     ship.quantity = mat[5]
+        #     ship.save()
+        # else:
+        #     Bom_MaterialModel.objects.create(bom=bom, material_model=material, quantity=mat[5])
 
         
 def upload(request, bom_id):
     file = request.FILES.get('uploadFile')
+
+    bom = BOM.objects.filter_without_isdelete().get(id=bom_id)
+    orders = Order.objects.filter_without_isdelete().filter(product_model=bom.product_model)
+    for order in orders:
+        if order.status == 0 or order.status == 1:
+            return_dict = {"ret": False, "errMsg": '该产品存在未完成的订单，不能修改BOM！', "rows": [], "total": 0}
+            return HttpResponse(json.dumps(return_dict))
+
+    steps = ProcessStep.objects.filter_without_isdelete().filter(process_route=bom.product_model.process_route) \
+        .filter(category=1)
+    for step in steps:
+        ships = ProcessStep_MaterialModel.objects.filter(process_step=step)
+        for ship in ships:
+            ship.delete()
 
     if not os.path.exists(settings.UPLOAD_ROOT):
         os.makedirs(settings.UPLOAD_ROOT)
@@ -276,7 +332,9 @@ def upload(request, bom_id):
         with open(settings.UPLOAD_ROOT + "/" + file.name, 'wb') as f:
             for i in file.readlines():
                 f.write(i)
+
         writeToDB(file.name, bom_id)
+
         return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
         return HttpResponse(json.dumps(return_dict))
     except Exception as e:
@@ -286,6 +344,11 @@ def upload(request, bom_id):
 
 def delete(request, bom_id):
     bom = BOM.objects.filter_without_isdelete().get(id=bom_id)
+    orders = Order.objects.filter_without_isdelete().filter(product_model=bom.product_model)
+    for order in orders:
+        if order.status == 0 or order.status == 1:
+            return_dict = {"ret": False, "errMsg": '存在未完成的订单，不能修改BOM！', "rows": [], "total": 0}
+            return HttpResponse(json.dumps(return_dict))
     material_id = request.POST.get('id')  # 获取的物料id
     ships = Bom_MaterialModel.objects.filter(bom__id=bom_id, material_model__id=material_id)
     if len(ships)==1:
@@ -306,6 +369,13 @@ def add(request, bom_id):
         erp_no = request.POST.get('erpInput')
         quantity = request.POST.get('quantityInput')
         trace = request.POST.get('traceInput')
+
+        bom = BOM.objects.filter_without_isdelete().get(id=bom_id)
+        orders = Order.objects.filter_without_isdelete().filter(product_model=bom.product_model)
+        for order in orders:
+            if order.status == 0 or order.status == 1:
+                return_dict = {"ret": False, "errMsg": '存在未完成的订单，不能修改BOM！', "rows": [], "total": 0}
+                return HttpResponse(json.dumps(return_dict))
 
         # 数据校验
         if not all([name, model, category, erp_no, quantity]):
@@ -351,7 +421,14 @@ def update(request, bom_id):
         erp_no = request.POST.get('u_erpInput')
         quantity = request.POST.get('u_quantityInput')
         trace = request.POST.get('u_traceInput')
-        
+
+        bom = BOM.objects.filter_without_isdelete().get(id=bom_id)
+        orders = Order.objects.filter_without_isdelete().filter(product_model=bom.product_model)
+        for order in orders:
+            if order.status == 0 or order.status == 1:
+                return_dict = {"ret": False, "errMsg": '存在未完成的订单，不能修改BOM！', "rows": [], "total": 0}
+                return HttpResponse(json.dumps(return_dict))
+
         # 数据校验
         if not all([id, name, model, category, erp_no, quantity]):
             return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
@@ -359,7 +436,7 @@ def update(request, bom_id):
         if not re.match(r'^[A-Z]\d{9}V\d{4}A$', erp_no):
             return JsonResponse({"ret": False, "errMsg": '物料号格式不正确！', "rows": [], "total": 0})
         if float(quantity) < 1:
-            return JsonResponse({"ret": False, "errMsg": '用量应大于1 ！', "rows": [], "total": 0})
+            return JsonResponse({"ret": False, "errMsg": '用量应大于1！', "rows": [], "total": 0})
         
         if request.POST.get('u_categorySelect'):
             category = int(request.POST.get('u_categorySelect'))

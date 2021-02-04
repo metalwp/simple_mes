@@ -29,7 +29,7 @@
                         <div class="col-xs-12" style="">
                             <div class="form-inline col-xs-5 ">
                                 <input id="search_keyword" class="form-control" placeholder="请输入名称以查询">
-                                <button id="search_button" type="button" class="btn btn-primary">查询</button>
+                                <button id="search_button" type="button" class="btn btn-primary" onclick="search()">查询</button>
                                 <button id="reset-button" type="button" class="btn btn-primary" onclick="clean()">重置</button>
                             </div>
                             <!-- 按钮触发模态框 -->
@@ -312,13 +312,14 @@
      // getData方法获取全部页面数据后，将data转为json对象，使用index当前行号作为下标获取对应数据
     function EditViewById(index, data){
         $("#u_fixtureSelect option").each(function () {$(this).removeAttr("selected");});
+        $("#u_categorySelect option").each(function () {$(this).removeAttr("selected");});
         $("#u_idInput").val(data.id);
         $("#u_nameInput").val(data.name);
         $("#u_remarkText").val(data.remark);
         $("#u_fixtureSelect").find("option:contains('" + data.fixture + "')").each(function () {
             $(this).attr('selected', true);});
         $("#u_categorySelect option").each(function(){
-            if($(this).val()==data.category){
+            if($(this).val()===data.category.toString()){
                 $(this).attr('selected', true)
             }
         });
@@ -396,7 +397,14 @@
                     else{
                         return '否'
                     }
-                }
+                },
+                cellStyle: function (value, row, index) {
+                    console.log(value);
+                        if (value === true) {
+                            return { css: { "background-color": "yellow"} }
+                        }
+                        return { }
+                    },
             },
             {
                 field: 'process_route',

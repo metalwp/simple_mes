@@ -201,7 +201,7 @@
                 type: "POST",//方法类型
                 contentType : "application/json",
                 dataType: "json",//预期服务器返回的数据类型
-                url: "edit" , //url
+                url: "{% url 'process_manager:pr_edit' route_id %}" , //url
                 headers:{"X-CSRFToken":$.cookie("csrftoken")},
                 data: JSON.stringify(list) ,//将模态框的form表单数据序列化，以便提交到后台
                 async:true,  //必须要为false,必须必须

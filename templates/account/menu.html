@@ -32,7 +32,7 @@
                                 <input id="search_keyword" class="form-control" placeholder="请输入名称以查询">
                             </div>
                             <div class="columns columns-left btn-group pull-left">
-                                <button id="search_button" type="button" class="btn btn-primary">查询</button>
+                                <button id="search_button" type="button" class="btn btn-primary" onclick="search()">查询</button>
                             </div>
                             <div class="columns columns-left btn-group pull-left">
                                 <button id="reset-button" type="button" class="btn btn-primary" onclick="clean()">重置</button>
@@ -257,6 +257,9 @@
     function actionFormatter(value, row, index) {
         var id = row.id;
         row.url = "{% url 'account:deleteMenu'%}";
+        if(row.icon){
+            row.icon = row.icon.replace(" ", "");
+        }
         var data = JSON.stringify(row);
         var result = "";
         result += "<a href='javascript:;' class='btn btn-xs blue' onclick=" + "EditViewById(" + index + "," + data + ")" + " title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";
@@ -274,8 +277,9 @@
         });
         $("#u_idInput").val(data.id);
         $("#u_titleInput").val(data.title);
-        $("#u_iconInput").val(data.icon);
-
+        if(data.icon){
+            $("#u_iconInput").val(data.icon.slice(0,2) + " " + data.icon.slice(2));
+        }
         $('#updateModal').modal('show');
     }
 

@@ -38,6 +38,7 @@ class MaterialModel(BaseModel):
     erp_no = models.CharField('物料号', max_length=30)
     category = models.SmallIntegerField('类别', choices=CATEGORY_CHOICE, default=0)
     is_traced = models.BooleanField("是否追溯", default=False)
+    is_inspected = models.BooleanField("是否检验", default=False)
 
     class Meta:
         verbose_name = '物料型号'

@@ -38,6 +38,8 @@ class VinRuleItem(BaseModel):
         (2, "日期5位YYMDD"),
         (3, "产品总成ERP版本V后2位"),
         (4, "流水号"),
+        (5, "VIN校验正则表达式（必须添加）"),
+        (6, "VIN总位数（必须添加）"),
     )
 
     sequence_no = models.SmallIntegerField('vin顺序号')

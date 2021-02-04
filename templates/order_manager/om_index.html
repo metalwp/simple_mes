@@ -37,7 +37,7 @@
                             </div>
 
                             <div class="columns columns-left btn-group pull-left">
-                                <button id="search_button" type="button" class="btn btn-primary">查询</button>
+                                <button id="search_button" type="button" class="btn btn-primary" onclick="search()">查询</button>
                             </div>
                             <div class="columns columns-left btn-group pull-left">
                                 <button id="reset-button" type="button" class="btn btn-primary" onclick="clean()">重置</button>
@@ -78,7 +78,7 @@
                                                         <select class="form-control" name="productSelect" id="productSelect" required="required">
                                                             <option value="">请选择产品</option>
                                                             {% for product in products %}
-                                                            <option value="{{ product.id }}" hassubinfo="true">{{ product.erp_no }} | {{ product.name }}</option>
+                                                            <option value="{{ product.id }}" hassubinfo="true">{{ product.name }} | {{ product.model }}</option>
                                                             {% endfor %}
                                                         </select>
                                                     </div>
@@ -86,7 +86,7 @@
                                                 <div class="form-group">
                                                     <label for="quantityInput" class="col-sm-3 control-label" >数量</label>
                                                     <div class="input-group col-sm-7">
-                                                        <input type="number" class="form-control"  name="quantityInput" id="quantityInput" required="required"
+                                                        <input type="number" class="form-control"  name="quantityInput" id="quantityInput" required="required" value=1
                                                             style="text-align: left">
                                                     </div>
                                                 </div>
@@ -154,8 +154,8 @@
                                                     <div class="input-group col-sm-7">
                                                         <select class="form-control" name="u_productSelect" id="u_productSelect" required="required" disabled="disabled">
                                                             <option value="">请选择产品</option>
-                                                            {% for product in all_products %}
-                                                            <option value="{{ product.id }}" hassubinfo="true">{{ product.erp_no }} | {{ product.name }}</option>
+                                                            {% for product in products %}
+                                                            <option value="{{ product.id }}" hassubinfo="true">{{ product.name }} | {{ product.model }}</option>
                                                             {% endfor %}
                                                         </select>
                                                     </div>
@@ -328,7 +328,7 @@
                 success: function (data) {
                      if(data.ret){
                         document.getElementById("addForm").reset();
-                        $("#numInput").val(data.order_num)
+                        $("#numInput").val(data.order_num);
                         $('#addModal').modal('show');
                      }else {
                         toastr.error('错误：' + ret.data);
@@ -432,8 +432,13 @@
         //由于data2已经是对象了，alert不能显示对象只能显示为[object Object],需要控制台打印
         //根据index找到对应行数据，填充数据到修改模态框
         $("#u_numInput").val(data.num);
-        $("#u_productSelect").find("option:contains('" + data.erp_no + "')").each(function(){
+        $("#u_productSelect").find("option:contains('" + data.name + "')").each(function(){
                      $(this).attr('selected', true);});
+        $("#u_productSelect option").each(function () {
+            if($(this).text()==data.name+" | "+ data.model){
+                $(this).attr("selected", true);
+            }
+        });
         $("#u_quantityInput").val(data.quantity);
         $("#u_diliveryInput").val(data.delivery_time);
         $("#u_statusSelect").val(data.order_status);

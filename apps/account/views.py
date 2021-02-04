@@ -397,10 +397,12 @@ class PermissionView(View):
                          'title': obj.title,
                          'URL': obj.url,
                          'menu': obj.menu.title if obj.menu else None,
+                         'parent': obj.parent.title if obj.parent else None,
                          })
                 return JsonResponse(data)
             else:
                 menus = Menu.objects.all()
+                permissions = Permission.objects.all()
                 return render(request, 'account/permission.html', locals())
         else:
             request.session['errMsg'] = '请先登陆！'
@@ -422,10 +424,18 @@ class PermissionView(View):
         title = request.POST.get('nameInput')
         url = request.POST.get('urlInput')
         menu_id = request.POST.get('menuSelect')
+        parent_id = request.POST.get('parentSelect')
         # 进行数据校验
         if not all([title, url]):
             # 数据不完整
             return False, '数据不完整！', [], 0
+        if parent_id:
+            try:
+                parent = Permission.objects.get(id=parent_id)
+            except Exception as e:
+                return False, '数据错误！', [], 0
+        else:
+            parent = None
         try:
             permision = Permission.objects.get(title=title)
         except Permission.DoesNotExist:
@@ -439,7 +449,7 @@ class PermissionView(View):
                 return False, '菜单选择有误！', [], 0
         else:
             menu = None
-        Permission.objects.create(title=title, url=url, menu=menu)
+        Permission.objects.create(title=title, url=url, menu=menu, parent=parent)
         return True, '', [], 0
 
     @staticmethod
@@ -459,6 +469,15 @@ class PermissionView(View):
         title = request.POST.get('u_nameInput')
         url = request.POST.get('u_urlInput')
         menu_id = request.POST.get('u_menuSelect')
+        parent_id = request.POST.get('u_parentSelect')
+
+        if parent_id:
+            try:
+                parent = Permission.objects.get(id=parent_id)
+            except Exception as e:
+                return False, '数据错误！', [], 0
+        else:
+            parent = None
 
         if menu_id:
             try:
@@ -480,6 +499,7 @@ class PermissionView(View):
         obj.title = title
         obj.url = url
         obj.menu = menu
+        obj.parent = parent
         obj.save()
         return True, '', [], 0
 

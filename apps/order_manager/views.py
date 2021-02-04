@@ -12,6 +12,8 @@ from django.views import View
 from apps.product_manager.models import ProductModel
 from .models import Order, Customer
 from apps.manufacturing.models import Product
+from apps.bom_manager.models import BOM
+from apps.account.service.init_permission import init_permission, refresh_permission
 # Create your views here.
 
 
@@ -19,6 +21,9 @@ def cm_index(request):
     customers = Customer.objects.filter_without_isdelete()
     user = request.user
     if user.is_authenticated:
+        # request1 = refresh_permission(request)
+        # for k, v in request.headers.items():
+        #     print(k, v)
         return render(request, 'order_manager/cm_index.html', locals())
     else:
         request.session['errMsg'] = '请先登陆！'
@@ -140,10 +145,14 @@ def om_index(request):
     orders = Order.objects.filter_without_isdelete()
     status_choice = Order.order_status_choice
     products = ProductModel.objects.filter_without_isdelete()
-    all_products = ProductModel.objects.all()
+    #all_products = ProductModel.objects.all()
     customers = Customer.objects.filter_without_isdelete()
     user = request.user
     if user.is_authenticated:
+        # init_permission(request, user)
+        # for k, v in request.headers.items():
+        #     print(k, v)
+        # request1 = refresh_permission(request)
         return render(request, 'order_manager/om_index.html', locals())
     else:
         request.session['errMsg'] = '请先登陆！'
@@ -182,9 +191,9 @@ def getOrderData(request):
                 end_time = order.end_time.strftime("%Y-%m-%d-%H:%M:%S")
             else:
                 end_time = ''
-
+            bom = BOM.objects.filter_without_isdelete().filter(product_model=order.product_model).order_by("-erp_no").first()
             rows.append({'num': order.num, 
-                        'erp_no': order.product_model.bom_set.order_by('-c_time').first().erp_no,
+                        'erp_no': bom.erp_no,
                         'name': order.product_model.name,
                         'model': order.product_model.model,
                         'quantity': order.quantity,

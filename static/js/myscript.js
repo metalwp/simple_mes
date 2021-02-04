@@ -149,11 +149,15 @@ function tableFresh3(columns, urls, pk){
 }
 
 // 搜索查询按钮触发事件
-$(function() {
-    $("#search_button").click(function () {
-        $('table').bootstrapTable(('refresh')); // 很重要的一步，刷新url！
-    })
-});
+//$(function() {
+//    $("#search_button").click(function () {
+//        $('table').bootstrapTable(('refresh')); // 很重要的一步，刷新url！
+//    })
+//});
+
+function search() {
+    $('table').bootstrapTable(('refresh'));
+}
 
 // 重置按钮触发事件
 function clean(){

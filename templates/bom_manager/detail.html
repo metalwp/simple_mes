@@ -32,7 +32,7 @@
                                 <input id="search_keyword" class="form-control" placeholder="请输入名称以查询">
                             </div>
                             <div class="columns columns-left btn-group pull-left">
-                                <button id="search_button" type="button" class="btn btn-primary">查询</button>
+                                <button id="search_button" type="button" class="btn btn-primary" onclick="search()">查询</button>
                             </div>
                             <div class="columns columns-left btn-group pull-left">
                                 <button id="reset-button" type="button" class="btn btn-primary" onclick="clean()">重置</button>
@@ -40,8 +40,11 @@
 
                          <!-- 按钮触发模态框 -->
 
+{#                            <div class="columns columns-right btn-group pull-right">#}
+{#                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addModal">新增记录</button>#}
+{#                            </div>#}
                             <div class="columns columns-right btn-group pull-right">
-                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addModal">新增记录</button>
+                                    <input type="button" class="btn btn-facebook" value="导出" id="downloadSubmit">
                             </div>
 
                             <form id="uploadForm" >
@@ -53,7 +56,6 @@
                                     <input type="file"  class="form-row" name="uploadFile" id="uploadFile" placeholder="请选择文件">
                                 </div>
                             </form>
-
 
                             <!-- 新增模态框（Modal） -->
                             <form id="addForm" action="#" method="post" class="form-horizontal" role="form">
@@ -248,30 +250,34 @@ toastr.options = {
 };
 
 $("#uploadSubmit").click(function(){
-    var formdata = new FormData(); //ajax上传文件的时候，需要这个类型，它会将添加给它的键值对加工成formdata的类型
-    var token = $("[name='csrfmiddlewaretoken']").val();
-    formdata.append("csrfmiddlewaretoken", token); //别忘了csrf_token
-    formdata.append("uploadFile",$("#uploadFile")[0].files[0]);
-    $.ajax({
-        url:"upload/",
-        type:"post",
-        data:formdata, //将添加好数据的formdata放到data这里
-        processData: false,    // 不处理数据
-        contentType: false,    // 不设置内容类型
-        dataType: "json",
-        success:function(data){
-            if (data.ret){
-                toastr.success("导入成功！");
-                $('#mytab').bootstrapTable('refresh');
-                $("#uploadFile");
+    var res = window.confirm("导入BOM会导致此产品的装配工序绑定追溯物料清空，需要重新配置装配工序，是否导入？");
+    if(res===true){
+        var formdata = new FormData(); //ajax上传文件的时候，需要这个类型，它会将添加给它的键值对加工成formdata的类型
+        var token = $("[name='csrfmiddlewaretoken']").val();
+        formdata.append("csrfmiddlewaretoken", token); //别忘了csrf_token
+        formdata.append("uploadFile",$("#uploadFile")[0].files[0]);
+        $.ajax({
+            url:"{% url 'bom_manager:upload' bom_id %}",
+            type:"post",
+            data:formdata, //将添加好数据的formdata放到data这里
+            processData: false,    // 不处理数据
+            contentType: false,    // 不设置内容类型
+            dataType: "json",
+            success:function(data){
+                if (data.ret){
+                    toastr.success("导入成功！");
+                    $('#mytab').bootstrapTable('refresh');
+                    $("#uploadFile");
+                    }
+                else {
+                    toastr.error("错误：" + data.errMsg);
+                }},
+            error: function(data){
+                toastr.error('导入异常！')
                 }
-            else {
-                toastr.error("错误：" + data.errMsg);
-            }},
-        error: function(data){
-            toastr.error('导入异常！')
-            }
-    })
+        })
+    }
+
 });
 
 $("#addModal").on("hidden.bs.modal", function() {document.getElementById("addForm").reset();}); 
@@ -457,7 +463,14 @@ var columns = [
                     else{
                         return '否'
                     }
-                }
+                },
+                cellStyle: function (value, row, index) {
+                    console.log(value);
+                        if (value === true) {
+                            return { css: { "background-color": "yellow"} }
+                        }
+                        return { }
+                    },
             },
             {
                 field: 'quantity',
@@ -482,13 +495,13 @@ var columns = [
                 valign: 'middle',
                 sortable: true,
             },
-            {
+            /*{
                 field: 'operate',
                 title: '操作',
                 align: 'center',
                 valign: 'middle',
                 formatter: actionFormatter,
-            },
+            },*/
         ];
 var urls = "{% url 'bom_manager:get' bom_id %}";
 tableFresh(columns, urls, 'id');

@@ -74,7 +74,7 @@ def addPcData(request):
 
         # 校验数据有效性
         if not c_name:
-            return JsonResponse( {"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
+            return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
 
         # 业务处理
         if p_id:

@@ -14,7 +14,9 @@ register = template.Library()
 def get_structure_data(request):
     """处理菜单结构"""
     menu = request.session[settings.SESSION_MENU_KEY]
+    # print("menu", menu)
     all_menu = menu[settings.ALL_MENU_KEY]
+    # print("all_menu", all_menu)
     permission_url = menu[settings.PERMISSION_MENU_KEY]
     # for url in permission_url:
     #     print(url)
@@ -36,9 +38,9 @@ def get_structure_data(request):
                 item['status'] = True
                 break
     all_menu_copy = all_menu[:]
-    for menu in all_menu_copy:
+    for m in all_menu_copy:
         for item in all_menu:
-            if menu['parent_id'] == item['id'] and menu['status']:
+            if m['parent_id'] == item['id'] and m['status']:
                 item['status'] = True
                 item['url'] = '#'
 
@@ -63,56 +65,6 @@ def get_structure_data(request):
                     all_menu.remove(item)
 
     return all_menu_list
-
-# def get_menu_html(menu_data):
-#     """显示：菜单 + [子菜单] + 权限(url)"""
-#     option_str = """
-#          <li class='layui-nav-item'>
-#          <a href="javascript:;">
-#          <div class='rbac-menu-header'>
-#            <span class='glyphicon glyphicon-folder-{status}'/>
-#               <i class='layui-icon'>{menu_icon}</i>
-#               {menu_title}
-#          </div>
-#          </a>
-#       <div class="layui-nav-child">
-#          <dl>
-#             <dd class='rbac-menu-body {display}'>{sub_menu}</dd>
-#          </dl>
-#       </div>
-#
-# </li>
-#     """
-#
-#     url_str = """
-#         <a href="javascript:;" href-url="{permission_url}" class="{active}">
-#         {permission_title}</a>
-#     """
-#
-#     menu_html = ''
-#
-#     for item in menu_data:
-#         if not item['status']:  # 如果用户权限不在某个菜单下，即item['status']=False, 不显示
-#             continue
-#         else:
-#             if item.get('url'):  # 说明循环到了菜单最里层的url
-#                 menu_html += url_str.format(permission_url=item['url'],
-#                                             active="rbac-active" if item['open'] else "",
-#                                             # permission_icon=item['icon'],
-#                                             permission_title=item['title'])
-#             else:
-#                 if item.get('children'):
-#                     sub_menu = get_menu_html(item['children'])
-#                 else:
-#                     sub_menu = ""
-#
-#                 menu_html += option_str.format(menu_icon=item['icon'],
-#                                                menu_title=item['title'],
-#                                                sub_menu=sub_menu,
-#                                                display="" if item['open'] else "rbac-hide",
-#                                                status="open" if item['open'] else "close")
-#
-#     return menu_html
 
 
 def get_menu_html(menu_data):

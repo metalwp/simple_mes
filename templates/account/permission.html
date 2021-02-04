@@ -32,7 +32,7 @@
                                 <input id="search_keyword" class="form-control" placeholder="请输入名称以查询">
                             </div>
                             <div class="columns columns-left btn-group pull-left">
-                                <button id="search_button" type="button" class="btn btn-primary">查询</button>
+                                <button id="search_button" type="button" class="btn btn-primary" onclick="search()">查询</button>
                             </div>
                             <div class="columns columns-left btn-group pull-left">
                                 <button id="reset-button" type="button" class="btn btn-primary" onclick="clean()">重置</button>
@@ -77,6 +77,17 @@
                                                             <option value="">请选择菜单</option>
                                                             {% for menu in menus %}
                                                             <option value="{{ menu.id }}" hassubinfo="true">{{ menu.title }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="parentSelect" class="col-sm-3 control-label" >父权限</label>
+                                                    <div class="col-sm-7">
+                                                        <select class="form-control" name="parentSelect" id="parentSelect" required="required">
+                                                            <option value="">请选择菜单</option>
+                                                            {% for permission in permissions %}
+                                                            <option value="{{ permission.id }}" hassubinfo="true">{{ permission.title }}</option>
                                                             {% endfor %}
                                                         </select>
                                                     </div>
@@ -135,6 +146,17 @@
                                                             <option value="">请选择菜单</option>
                                                             {% for menu in menus %}
                                                             <option value="{{ menu.id }}" hassubinfo="true">{{ menu.title }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="u_parentSelect" class="col-sm-3 control-label" >父权限</label>
+                                                    <div class="col-sm-7">
+                                                        <select class="form-control" name="u_parentSelect" id="u_parentSelect" required="required">
+                                                            <option value="">请选择菜单</option>
+                                                            {% for permission in permissions %}
+                                                            <option value="{{ permission.id }}" hassubinfo="true">{{ permission.title }}</option>
                                                             {% endfor %}
                                                         </select>
                                                     </div>
@@ -257,14 +279,19 @@
 
      // getData方法获取全部页面数据后，将data转为json对象，使用index当前行号作为下标获取对应数据
     function EditViewById(index, data){
-        $("#u_menuSelect option").removeAttr("selected");
-
+        $("#u_menuSelect option").each(function () { $(this).removeAttr("selected")});
+        $("#u_parentSelect option").each(function () { $(this).removeAttr("selected")});
         $("#u_idInput").val(data.id);
         $("#u_nameInput").val(data.title);
 
         $("#u_urlInput").val(data.URL);
         $("#u_menuSelect option").each(function () {
             if(data.menu==$(this).text()){
+                $(this).attr('selected', true)
+            }
+        });
+        $("#u_parentSelect option").each(function () {
+            if(data.parent==$(this).text()){
                 $(this).attr('selected', true)
             }
         });
@@ -309,6 +336,14 @@
             {
                 field: 'menu',
                 title:'菜单',
+                width: '20%',
+                align: 'center',
+                valign: 'middle',
+                sortable: true,
+            },
+            {
+                field: 'parent',
+                title:'父权限',
                 width: '20%',
                 align: 'center',
                 valign: 'middle',

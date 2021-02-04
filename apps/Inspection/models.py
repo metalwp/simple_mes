@@ -11,7 +11,7 @@ class Inspection(BaseModel):
             (2, "测量工具"),
             (3, "手动设备"),
             (4, "自动设备"))
-        
+
     CATEGORY_CHOICE = (
             (0, "无"),
             (1, "外观"),

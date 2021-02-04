@@ -30,7 +30,7 @@
                             <div class="col-xs-12" style="">
                                 <div class="form-inline col-xs-5 ">
                                     <input id="search_keyword" class="form-control" placeholder="请输入名称以查询">
-                                    <button id="search_button" type="button" class="btn btn-primary">查询</button>
+                                    <button id="search_button" type="button" class="btn btn-primary" onclick="search()">查询</button>
                                     <button id="reset-button" type="button" class="btn btn-primary" onclick="clean()">重置</button>
                                 </div>
                                 <!-- 按钮触发模态框 -->
@@ -126,6 +126,52 @@ var columns = [
                 align: 'center',
                 valign: 'middle',
                 sortable: true,
+            },
+            {
+                field: 'is_traced',
+                title:'是否追溯',
+                width: '5%',
+                align: 'center',
+                valign: 'middle',
+                sortable: true,
+                formatter:function(value, row, index){
+                    if (value === true){
+                        return '是'
+                    }
+                    else{
+                        return '否'
+                    }
+                },
+                cellStyle: function (value, row, index) {
+                    console.log(value);
+                        if (value === true) {
+                            return { css: { "background-color": "yellow"} }
+                        }
+                        return { }
+                    },
+            },
+            {
+                field: 'is_inspected',
+                title:'是否添加检验项',
+                width: '5%',
+                align: 'center',
+                valign: 'middle',
+                sortable: true,
+                formatter:function(value, row, index){
+                    if (value === true){
+                        return '是'
+                    }
+                    else{
+                        return '否'
+                    }
+                },
+                cellStyle: function (value, row, index) {
+                    console.log(value);
+                        if (value === true) {
+                            return { css: { "background-color": "green"} }
+                        }
+                        return { }
+                    },
             },
             {
                 field: 'category',

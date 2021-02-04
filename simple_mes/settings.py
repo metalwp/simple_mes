@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'apps.manufacturing',
     'apps.dashboard',
     'apps.query_system',
+    'apps.WebApi',
 ]
 
 MIDDLEWARE = [
@@ -173,8 +174,8 @@ SAFE_URL = [
 SESSION_PERMISSION_URL_KEY = 'cool'
 
 SESSION_MENU_KEY = 'awesome'
-ALL_MENU_KEY = 'k1'
-PERMISSION_MENU_KEY = 'k2'
+ALL_MENU_KEY = 'menus'
+PERMISSION_MENU_KEY = 'permmison_menus'
 
 DEFAULT_PASSWORD = "123456"
 

@@ -32,7 +32,7 @@
                                 <input id="search_keyword" class="form-control" placeholder="请输入名称以查询">
                             </div>
                             <div class="columns columns-left btn-group pull-left">
-                                <button id="search_button" type="button" class="btn btn-primary">查询</button>
+                                <button id="search_button" type="button" class="btn btn-primary" onclick="search()">查询</button>
                             </div>
                             <div class="columns columns-left btn-group pull-left">
                                 <button id="reset-button" type="button" class="btn btn-primary" onclick="clean()">重置</button>
@@ -64,7 +64,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="permissionSelect" class="col-sm-3 control-label" >菜单</label>
+                                                    <label for="permissionSelect" class="col-sm-3 control-label" >权限</label>
                                                     <div class="col-sm-7">
                                                         <select class="form-control" name="permissionSelect" id="permissionSelect" required="required" multiple>
                                                             {% for permission in permissions %}
@@ -114,7 +114,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="u_permissionSelect" class="col-sm-3 control-label" >菜单</label>
+                                                    <label for="u_permissionSelect" class="col-sm-3 control-label" >权限</label>
                                                     <div class="col-sm-7">
                                                         <select class="form-control" name="u_permissionSelect" id="u_permissionSelect" required="required" multiple>
                                                             {% for permission in permissions %}
@@ -152,7 +152,7 @@
 <script>
     $(document).ready(function() {
             $('#permissionSelect').multiselect({
-                nonSelectedText: '请选择角色!',
+                nonSelectedText: '请选择权限!',
                 nSelectedText: ' 个被选择!',
                 includeSelectAllOption: true,
                 selectAllText: '全选'
@@ -161,7 +161,7 @@
                 //resetText: "Reset all",
                 });
             $('#u_permissionSelect').multiselect({
-                nonSelectedText: '请选择角色!',
+                nonSelectedText: '请选择权限!',
                 nSelectedText: ' 个被选择!',
                 includeSelectAllOption: true,
                 selectAllText: '全选'

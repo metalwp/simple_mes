@@ -13,6 +13,7 @@ from apps.station_manager.models import Station, Fixture
 from apps.process_manager.models import ProcessStep, ProcessRoute, ProcessStep_MaterialModel
 from apps.bom_manager.models import MaterialModel, Bom_MaterialModel, BOM
 from apps.Inspection.models import Inspection
+from apps.account.models import Menu, Permission
 from simple_mes import settings
 
 # Create your views here.
@@ -22,9 +23,8 @@ from simple_mes import settings
 def ps_index(request):
     fixtures = Fixture.objects.filter_without_isdelete()
     categorys = ProcessStep.CATEGORY_CHOICE
-    if request.session.get('errMsg'):
-        errMsg = request.session['errMsg']
-        del request.session['errMsg']
+    if request.session.get('err'):
+        errMsg = request.session.get('err')
     return render(request, 'process_manager/ps_index.html', locals())
 
 
@@ -54,6 +54,8 @@ def getPSData(request):
 
         rows = []
         data = {"total": total, "rows": rows}
+        if request.session.get('err'):
+            request.session['err'] = None
         for obj in objs:
             if not obj.fixture:
                 fixture = None
@@ -82,12 +84,23 @@ def deletePSData(request):
     id = request.POST.get('id')
     try:
         obj = model.objects.filter_without_isdelete().get(id=id)
-        obj.sequence_no = None
-        obj.delete()
-        return JsonResponse(return_dict)
     except Exception as e:
         return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
         return JsonResponse(return_dict)
+
+    if obj.category == 1 or obj.category == 3 or obj.category == 4 or obj.category == 5 or obj.category == 6:
+        try:
+            parent = Menu.objects.get(title="生产过程")
+            menu = Menu.objects.get(title=obj.name, parent=parent)
+            permission = Permission.objects.get(title=obj.name)
+            menu.delete()
+            permission.delete()
+        except Exception as e:
+            print(e)
+    obj.sequence_no = None
+    obj.delete()
+
+    return JsonResponse(return_dict)
 
 
 def addPSData(request):
@@ -110,7 +123,14 @@ def addPSData(request):
             if tmp:
                 return_dict = {"ret": False, "errMsg": "工序名称不能重复！", "rows": [], "total": 0}
                 return JsonResponse(return_dict)
-            ProcessStep.objects.create(name=name, fixture=fixture, process_lock=lock, remark=remark, category=category)
+
+            step = ProcessStep.objects.create(name=name, fixture=fixture, process_lock=lock, remark=remark,
+                                              category=category)
+            if step.category == "1" or step.category == "3" or step.category == "4" \
+                    or step.category == "5" or step.category == "6":
+                parent = Menu.objects.get(title="生产过程")
+                menu = Menu.objects.create(title=name, icon=None, parent=parent)
+                Permission.objects.create(title=name, url=("/manufacturing/assemble/" + str(step.id) + "/"), menu=menu, parent=None)
         except Exception as e:
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
             return JsonResponse(return_dict)
@@ -141,15 +161,28 @@ def updatePSData(request):
                 return_dict = {"ret": False, "errMsg": "工序名称不能重复！", "rows": [], "total": 0}
                 return JsonResponse(return_dict)
             step = ProcessStep.objects.filter_without_isdelete().get(id=id)
-            step.name = name
-            step.fixture = fixture
-            step.process_lock = lock
-            step.remark = remark
-            step.category = category
-            step.save()
         except Exception as e:
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
             return JsonResponse(return_dict)
+        if step.category == 1 or step.category == 3 or step.category == 4 \
+                or step.category == 5 or step.category == 6:
+            try:
+                parent = Menu.objects.get(title="生产过程")
+                menu = Menu.objects.get(title=step.name, parent=parent)
+                permission = Permission.objects.get(title=step.name)
+                menu.title = name
+                menu.save()
+                permission.title = name
+                permission.save()
+            except Exception as e:
+                print(e)
+        step.name = name
+        step.fixture = fixture
+        step.process_lock = lock
+        step.remark = remark
+        step.category = category
+        step.save()
+
         return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
         return JsonResponse(return_dict)
 
@@ -159,15 +192,17 @@ def ps_detail(request, step_id):
     step = ProcessStep.objects.filter_without_isdelete().get(pk=step_id)
     route = step.process_route
     steps = ProcessStep.objects.filter_without_isdelete().filter(process_route=route, category=1)
+
     if not route:
-        request.session['errMsg'] = '该工序未与工艺路线关联！'
+        request.session['err'] = '该工序未与工艺路线关联！'
         return redirect(reverse('process_manager:ps_index'))
+
     productmodel = route.productmodel_set.all().first()
 
     if not productmodel:
-        request.session['errMsg'] = '该工艺路线未与产品关联！'
+        request.session['err'] = '该工艺路线未与产品关联！'
         return redirect(reverse('process_manager:ps_index'))
-    bom = BOM.objects.filter_without_isdelete().filter(product_model=productmodel).first()
+    bom = BOM.objects.filter_without_isdelete().filter(product_model=productmodel).order_by('-erp_no').first()
     ships = Bom_MaterialModel.objects.filter(bom=bom, material_model__is_traced=True)
     # for step in steps:
     #     ship2s = ProcessStep_MaterialModel.objects.filter(process_step=step)
@@ -179,7 +214,7 @@ def ps_detail(request, step_id):
     if step.category == 1:  # 装配工序
         return render(request, "process_manager/assembly_step_detail.html", locals())
     elif step.category == 2:  # 测试工序
-        request.session['errMsg'] = '该工序无配置项！'
+        request.session['err'] = '该工序无配置项！'
         return redirect(reverse('process_manager:ps_index'))
     elif step.category == 3 or step.category == 4:  # 标定/检验工序
         inspection_categorys = Inspection.CATEGORY_CHOICE
@@ -188,10 +223,9 @@ def ps_detail(request, step_id):
     elif step.category == 5:  # 标签打印工序
         return HttpResponse('后续添加标签模板导入')
     elif step.category == 6:  # VIN生成工序
-        return HttpResponse('后续添加VIN规则编辑')
+        return redirect(reverse('product_manager:VinRuleItemIndex', args=[productmodel.id]))
     else:
         return HttpResponse('无')
-
 
 
 def getMaterialDate(request, step_id):
@@ -256,7 +290,8 @@ def addMaterialDate(request, step_id):
                     count += float(ship.quantity)
 
             productmodel = ProductModel.objects.filter_without_isdelete().get(process_route=route)
-            bom = BOM.objects.filter_without_isdelete().get(product_model=productmodel)
+            # bom = BOM.objects.filter_without_isdelete().get(product_model=productmodel)
+            bom = BOM.objects.filter_without_isdelete().filter(product_model=productmodel).order_by("-erp_no").first()
             ship = Bom_MaterialModel.objects.filter(bom=bom, material_model=material).first()
             if count > float(ship.quantity):
                 return_dict = {"ret": False, "errMsg": '输入用量超过BOM总用量！', "rows": [], "total": 0}
@@ -297,7 +332,7 @@ def refresh_options(request, step_id):
         route = step.process_route
         steps = ProcessStep.objects.filter_without_isdelete().filter(process_route=route, category=1)
         productmodel = ProductModel.objects.filter_without_isdelete().get(process_route=route)
-        bom = BOM.objects.filter_without_isdelete().filter(product_model=productmodel).first()
+        bom = BOM.objects.filter_without_isdelete().filter(product_model=productmodel).order_by("-erp_no").first()
         ship1s = Bom_MaterialModel.objects.filter(bom=bom, material_model__is_traced=True)
         ship1s_list = list(ship1s)
         ship2s_list = []
