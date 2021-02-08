@@ -1,7 +1,15 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}角色管理{% endblock %}
-{% block css %}{% endblock %}
+{% block css %}
+    <style>
+        table td{
+             overflow: hidden;
+             text-overflow:ellipsis;
+             white-space: nowrap;
+            }
+    </style>
+{% endblock %}
 
 {% block breadcrumb %}
     <!-- Content Header (Page header) -->
@@ -136,7 +144,7 @@
                             </form>
 
                            {#        bootstrap table自动渲染区域#}
-                            <table id="myTab" class="table table-bordered table-hover"></table>
+                            <table id="myTab" class="table table-bordered table-hover" style="table-layout:fixed;"></table>
 
                             </div>
                         </div>
@@ -293,13 +301,14 @@
             {
                 field: 'permissions',
                 title:'权限',
-                align: 'center',
+                align: 'left',
                 valign: 'middle',
                 sortable: true,
             },
             {
                 field: 'operate',
                 title: '操作',
+                width: '10%',
                 align: 'center',
                 valign: 'middle',
                 formatter: actionFormatter,
