@@ -233,7 +233,7 @@ def get(request, bom_id):
                         'm_time': ship.material_model.m_time.strftime("%Y-%m-%d-%H:%M:%S")})
 
         data = {"total": total, "rows": rows}
-        print(data)
+        # print(data)
         return JsonResponse(data)
 
 
@@ -243,7 +243,7 @@ def writeToDB(filename, bom_id):
     sheet = excel.sheet_by_name('部件清单')
     nrows = sheet.nrows
     ncols = sheet.ncols
-    print(nrows, ncols)
+    # print(nrows, ncols)
     category_choice = MaterialModel.CATEGORY_CHOICE
     tmp_list = [x[1] for x in category_choice]
     materials_list = []

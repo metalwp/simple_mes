@@ -4,10 +4,11 @@ import json
 
 from django.shortcuts import render, redirect, reverse
 from django.http import JsonResponse, HttpResponse
+from django.db.models import Q
 
 from apps.order_manager.models import Order
 from apps.process_manager.models import ProcessStep, ProcessStep_MaterialModel
-from apps.manufacturing.models import Product, ProcessRecord, HistoryRecord, AssemblyRecord, TestRecord
+from apps.manufacturing.models import Product, ProcessRecord, HistoryRecord, AssemblyRecord, TestRecord, RepairRecord
 from apps.Inspection.models import TraceMaterial, Inspection
 from apps.bom_manager.models import MaterialModel, BOM
 from apps.product_manager.models import VinRule, VinRuleItem
@@ -37,7 +38,7 @@ def index(request, step_id):
             elif step.category == 3 or step.category == 4:  # 标定 检验
                 return render(request, 'manufacturing/process_inspection_index.html', locals())
             elif step.category == 5:  # 标签打印
-                return HttpResponse('标签打印页面待补充！')
+                return render(request, 'manufacturing/label.html', locals())
             elif step.category == 6:  # VIN生成
                 return render(request, 'manufacturing/vin_index.html', locals())
             else:  # 其他
@@ -260,6 +261,9 @@ def getOrderInfo(request, step_id):
                 elif step.category == 3 or step.category == 4:  # 标定或检验工序
 
                     data = inspectStepProcesss(vin, order, product, step, step.sequence_no)
+                    return JsonResponse(data)
+                elif step.category == 5:  # 标签打印
+                    data = printLabel(vin, order, product, step, step.sequence_no)
                     return JsonResponse(data)
 
             elif len(vin_or_sn) == 23:
@@ -513,6 +517,7 @@ def vinGenStepProcess(order, sequence_no):
     data = {"ret": True, "errMsg": "", "total": 0, "rows": rows, 'info': info}
     return data
 
+
 def getInspectionData(request, step_id):
     if request.method == "GET":
         vin = request.GET.get('vin')
@@ -583,8 +588,6 @@ def saveInspectionData(request, step_id):
         data = json.loads(request.body)
         vin = data.get('vin')
         rows = data.get('row')
-        print(vin)
-        print(rows)
 
         if not all([vin, rows]):
             return JsonResponse({"ret": False, "errMsg": "数据不能为空！", "rows": [], "total": 0})
@@ -654,7 +657,10 @@ def getProductInfo(request, step_id):
         bom = BOM.objects.filter_without_isdelete().filter(product_model=order.product_model).order_by(
             "-erp_no").first()
         products = Product.objects.filter_without_isdelete().filter(order_num=order.num)
-
+        try:
+            step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
+        except ProcessStep.DoesNotExist:
+            return JsonResponse({"ret": False, "errMsg": "未找到此工序号！", "total": 0, "rows": rows})
         data = {"ret": True, "errMsg": "", "total": 0, "rows": rows}
         if not products:
             return JsonResponse(data)
@@ -666,6 +672,7 @@ def getProductInfo(request, step_id):
                              'erp_no': bom.erp_no,
                              'name': product_model.name,
                              'model': product_model.model,
+                             'filename': step.remark,
                              'c_time': product.c_time,
                              'm_time': product.m_time
                              })
@@ -799,5 +806,215 @@ def getAssembleRecord(request, step_id):
             return JsonResponse(data)
 
 
+def printLabel(vin, order, product, step, sequence_no):
+    info = {}
+    rows = []
+    try:
+        process_record = ProcessRecord.objects.filter_without_isdelete().get(product=product, sequence_no=sequence_no)
+        if process_record.result == 1:
+            info['status'] = '已完成'
+        else:
+            info['status'] = '未完成'
+    except ProcessRecord.DoesNotExist:
+        process_record = ProcessRecord.objects.create(product=product, sequence_no=sequence_no)
+    info['product_vin'] = vin
+    info['date'] = process_record.m_time
+
+    product_model = order.product_model
+    bom = BOM.objects.filter_without_isdelete().filter(product_model=order.product_model).order_by(
+        "-erp_no").first()
+    info['product_erp'] = bom.erp_no
+    info['product_name'] = product_model.name
+    info['product_model'] = product_model.model
+    info['order_num'] = order.num
+    info['order_quantity'] = order.quantity
+
+    products = Product.objects.filter_without_isdelete().filter(order_num=order.num)
+    step_pass_quantity = 0
+    for product in products:
+        try:
+            ProcessRecord.objects.filter_without_isdelete().get(product=product, sequence_no=sequence_no, result=1)
+            step_pass_quantity += 1
+        except ProcessRecord.DoesNotExist:
+            continue
+
+    info['finish_quantity'] = step_pass_quantity
+    info['finish_rate'] = '{:.2%}'.format(step_pass_quantity / order.quantity)
+    info['user'] = 'user'
+    info['filename'] = step.remark
+
+    data = {"ret": True, "errMsg": "", "total": 0, "rows": rows, 'info': info}
+
+    return data
 
 
+def repair_index(request):
+    if request.method == "GET":
+        user = request.user
+        if user.is_authenticated:
+            categorys = RepairRecord.CATEGORY_CHOICE
+            return render(request, 'manufacturing/repair.html', locals())
+
+        else:
+            request.session['errMsg'] = '请先登陆！'
+            return redirect(reverse('account:login'))
+
+
+def getRepairInfo(request):
+    if request.method == "POST":
+        vin = request.POST.get('vinInput')
+        category = request.POST.get('categorySelect')
+        print(vin, category, type(category))
+        info = []
+        data = {}
+        if category == "1":
+            return JsonResponse({"ret": True, "errMsg": '', "rows": [], "total": 0})
+
+        try:
+            product = Product.objects.filter_without_isdelete().get(vin=vin)
+            process_records = ProcessRecord.objects.filter_without_isdelete().filter(product=product)
+            for process_record in process_records:
+                assembly_records = AssemblyRecord.objects.filter_without_isdelete().filter(process_record=process_record)
+                for assembly_record in assembly_records:
+                    data["sn"] = assembly_record.sn
+                    data["erp_no"] = assembly_record.material_model.erp_no
+                    data["name"] = assembly_record.material_model.name
+                    data["model"] = assembly_record.material_model.model
+                    info.append(data.copy())
+                    data.clear()
+            return JsonResponse({"ret": True, "errMsg": '', "rows": [], "total": 0, "info": info})
+        except Product.DoesNotExist:
+            return JsonResponse({"ret": False, "errMsg": '无此VIN的产品！', "rows": [], "total": 0})
+            # order = product.order_num
+            # product_model = order.product_model
+            # process_route = product_model.process_route
+            # steps = ProcessStep.objects.filter_without_isdelete().filter(process_route=process_route, category=1)
+            # for process_step in steps:
+            #     ships = ProcessStep_MaterialModel.objects.filter(process_step=process_step)
+            #     for ship in ships:
+            #         data["erp_no"] = ship.material_model.erp_no
+            #         data["name"] = ship.material_model.name
+            #         data["model"] = ship.material_model.model
+            #         print(data)
+            #         info.append(data.copy())
+            #         data.clear()
+            # info_set = set(info)
+            # print(info_set)
+
+
+def getRepairRecord(request):
+    if request.method == "GET":
+        pageSize = int(request.GET.get('pageSize'))
+        pageNumber = int(request.GET.get('pageNumber'))
+        sortName = request.GET.get('sortName')
+        sortOrder = request.GET.get('sortOrder')
+        search_kw = request.GET.get('search_kw')
+
+        if sortOrder == 'asc':
+            sort_str = sortName
+        else:
+            sort_str = '-' + sortName
+
+        if not search_kw:
+            total = RepairRecord.objects.filter_without_isdelete().count()
+            objs = RepairRecord.objects.filter_without_isdelete().order_by(sort_str)[
+                    (pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+        else:
+            total = RepairRecord.objects.filter_without_isdelete().filter(Q(product__vin__contains=search_kw)).count()
+            objs = RepairRecord.objects.filter_without_isdelete().filter(Q(product__vin__contains=search_kw)).order_by(
+                sort_str)[(pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+
+        rows = []
+        data = {"total": total, "rows": rows}
+        for obj in objs:
+            rows.append({'id': obj.id,
+                         'vin': obj.product.vin,
+                         'name': obj.product.order_num.product_model.name,
+                         'model': obj.product.order_num.product_model.model,
+                         'category': obj.category,
+                         'origin_sn': obj.origin_sn,
+                         'new_sn': obj.new_sn,
+                         'record': obj.record,
+                         'c_time': obj.c_time,
+                         })
+        return JsonResponse(data)
+
+
+def addRepairRecord(request):
+    if request.method == "POST":
+        print(request.POST)
+        vin = request.POST.get("vinInput")
+        category = request.POST.get("categorySelect")
+        origin_sn = request.POST.get("materialSelect")
+        new_sn = request.POST.get("nSnInput")
+        record = request.POST.get("recordText")
+        try:
+            product = Product.objects.filter_without_isdelete().get(vin=vin)
+        except Product.DoesNotExist:
+            return JsonResponse({"ret": False, "errMsg": '无此VIN的产品！', "rows": [], "total": 0})
+
+        if category == "0":  # 追溯物料
+            try:
+                new_material = TraceMaterial.objects.filter_without_isdelete().get(sn=new_sn)
+                if new_material.is_used == 1:
+                    return JsonResponse({"ret": False, "errMsg": '新SN物料已使用！', "rows": [], "total": 0})
+                if new_material.status != 2:
+                    return JsonResponse({"ret": False, "errMsg": '新SN物料未检验OK！', "rows": [], "total": 0})
+            except TraceMaterial.DoesNotExist:
+                return JsonResponse({"ret": False, "errMsg": '新SN未找到！', "rows": [], "total": 0})
+
+            try:
+                old_material = TraceMaterial.objects.filter_without_isdelete().get(sn=origin_sn)
+            except TraceMaterial.DoesNotExist:
+                return JsonResponse({"ret": False, "errMsg": '旧SN未找到！', "rows": [], "total": 0})
+
+            try:
+                assembly_record = AssemblyRecord.objects.filter_without_isdelete().\
+                    get(sn=origin_sn, material_model=new_material.material_model)
+                assembly_record.sn = new_material.sn
+                assembly_record.save()
+                old_material.is_used = 0
+                old_material.save()
+                new_material.is_used = 1
+                new_material.save()
+            except AssemblyRecord.DoesNotExist:
+                return JsonResponse({"ret": False, "errMsg": '未找到旧SN装配记录！', "rows": [], "total": 0})
+
+            RepairRecord.objects.create(product=product,
+                                        category=category,
+                                        origin_sn=origin_sn,
+                                        new_sn=new_sn,
+                                        record=record,
+                                        material_model=new_material.material_model)
+
+        else:  # 非追溯物料
+            RepairRecord.objects.create(product=product,
+                                        category=category,
+                                        record=record)
+        return JsonResponse({"ret": True, "errMsg": '', "rows": [], "total": 0})
+
+
+# 不增加删除返修记录功能，会造成数据的丢失和混乱
+def deleteRepairRecord(request):
+    if request.method == "POST":
+
+        id = request.POST.get('id')
+        try:
+            obj = RepairRecord.objects.filter_without_isdelete().get(id=id)
+        except RepairRecord.DoesNotExist:
+            return_dict = {"ret": False, "errMsg": "返修记录不存在！", "rows": [], "total": 0}
+            return JsonResponse(return_dict)
+        if obj.category == 0:
+            try:
+                new_material = TraceMaterial.objects.filter_without_isdelete().get(sn=obj.new_sn)
+                old_material = TraceMaterial.objects.filter_without_isdelete().get(sn=obj.origin_sn)
+                new_material.is_used = 0
+                old_material.is_used = 1
+                new_material.save()
+                old_material.save()
+            except TraceMaterial.DoesNotExist:
+                return JsonResponse({"ret": False, "errMsg": "追溯物料SN不存在！", "rows": [], "total": 0})
+        else:
+            obj.delete()
+        return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
+        return JsonResponse(return_dict)

@@ -200,13 +200,13 @@ def getPmData(request):
 def addPmData(request):
     if request.method == "POST":
         name = request.POST.get('nameInput')
-        modal = request.POST.get('modalInput')
+        model = request.POST.get('modalInput')
         #erp_no = request.POST.get('erpInput')
         category_id = request.POST.get('categorySelect')
         process_route_id = request.POST.get('processRouteSelect')
         vin_rule_id = request.POST.get('ruleSelect')
 
-        if not all([name, modal]):
+        if not all([name, model]):
             return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
         # 校验物料号格式
         # if not re.match(r'^[A-Z]\d{9}V\d{4}A$', erp_no):
@@ -237,9 +237,12 @@ def addPmData(request):
                 return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
         else:
             process_route = None
+        tmps = ProductModel.objects.filter_without_isdelete().filter(Q(name=name) | Q(model=model))
+        if tmps:
+            return JsonResponse({"ret": False, "errMsg": "产品名称或型号已存在！", "rows": [], "total": 0})
         try:
             product = ProductModel(name=name,
-                                   model=modal,
+                                   model=model,
                                    category=category,
                                    process_route=process_route,
                                    vin_rule=vin_rule
@@ -250,7 +253,6 @@ def addPmData(request):
 
         # 返回应答
         return JsonResponse({"ret": True, "errMsg": '', "rows": [], "total": 0})
-
 
 
 def updatePmData(request):
@@ -299,6 +301,10 @@ def updatePmData(request):
 
         else:
             vin_rule = None
+
+        tmps = ProductModel.objects.filter_without_isdelete().exclude(id=id).filter(Q(name=name) | Q(model=model))
+        if tmps:
+            return JsonResponse({"ret": False, "errMsg": "产品名称或型号已存在！", "rows": [], "total": 0})
 
         try:
             pm, created = ProductModel.objects.update_or_create(id=id, defaults={'name': name,

@@ -221,9 +221,10 @@ def ps_detail(request, step_id):
         inspection_modes = Inspection.MODE_CHOICE
         return render(request, "process_manager/inspect_step_detail.html", locals())
     elif step.category == 5:  # 标签打印工序
-        return HttpResponse('后续添加标签模板导入')
+        return HttpResponse('在工序的备注中填写标签模板名称！')
     elif step.category == 6:  # VIN生成工序
-        return redirect(reverse('product_manager:VinRuleItemIndex', args=[productmodel.id]))
+        # return redirect(reverse('product_manager:VinRuleItemIndex', args=[productmodel.id]))
+        return HttpResponse('在工序的备注中填写标签模板名称！')
     else:
         return HttpResponse('无')
 

@@ -15,4 +15,10 @@ urlpatterns = [
 
     path('assemble/getAssembleRecord/<int:step_id>/', views.getAssembleRecord, name='getAssembleRecord'),
 
+    path('repair/', views.repair_index, name='repair_index'),
+    path('repair/getRepairInfo/', views.getRepairInfo, name='getRepairInfo'),
+    path('repair/get/', views.getRepairRecord, name='getRepairRecord'),
+    path('repair/add/', views.addRepairRecord, name='addRepairRecord'),
+    #path('repair/delete/', views.deleteRepairRecord, name='deleteRepairRecord'),  # 不增加删除返修记录功能，会造成数据的丢失和混乱
+
 ]

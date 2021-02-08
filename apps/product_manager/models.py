@@ -66,6 +66,7 @@ class ProductModel(BaseModel):
     process_route = models.ForeignKey('process_manager.ProcessRoute', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='工艺路线')
     vin_rule = models.OneToOneField('VinRule', related_name='product_model', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='VIN规则')
 
+
     class Meta:
         verbose_name = '产品配置'
         verbose_name_plural = '产品配置'

@@ -1,0 +1,483 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}返工返修{% endblock %}
+{% block css %}
+    <style>
+        table td{
+             overflow: hidden;
+             text-overflow:ellipsis;
+             white-space: nowrap;
+            }
+    </style>
+
+
+{% endblock %}
+
+{% block breadcrumb %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>返工返修<small>Repair</small></h1>
+        <ol class="breadcrumb">
+            <li><a href="#">主页</a></li>
+            <li class="active">返工返修</li>
+        </ol>
+    </section>
+{% endblock %}
+
+{% block content %}
+    <section class="content">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div class="box-header">
+                        <h3 class="box-title">返工返修</h3>
+                    </div>
+
+                    <!-- /.box-header -->
+                    <div class="box-body" >
+                        {#        自定义搜索条件区域#}
+                        <div class="col-xs-12" style="">
+                            <div class="form-inline col-xs-5 ">
+                                <input id="search_keyword" class="form-control" placeholder="请输入名称以查询">
+                                <button id="search_button" type="button" class="btn btn-primary" onclick="search()">查询</button>
+                                <button id="reset-button" type="button" class="btn btn-primary" onclick="clean()">重置</button>
+                            </div>
+                            <!-- 按钮触发模态框 -->
+                            <div class="pull-right ">
+                                    <div class="form-group">
+                                        <button id="addBtn" type="button" class="btn btn-primary" data-toggle="modal" data-target="#addModal">新增记录</button>
+                                    </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-4" style="">
+                            <h5 style="color: red">{{ errMsg }}</h5>
+                        </div>
+                            <!-- 新增模态框（Modal） -->
+                            <form id="addForm" action="#" method="post" class="form-horizontal" role="form">
+                                {% csrf_token %}
+                                <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                                                &times;
+                                                </button>
+                                                <h4 class="modal-title">新增</h4>
+                                            </div>
+                                            {# 模态框body #}
+                                            <div class="modal-body" style="height: 100%;">
+
+                                                <div class="form-group">
+                                                    <label for="vinInput" class="col-sm-3 control-label" >VIN</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <input type="text" class="form-control"  name="vinInput" id="vinInput"
+                                                             style="text-align: left">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="categorySelect" class="col-sm-3 control-label" >返修类型</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <select class="form-control" name="categorySelect" id="categorySelect" >
+                                                            {% for category in categorys %}
+                                                            <option value="{{ category.0 }}" hassubinfo="true">{{ category.1 }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="materialSelect" class="col-sm-3 control-label" >追溯物料选择</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <select class="form-control" name="materialSelect" id="materialSelect">
+                                                        </select>
+                                                    </div>
+                                                </div>
+{#                                                <div class="form-group">#}
+{#                                                    <label for="oSnInput" class="col-sm-3 control-label" >原SN</label>#}
+{#                                                    <div class="input-group col-sm-7">#}
+{#                                                        <input class="form-control" name="oSnInput" id="oSnInput" disabled="disabled"#}
+{#                                                                  placeholder="请输入原物料SN..." style="text-align: left">#}
+{#                                                    </div>#}
+{#                                                </div>#}
+                                                <div class="form-group">
+                                                    <label for="nSnInput" class="col-sm-3 control-label" >新SN</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <input class="form-control" name="nSnInput" id="nSnInput"
+                                                                  placeholder="请输入新物料SN..." style="text-align: left">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="recordText" class="col-sm-3 control-label" >返修记录</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <textarea class="form-control" name="recordText" id="recordText"
+                                                                  placeholder="请输入返修记录..." style="text-align: left;
+                                                                                                        height: 300px;
+                                                                                                        width: 380px;"></textarea>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                {#            模态框底部#}
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                                <input type="button" data-dissmiss="modal" onclick="add()" class="btn btn-primary"value="提交">
+                                            </div>
+                                        </div><!-- /.modal-content -->
+                                    </div><!-- /.modal -->
+                                </div>
+                            </form>
+
+                            <!-- 查看模态框（Modal） -->
+                            <form id="detailForm" action="#" method="post" class="form-horizontal" role="form">
+                                {% csrf_token %}
+                                <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                                                &times;
+                                                </button>
+                                                <h4 class="modal-title">详情</h4>
+                                            </div>
+                                            {# 模态框body #}
+                                            <div class="modal-body" style="height: 100%;">
+
+                                                <div class="form-group">
+                                                    <label for="d_vinInput" class="col-sm-3 control-label" >VIN</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <input type="text" class="form-control"  name="d_vinInput" id="d_vinInput" disabled="disabled"
+                                                             style="text-align: left">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="d_categorySelect" class="col-sm-3 control-label" >返修类型</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <select class="form-control" name="d_categorySelect" id="d_categorySelect" disabled="disabled">
+                                                            {% for category in categorys %}
+                                                            <option value="{{ category.0 }}" hassubinfo="true">{{ category.1 }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="d_materialSelect" class="col-sm-3 control-label" >追溯物料选择</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <select class="form-control" name="d_materialSelect" id="d_materialSelect" disabled="disabled">
+                                                        </select>
+                                                    </div>
+                                                </div>
+{#                                                <div class="form-group">#}
+{#                                                    <label for="oSnInput" class="col-sm-3 control-label" >原SN</label>#}
+{#                                                    <div class="input-group col-sm-7">#}
+{#                                                        <input class="form-control" name="oSnInput" id="oSnInput" disabled="disabled"#}
+{#                                                                  placeholder="请输入原物料SN..." style="text-align: left">#}
+{#                                                    </div>#}
+{#                                                </div>#}
+                                                <div class="form-group">
+                                                    <label for="d_nSnInput" class="col-sm-3 control-label" >新SN</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <input class="form-control" name="d_nSnInput" id="d_nSnInput" disabled="disabled"
+                                                                  placeholder="请输入新物料SN..." style="text-align: left">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="d_recordText" class="col-sm-3 control-label" >返修记录</label>
+                                                    <div class="input-group col-sm-7">
+                                                        <textarea class="form-control" name="d_recordText" id="d_recordText" disabled="disabled"
+                                                                  placeholder="请输入返修记录..." style="text-align: left;
+                                                                                                        height: 300px;
+                                                                                                        width: 380px;"></textarea>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                {#            模态框底部#}
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                            </div>
+                                        </div><!-- /.modal-content -->
+                                    </div><!-- /.modal -->
+                                </div>
+                            </form>
+
+                        {#        bootstrap table自动渲染区域#}
+                        <div class="col-xs-12">
+                            <table id="myTab" class="table table-bordered table-hover" style="table-layout:fixed;"></table>
+                        </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+{% endblock %}
+
+{% block script %}
+
+    <link href="{% static 'css/bootstrap-table.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/bootstrap-datetimepicker.min.css' %}" rel="stylesheet">
+
+    <script src="{% static 'js/bootstrap-table.min--bak.js' %}"></script>
+    <script src="{% static 'js/bootstrap-table-zh-CN.min.js' %}"></script>
+
+    <link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
+    <script src="{% static 'js/toastr.min.js' %}"></script>
+    <script src="{% static 'js/jquery.cookie.js' %}"></script>
+    <script src="{% static 'js/moment-with-locales.js' %}"></script>
+    <script src="{% static 'js/bootstrap-datetimepicker.min.js' %}"></script>
+    <script src="{% static 'js/myscript.js' %}"></script>
+
+<script>
+
+    toastr.options = {
+        closeButton: true,
+        debug: true,
+        progressBar: true,
+        positionClass: "toast-top-center",
+        onclick: null,
+        showDuration: "300",
+        hideDuration: "1000",
+        timeOut: "2000",
+        extendedTimeOut: "1000",
+        showEasing: "swing",
+        hideEasing: "linear",
+        showMethod: "fadeIn",
+        hideMethod: "fadeOut",
+    };
+
+    $(document).ready(function () {
+        if($(this).val()==="1"){
+            $("#nSnInput").attr("disabled", "disabled");
+            $("#materialSelect").attr("disabled", "disabled");
+        }
+        else {
+            $("#nSnInput").removeAttr("disabled");
+            $("#materialSelect").removeAttr("disabled");
+        }
+    });
+
+    $("#categorySelect").change(function () {
+
+        if($(this).val()==="1"){
+            $("#nSnInput").attr("disabled", "disabled");
+            $("#materialSelect").attr("disabled", "disabled");
+        }
+        else {
+            $("#nSnInput").removeAttr("disabled");
+            $("#materialSelect").removeAttr("disabled");
+        }
+    });
+
+    $("#vinInput").on("input", function () {
+        if($("#vinInput").val().length === 18){
+            var formdata = new FormData();
+            formdata.append('vinInput', $('#vinInput').val());
+            formdata.append('categorySelect', $('#categorySelect').val());
+            $.ajax(
+            {
+                //几个参数需要注意一下
+                cache:false,
+                type: "POST",//方法类型
+                dataType: "json",//预期服务器返回的数据类型
+                url: "{% url 'manufacturing:getRepairInfo' %}" ,//url
+                headers:{"X-CSRFToken":$.cookie("csrftoken")},
+                data: formdata, //将模态框的form表单数据序列化，以便提交到后台
+                processData: false,// 不加会报错
+                contentType: false,// 不加会报错
+                async:true,  //必须要为false
+                success: function (data) {
+                        let tmp;
+                        for (tmp in data.info){
+                            $("#materialSelect").append("<option value="+"'" + data.info[tmp].sn +"'>" + data.info[tmp].name + "|" +data.info[tmp].sn +"</option>");
+                        }
+                     },
+                error : function(data) {
+                        toastr.error("输入数据有误！");
+                     }
+                    });
+        }
+        else if($("#vinInput").val().length > 18){
+            $("#vinInput").val("");
+        }
+    });
+
+    function modalReset(){
+        document.getElementById("addForm").reset();
+        $("#addModal input").removeAttr("disabled");
+        $("#addModal select").removeAttr("disabled");
+        $("#materialSelect").empty();
+    }
+
+    $("#addModal").on("hidden.bs.modal", function() { modalReset() });
+
+    $("#updateModal").on("hidden.bs.modal", function() {document.getElementById("updateForm").reset();});
+
+    function update(){
+        $.ajax(
+            {
+                //几个参数需要注意一下
+                cache:false,
+                type: "POST",//方法类型
+                dataType: "json",//预期服务器返回的数据类型
+                url: "{% url 'process_manager:updatePSData' %}" ,//url
+                headers:{"X-CSRFToken":$.cookie("csrftoken")},
+                data: $('#updateForm').serialize(), //将模态框的form表单数据序列化，以便提交到后台
+                processData: false,// 不加会报错
+                //contentType: false,// 不加会报错
+                async:true,  //必须要为false
+
+                success: function (data) {
+                    $('#updateModal').modal('hide');
+                    document.getElementById("updateForm").reset();
+                    $("#myTab").bootstrapTable('refresh');
+                    if(data.ret){
+                        toastr.success('提交数据成功');
+                     }else {
+                    toastr.error('错误：' + data.errMsg);
+                        }
+                     },
+                error : function(data) {
+                        toastr.error("输入数据有误！");
+                     }
+                    });
+        }
+
+    function add() {
+        var data1 = $('#addForm').serialize();
+        $.ajax({
+        //几个参数需要注意一下
+            cache:false,
+            type: "POST",//方法类型
+            dataType: "json",//预期服务器返回的数据类型
+            url: "{% url 'manufacturing:addRepairRecord' %}" ,//url
+            headers:{"X-CSRFToken":$.cookie("csrftoken")},
+            data: data1, //将模态框的form表单数据序列化，以便提交到后台
+            async:true,  //必须要为false,必须必须
+
+            success: function (data) {
+                $('#addModal').modal('hide');
+                $("#myTab").bootstrapTable('refresh');
+                if(data.ret){
+                    toastr.success('提交数据成功');
+                 }
+                else{
+                    toastr.error('错误：' + data.errMsg);
+                }
+             },
+            error : function(data) {
+                toastr.error("输入数据有误！");
+             }
+        });
+    }
+
+    function actionFormatter(value, row, index) {
+        var id = row.id;
+        var data = JSON.stringify(row);
+        var result = "";
+        result += "<a href='javascript:;' class='btn btn-xs blue' onclick=" + "DetailViewById(" + index + "," + data + ")" + " title='查看'><span class='glyphicon glyphicon-new-window'></span></a>";
+        //result += "<a href='javascript:;' class='btn btn-xs red' onclick=" + "deleteconfirm(" + data + ")" + " title='删除'><span class='glyphicon glyphicon-remove'></span></a>";
+        return result;
+        }
+
+     // getData方法获取全部页面数据后，将data转为json对象，使用index当前行号作为下标获取对应数据
+    function DetailViewById(index, data){
+        $("#d_categorySelect option").each(function () {$(this).removeAttr("selected");});
+        $("#d_materialSelect option").each(function () {$(this).removeAttr("selected");});
+        $("#d_materialSelect").empty();
+        $("#d_vinInput").val(data.vin);
+        $("#d_nSnInput").val(data.new_sn);
+        $("#d_recordText").val(data.record);
+        $("#d_categorySelect option").each(function () {
+            if($(this).val()==data.category){
+                $(this).attr("selected", true);
+            }
+        });
+        $("#d_materialSelect").append("<option value="+"'" + data.origin_sn +"'>" + data.origin_sn +"</option>");
+
+        //弹出修改模态框，非新增模态框
+        $('#detailModal').modal('show');
+    }
+
+    let columns = [
+            //{
+                //checkbox: true
+            //},
+            {
+                field: 'no',
+                title: '序号',
+                align: "center",
+                width: "5%",
+                formatter: function (value, row, index) {
+                    //获取每页显示的数量
+                    var pageSize = $('#myTab').bootstrapTable('getOptions').pageSize;
+                    //获取当前是第几页
+                    var pageNumber = $('#myTab').bootstrapTable('getOptions').pageNumber;
+                    //返回序号，注意index是从0开始的，所以要加上1
+                    return pageSize * (pageNumber - 1) + index + 1;
+                }
+            },
+            {
+                field: 'vin',
+                title:'VIN',
+                width: '12%',
+                sortable: true,
+            },
+            {
+                field: 'name',
+                title:'产品名称',
+                width: '8%',
+            },
+            {
+                field: 'model',
+                title:'产品型号',
+                width: '8%',
+            },
+            {
+                field: 'category',
+                title:'返修类型',
+                width: '10%',
+                formatter: function (value, row, index) {
+                    var obj = {};
+                    {% for category in categorys %}
+                        obj["{{category.0}}"]= "{{ category.1 }}";
+                    {% endfor %}
+                    return obj[value];
+                }
+            },
+            {
+                field: 'origin_sn',
+                title:'原物料SN',
+                width: '12%',
+            },
+            {
+                field: 'new_sn',
+                title:'新物料SN',
+                width: '12%',
+            },
+
+            {
+                field: 'record',
+                title:'返修记录',
+                width: '15%',
+            },
+            {
+                field: 'c_time',
+                title:'创建时间',
+                width: '12%',
+                sortable: true,
+            },
+            {
+                field: 'operate',
+                title: '操作',
+                align: 'center',
+                valign: 'middle',
+                formatter: actionFormatter,
+            },
+        ];
+    let urls = "{% url 'manufacturing:getRepairRecord' %}";
+    tableFresh(columns, urls, 'id');
+
+
+</script>
+
+{% endblock %}

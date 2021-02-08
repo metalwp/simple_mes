@@ -1,181 +1,130 @@
-<!DOCTYPE HTML>
-<html lang="zh-cn">
-
+<!DOCTYPE html>
+<html>
 <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta content="width=device-width,initial-scale=1.0" name="viewport">
-    <meta content="yes" name="apple-mobile-web-app-capable">
-    <meta content="black" name="apple-mobile-web-app-status-bar-style">
-    <meta content="telephone=no" name="format-detection">
-    <meta content="email=no" name="format-detection">
-    <title>系统管理</title>
-    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.bootcss.com/bootstrap-table/1.11.1/bootstrap-table.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.bootcss.com/jquery-treegrid/0.2.0/css/jquery.treegrid.min.css">
+    <meta charset="utf-8">
+<title>noModal.html</title>
+
+<meta name="keywords" content="keyword1,keyword2,keyword3">
+<meta name="description" content="this is my page">
+<meta name="content-type" content="text/html">
+
+<!--<link rel="stylesheet" type="text/css" href="./styles.css">-->
+<link href="http://libs.baidu.com/bootstrap/3.0.3/css/bootstrap.min.css"
+	rel="stylesheet">
+<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+<script src="http://libs.baidu.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+<style type="text/css">
+
+.page{
+	margin-left:450px;
+}
+.but{
+	width:100px;
+	height:45px;
+	border-radius: 10px;
+	background-color: #1E90FF;
+	color:white;
+}
+.close{
+	margin-top:-15px;
+	margin-right:-30px;
+}
+
+.no_modal {
+	margin:0 auto;
+	margin-top:100px;
+	width: 350px;
+	border: 1px solid #DCDCDC;
+	border-radius: 10px;
+    background-color: white;
+
+}
+.login_page{
+	width:300px;
+	margin:0 auto;
+	padding:20px;
+}
+</style>
 </head>
 
+<body>
+	<div class="page">
+		<h1>js加载模态对话框</h1>
+		<button class="but">弹出对话框</button>
+	</div>
+	<div class="no_modal">
+		<div class="login_page">
+			<button class="close">x</button>
+			<form action="">
+				<div class="form-group">
+					<label class="control-label" for="UserName">用户名</label> <input
+						type="text" class="form-control" id="UserName" placeholder="用户名">
+				</div>
+				<div class="form-group">
+					<label class="control-label" for="Password">密码</label> <input
+						type="password" class="form-control" id="Password"
+						placeholder="密码">
+				</div>
+				<div class="form-group">
+					<label> <input type="checkbox">自动登录
+					</label> <a href="#" class="pull-right">忘记密码</a>
+				</div>
+				<div class="form-group">
+					<button type="submit" class="btn btn-primary form-control">登录</button>
+				</div>
+			</form>
+		</div>
+	</div>
+	<script type="text/javascript">
+		$(function (){
+			$(".no_modal").hide();
+		});
+		$(function(){
+		$(".but").click(function(){
+			$(".no_modal").show();
+		});
+		$(".close").click(function(){
+			$(".no_modal").hide();
+		});
+		});
 
-<body class="skin-blue sidebar-mini" style="background: none">
-<section class="content" id="app">
-    <div class="row">
-        <div class="col-xs-12">
-            <table id="menus">
-            </table>
-        </div>
-    </div>
-</section>
-<script type="text/javascript">
-    var $table = $('#menus');
-    var rid = getRequestParam("id");
-    //初始化表格
-    $(function () {
-        $table.bootstrapTable({
-            idField: 'id',
-            dataType: 'json',
-            url: baseUrl + '/menu/menusWithSelected/' + rid,
-            columns: [
-                {
-                    field: 'check', checkbox: true, formatter: function (value, row) {
-                        if (row["selected"] == 1) {
-                            return {checked: true};
-                        } else {
-                            return {checked: false};
-                        }
-                    }
-                },
-                {field: 'name', title: '菜单',formatter: function (value, row) {
-                        return "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='" + row.icon + "'></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + value;
-                    }},
-                {field: 'premission', title: '权限标识'}
-            ],
 
-
-            //在哪一列展开树形
-            treeShowField: 'name',
-            //指定父id列
-            parentIdField: 'pid',
-
-            onResetView: function (data) {
-                //console.log('load');
-                $table.treegrid({
-                    initialState: 'collapsed',// 所有节点都折叠
-                    initialState: 'expanded',// 所有节点都展开，默认展开
-                    treeColumn: 1,
-                    expanderExpandedClass: 'glyphicon glyphicon-minus',  //图标样式
-                    expanderCollapsedClass: 'glyphicon glyphicon-plus',
-                    onChange: function () {
-                        $table.bootstrapTable('resetWidth');
-                    }
-                });
-
-                //只展开树形的第一级节点
-               // $table.treegrid('getRootNodes').treegrid('expand');
-
-            },
-            onCheck: function (row,el) {
-                var datas = $table.bootstrapTable('getData');
-
-                $(el).attr("checked", "checked");
-
-                // 勾选子类
-                selectChilds(datas, row, "id", "pid", true);
-                // 勾选父类
-                selectParentChecked(datas, row, "id", "pid",true);
-                // 刷新数据
-                //$table.bootstrapTable('load', datas);
-            },
-            onUncheck: function (row,el) {
-                var datas = $table.bootstrapTable('getData');
-                // 勾选子类
-                selectChilds(datas, row, "id", "pid", false);
-
-                $(el).removeAttr("checked");
-                // 勾选父类
-                //selectParentChecked(datas, row, "id", "pid",false);
-            }
-            // bootstrap-table-treetreegrid.js 插件配置 -- end
+		var mouseStartPoint = {"left":0,"top":  0};
+        var mouseEndPoint = {"left":0,"top":  0};
+        var mouseDragDown = false;
+        var oldP = {"left":0,"top":  0};
+        var moveTartet ;
+        $(document).ready(function(){
+            $(document).on("mousedown",".login_page",function(e){
+                if($(e.target).hasClass("close"))//点关闭按钮不能移动对话框
+                    return;
+                mouseDragDown = true;
+                moveTartet = $(this).parent();
+                mouseStartPoint = {"left":e.clientX,"top":  e.clientY};
+                oldP = moveTartet.offset();
+            });
+            $(document).on("mouseup",function(e){
+                mouseDragDown = false;
+                moveTartet = undefined;
+                mouseStartPoint = {"left":0,"top":  0};
+                oldP = {"left":0,"top":  0};
+            });
+            $(document).on("mousemove",function(e){
+                if(!mouseDragDown || moveTartet == undefined)return;
+                var mousX = e.clientX;
+                var mousY = e.clientY;
+                if(mousX < 0)mousX = 0;
+                if(mousY < 0)mousY = 25;
+                mouseEndPoint = {"left":mousX,"top": mousY};
+                var width = moveTartet.width();
+                var height = moveTartet.height();
+                mouseEndPoint.left = mouseEndPoint.left - (mouseStartPoint.left - oldP.left);//移动修正，更平滑
+                mouseEndPoint.top = mouseEndPoint.top - (mouseStartPoint.top - oldP.top);
+                moveTartet.offset(mouseEndPoint);
+            });
         });
-    });
 
-    /**
-     * 选中父项时，同时选中子项
-     * @param datas 所有的数据
-     * @param row 当前数据
-     * @param id id 字段名
-     * @param pid 父id字段名
-     */
-    function selectChilds(datas, row, id,pid, checked) {
-        for(var i in datas){
-            if(row[id] == datas[i][pid]){
-                $("input[name='btSelectItem']").each(function (el) {
-                    if($(this).val() == datas[i][id]){
-                        $(this).attr("checked",checked);
-                        $(this).prop("checked",checked);
-                        selectChilds(datas, datas[i], id,pid, checked);
-                    }
-                });
-            }
-        }
-    }
-    function selectParentChecked(datas, row, id,pid, checked) {
-        for(var i in datas){
-            if(row[pid] == datas[i][id]){
-                $("input[name='btSelectItem']").each(function (el) {
-                    if($(this).val() == datas[i][id]){
-                        $(this).attr("checked",checked);
-                        $(this).prop("checked",checked);
-                        selectParentChecked(datas, datas[i], id,pid, checked);
-                    }
-                });
-            }
-        }
-    }
+	</script>
 
-
-
-    //角色授权
-    function save() {
-        var menuArray = new Array();
-        $("input[name='btSelectItem']").each(function (d) {
-            if($(this).attr("checked")){
-                console.log($(this).attr("checked"));
-                menuArray.push($(this).val());
-            }
-        });
-        $.ajax({
-            type: 'POST',
-            data: {menus: menuArray, rid: rid},
-            async: false,
-            url: baseUrl + "/role/prem",
-            success: function (r) {
-                if (r.success) {
-                    parent.layer.msg("角色授权成功", {
-                        time: 1000
-                    });
-                    parent.vm.refresh();
-                    var index = parent.layer.getFrameIndex(window.name); //获取窗口索引
-                    parent.layer.close(index); // 关闭layer
-                    return true;
-                }
-            },error:function (r) {
-                alert("授权失败，请至少选择一条数据");
-            }
-        });
-        return false;
-    }
-
-    function submit() {
-        return save();
-
-    }
-</script>
 </body>
-<script src="https://cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>
-<script src="https://cdn.bootcss.com/bootstrap-table/1.12.1/bootstrap-table.min.js"></script>
-<script src="https://cdn.bootcss.com/bootstrap-table/1.12.0/extensions/treegrid/bootstrap-table-treegrid.js"></script>
-<script src="https://cdn.bootcss.com/jquery-treegrid/0.2.0/js/jquery.treegrid.min.js"></script>
-
-<a href='javascript:;' class='btn btn-xs blue' onclick=EditViewById(19,{"id":7,"title":"检验管理","icon":"fa fa-code-fork","parent":null,"url":"/account/menu/delete/"}) title='编辑'><span class='glyphicon glyphicon-pencil'></span></a><a href='javascript:;' class='btn btn-xs red' onclick=deleteconfirm({"id":7,"title":"检验管理","icon":"fa fa-code-fork","parent":null,"url":"/account/menu/delete/"}) title='删除'><span class='glyphicon glyphicon-remove'></span></a>
-
 </html>

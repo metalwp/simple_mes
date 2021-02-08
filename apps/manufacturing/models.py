@@ -100,4 +100,23 @@ class TestRecord(BaseModel):
         db_table = 'sm_test_record'
 
 
-        
+class RepairRecord(BaseModel):
+    CATEGORY_CHOICE = (
+        (0, "追溯物料返修"),
+        (1, "非追溯物料返修")
+    )
+    product = models.ForeignKey('Product', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='对应产品')
+    category = models.SmallIntegerField('返修类型', choices=CATEGORY_CHOICE, default=0)
+    origin_sn = models.CharField('原SN', null=True, blank=True, max_length=30)
+    new_sn = models.CharField('新SN', null=True, blank=True, max_length=30)
+    record = models.TextField('返修记录', blank=True, null=True, max_length=1000)
+    material_model = models.ForeignKey('bom_manager.MaterialModel', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='物料型号')
+
+    def __str__(self):
+        return self.origin_sn + ' ' + self.new_sn
+
+    class Meta:
+        verbose_name = '返修记录'
+        verbose_name_plural = '返修记录'
+        db_table = 'sm_repair_record'
+

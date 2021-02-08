@@ -37,6 +37,10 @@ function tableFresh(columns, urls, pk){
         },
         columns: columns,
         onLoadSuccess: function(data) {
+            $('table tr td').each(function () {
+            $(this).attr("title", $(this).text());
+            $(this).css("cursor", 'pointer');
+            });
             },
         onLoadError: function () {
             toastr.error("数据加载失败！", "错误提示");

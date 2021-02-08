@@ -28,34 +28,27 @@
                     <div class="box-header">
                         <h3 class="box-title">{{ step.name }}</h3>
                     </div>
-                    <div class="col-xs-4" style="">
-                        <h5 style="color: red">{{ errMsg }}</h5>
-                    </div>
 
                     <!-- /.box-header -->
                     <div class="box-body" >
                         {#        自定义搜索条件区域#}
                         <div class="col-xs-12">
                             <div class="form-inline col-xs-12" style="margin: 5px;margin-bottom: 20px;">
-                                <label class="control-label" style="width: 100%;
-                                                                    min-width: 100px;
-                                                                    max-width: 150px;
-                                                                    height: 100%;
-                                                                    min-height: 40px;
-                                                                    font-size: 20px;
-                                                                    margin: 5px;">VIN:</label>
-                                <label id="product_vin" class="control-label" style="width: 100%;
+                                <input id="Input1" class="form-control" style="width: 100%;
                                                                                         min-width: 200px;
                                                                                         max-width: 500px;
                                                                                         height: 100%;
                                                                                         min-height: 40px;
                                                                                         font-size: 20px;
-                                                                                        margin: 5px;"></label>
-
-                                <button id="search" style="margin-left: 5px;" type="button" class="btn btn-lg btn-default" onclick="search()">查询订单情况</button>
-                                <button id="generate" style="margin-left: 5px;" type="button" class="btn btn-lg btn-primary" onclick="generate()">查询并生成VIN</button>
+                                                                                        margin: 5px;"
+                                       placeholder="请输入车辆VIN...">
+                                <button id="print" style="margin-left: 5px;" type="button" class="btn btn-lg btn-default" onclick="printBtn()">打印</button>
                             </div>
                             <div class="col-xs-4">
+                                <div class="form-inline form-group">
+                                    <label class="control-label" >当前VIN:</label>
+                                    <label id="product_vin" class="control-label" ></label>
+                                </div>
                                 <div class="form-inline form-group">
                                     <label class="control-label" >产品物料号:</label>
                                     <label id="product_erp" class="control-label" ></label>
@@ -91,6 +84,10 @@
                             </div>
                             <div class="col-xs-4">
                                 <div class="form-inline form-group">
+                                    <label class="control-label" >当前状态:</label>
+                                    <label id="status" class="control-label" ></label>
+                                </div>
+                                <div class="form-inline form-group">
                                     <label class="control-label" >操作员:</label>
                                     <label id="user" class="control-label" ></label>
                                 </div>
@@ -99,13 +96,6 @@
                                     <label id="date" class="control-label" ></label>
                                 </div>
                             </div>
-                        </div>
-
-
-                        {#        bootstrap table自动渲染区域#}
-                        <div class="col-xs-12">
-                            {% csrf_token %}
-                            <table id="myTab" class="table table-bordered table-hover" style="table-layout:fixed;word-break:break-all;"></table>
                         </div>
                         
                     </div>
@@ -150,10 +140,9 @@
         obj["{{category.0}}"]= "{{ category.1 }}";
     {% endfor %}
 
-    function search() {
+    function printBtn() {
         var formdata = new FormData(); //ajax上传文件的时候，需要这个类型，它会将添加给它的键值对加工成formdata的类型
-        var token = $("[name='csrfmiddlewaretoken']").val();
-        {#formdata.append("csrfmiddlewaretoken", token); //别忘了csrf_token#}
+        formdata.append('snInput', $('#Input1').val());
         $.ajax(
             {
                 //几个参数需要注意一下
@@ -169,6 +158,7 @@
 
                 success: function (data) {
                     if(data.ret){
+                        $('#product_vin').text(data.info.product_vin);
                         $('#product_erp').text(data.info.product_erp);
                         $('#product_name').text(data.info.product_name);
                         $('#product_model').text(data.info.product_model);
@@ -176,10 +166,14 @@
                         $('#order_quantity').text(data.info.order_quantity);
                         $('#finish_quantity').text(data.info.finish_quantity);
                         $('#finish_rate').text(data.info.finish_rate);
+                        $('#status').text(data.info.status);
                         $('#user').text(data.info.user);
                         $('#date').text(data.info.date);
+                        $('#Input1').val('');
 
-                        $("#myTab").bootstrapTable('refresh');
+                        $('#Input1').focus();
+                        print(data.info.product_vin, data.info.filename);
+
                      }
                     else {
                         toastr.error('Error: ' + data.errMsg)
@@ -191,45 +185,7 @@
             });
     }
 
-    function generate() {
-        data = {};
-        var json_data = JSON.stringify(data);
-        $.ajax({
-            url:"{% url 'manufacturing:generateVIN' step.id %}",
-            headers:{"X-CSRFToken":$.cookie("csrftoken")},
-            type:"post",
-            data:json_data, //将添加好数据的formdata放到data这里
-            processData: false,    // 不处理数据
-            contentType: false,    // 不设置内容类型
-            dataType: "json",
-            success:function(data){
-                if (data.ret){
-                    $('#product_vin').text(data.info.vin);
-                    search();
-                    toastr.success("VIN生成成功！");
-
-                    //window.location.reload()
-
-                    }
-                else {
-                    toastr.error("错误：" + data.errMsg);
-                }},
-            error: function(data){
-                toastr.error('导入异常！')
-                }
-        })
-    }
-
-    function actionFormatter(value, row, index) {
-        var id = row.id;
-        //row.url = "{% url 'bom_manager:deleteBomData' %}";
-        var data = JSON.stringify(row);
-
-        var result = "";
-        result += "<a href='javascript:;' class='btn btn-primary' onclick=" + "print_btn(" + data + ")" + " title='打印'>打印</a>";
-        return result;}
-
-    function print_btn(data) {
+    function print(vin, filename){
          var array = new Array();
         var obj = { BatteryCapacity:"5555",
 		            CarsClassificationName: '1111',
@@ -240,8 +196,8 @@
                     ProductCode:"3333",
                     TruckLoadingList: '2222',
                     Voltage:"6666",
-                    printType: data.filename,
-                    vin: data.vin};
+                    printType: filename,
+                    vin: vin};
         array.push(obj);
         $.post("http://127.0.0.1:6677",{data:array},
         function (data) {
@@ -254,89 +210,15 @@
         }, "json");
     }
 
-    var columns =  [
-            {
-                field: 'no',
-                title: '序号',
-                align: "center",
-                valign: 'middle',
-                width: "100",
-                formatter: function (value, row, index) {
-                    //获取每页显示的数量
-                    var pageSize = $('#myTab').bootstrapTable('getOptions').pageSize;
-                    //获取当前是第几页
-                    var pageNumber = $('#myTab').bootstrapTable('getOptions').pageNumber;
-                    //返回序号，注意index是从0开始的，所以要加上1
-                    return pageSize * (pageNumber - 1) + index + 1;
-                }
-            },
-            {
-                field: 'vin',
-                title:'VIN',
-                width: '200',
-                align: 'center',
-                valign: 'middle',
-                sortable: false,
-            },
 
-            {   field: 'order_num',
-                title:'订单号',
-                width: '100',
-                align: 'center',
-                valign: 'middle',
-            },
-            {
-                field: 'erp_no',
-                title:'物料号',
-                width: '150',
-                align: 'center',
-                valign: 'middle',
-                sortable: false,
-            },
-            {
-                field: 'name',
-                title:'产品名称',
-                width: '150',
-                align: 'center',
-                valign: 'middle',
-                sortable: false,
-            },
-            {
-                field: 'model',
-                title:'产品型号',
-                width: '100',
-                align: 'center',
-                valign: 'middle',
-                sortable: false,
-            },
-            {
-                field: 'operate',
-                title: '操作',
-                 width: '100',
-                align: 'center',
-                valign: 'middle',
-                formatter: actionFormatter,
-            },
-             {
-                field: 'c_time',
-                title:'创建时间',
-                width: '200',
-                align: 'center',
-                valign: 'middle',
-                sortable: false,
-            },
-            {   field: 'm_time',
-                title:'修改时间',
-                width: '200',
-                align: 'center',
-                valign: 'middle',
-                sortable: false,
-            },
+    $('#Input1').keydown(function(e){
+        if(e.keyCode==13){
+           printBtn();
+            }
+        });
 
-        ];
-    var urls = "{% url 'manufacturing:getProductInfo' step.id %}";
-    tableFresh2(columns, urls, 'id');
-    search()
+    $('#Input1').focus();
+
 
 
 </script>
