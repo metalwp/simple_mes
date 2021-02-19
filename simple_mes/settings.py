@@ -29,9 +29,9 @@ AUTH_USER_MODEL = "account.User"
 SECRET_KEY = '-(y7u)h-77qa334=$zp$*sn#g!u_)j(rhpr*@f2^b8wjk+q+le'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['*', 'localhost']
+ALLOWED_HOSTS = ['*',  'localhost']
 
 
 # Application definition
@@ -146,7 +146,10 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"),]
-
+# STATICFILES_DIRS = [
+#     "/home/metalwp/Documents/static"
+# ]
+STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 # 文件上传配置
 UPLOAD_ROOT = os.path.join(BASE_DIR, 'upload')
 

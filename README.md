@@ -25,6 +25,8 @@
 16. account中的init_permission在其他模块中调用时有问题
 17. 导出功能未实现
 18. （OK）服务端的LOG功能
+19. bootstrap-table-resizable 表格可以拖拽宽度
 
 
 
+uwsgi --http :8001 --chdir /home/metalwp/Work/test2/simple_mes/ --home=/home/metalwp/Work/test2/simple_mes/venv/ --module simple_mes.wsgi
