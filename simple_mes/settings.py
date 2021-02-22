@@ -248,7 +248,7 @@ LOGGING = {
     'loggers': {
         # 类型 为 django 处理所有类型的日志， 默认调用
         'django': {
-            'handlers': ['console'],
+            'handlers': ['error', 'info', 'default'],
             # 'handlers': ['default', 'console', 'error', 'info'],
             'level': 'INFO',
             'propagate': False
