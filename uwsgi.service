@@ -1,0 +1,12 @@
+[Unit]
+Description=uWSGI server
+After=syslog.target
+
+[Service]
+User=metalwp
+WorkingDirectory=/home/metalwp/Work/test2/simple_mes
+ExecStart=/usr/local/bin/uwsgi --ini /home/metalwp/Work/test2/simple_mes/uwsgi.ini
+Group=www-data
+
+[Install]
+WantedBy=multi-user.target

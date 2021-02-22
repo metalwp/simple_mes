@@ -1,0 +1,26 @@
+2、启动、停止、重启、查看服务命令 ：
+　　sudo systemctl start uwsgi.service
+
+　　sudo systemctl stop uwsgi.service
+
+　　sudo systemctl restart uwsgi.service
+
+       sudo systemctl status uwsgi.service #查看服务状态，可查看错误信息
+
+3、加入、关闭系统自启动：
+　　sudo systemctl daemon-reload
+
+　　sudo systemctl enable uwsgi.service
+
+　　执行此命令后在/etc/systemd/system/multi-user.target.wants目录下生成uwsgi.sevice的链接文件，
+
+　　Ubuntu1804系统的自启动项目均在此目录下。重启系统后，可看到uwsgi服务已启动。
+
+　　sudo systemctl disable uwsgi.service
+
+4、总结：
+　　1、建立service文件，必须保证文件编辑正确，因为不返回执行结果；注意注释格式（最好去掉），建议使用vi编辑，有的编辑器会带有空格；
+
+　　2、建立链接文件或复制文件到/etc/systemd/system/目录中；
+
+　　3、通过systemctl enable uwsgi.service命令在/etc/systemd/system/multi-user.target.wants目录下生成uwsgi.sevice的链接文件。
