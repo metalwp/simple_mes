@@ -15,6 +15,7 @@ from apps.bom_manager.models import MaterialModel, Bom_MaterialModel, BOM
 from apps.Inspection.models import Inspection
 from apps.account.models import Menu, Permission
 from simple_mes import settings
+from apps.account.service.init_permission import init_permission
 
 # Create your views here.
 
@@ -36,7 +37,7 @@ def getPSData(request):
         sortName = request.GET.get('sortName')
         sortOrder = request.GET.get('sortOrder')
         search_kw = request.GET.get('search_kw')
-
+        init_permission(request, request.user)
         if sortOrder == 'asc':
             sort_str = sortName
         else:
@@ -236,6 +237,7 @@ def getMaterialDate(request, step_id):
         sortName = request.GET.get('sortName')
         sortOrder = request.GET.get('sortOrder')
         search_kw = request.GET.get('search_kw')
+        init_permission(request, request.user)
 
         if sortOrder == 'asc':
             sort_str = sortName
@@ -365,6 +367,7 @@ def getInspectionData(request, step_id):
         sortName = request.GET.get('sortName')
         sortOrder = request.GET.get('sortOrder')
         search_kw = request.GET.get('search_kw')
+        init_permission(request, request.user)
 
         try:
             process_step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
@@ -555,8 +558,6 @@ def pr_index(request):
     return render(request, "process_manager/pr_index.html", locals())
 
 
-
-
 def getPRData(request):
     model = ProcessRoute
     if request.method == "GET":
@@ -565,6 +566,8 @@ def getPRData(request):
         sortName = request.GET.get('sortName')
         sortOrder = request.GET.get('sortOrder')
         search_kw = request.GET.get('search_kw')
+        init_permission(request, request.user)
+
         if sortOrder == 'asc':
             sort_str = sortName
         else:

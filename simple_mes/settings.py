@@ -29,9 +29,10 @@ AUTH_USER_MODEL = "account.User"
 SECRET_KEY = '-(y7u)h-77qa334=$zp$*sn#g!u_)j(rhpr*@f2^b8wjk+q+le'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# 用django直接运行需要设置未True，生产环境下设置为False
+DEBUG = True
 
-ALLOWED_HOSTS = ['*',  'localhost']
+ALLOWED_HOSTS = ['*',  'localhost', ]
 
 
 # Application definition
@@ -99,7 +100,7 @@ DATABASES = {
     # }
     'default': {
         'ENGINE': 'django.db.backends.mysql',  # 指定数据库驱动
-        'NAME': 'simple_mes',  # 指定的数据库名
+        'NAME': 'simple_mes3',  # 指定的数据库名
         'USER': 'root',  # 数据库登录的用户名
         'PASSWORD': '123456@Wp',  # 登录数据库的密码
         'HOST': '127.0.0.1',
@@ -145,11 +146,11 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"),]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"), ]
 # STATICFILES_DIRS = [
 #     "/home/metalwp/Documents/static"
 # ]
-STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+#STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 # 文件上传配置
 UPLOAD_ROOT = os.path.join(BASE_DIR, 'upload')
 

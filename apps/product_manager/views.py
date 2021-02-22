@@ -12,7 +12,7 @@ from .models import ProductModel, ProductCategory, VinRule, VinRuleItem
 from apps.process_manager.models import ProcessRoute
 from apps.bom_manager.models import BOM
 from apps.order_manager.models import Order
-
+from apps.account.service.init_permission import init_permission
 
 # Create your views here.
 
@@ -32,6 +32,8 @@ def getPcData(request):
         sortName = request.GET.get('sortName')
         sortOrder = request.GET.get('sortOrder')
         search_kw = request.GET.get('search_kw')
+        init_permission(request, request.user)
+
         if sortOrder == 'asc':
             sort_str = sortName
         else:
@@ -121,6 +123,7 @@ def deletePcData(request):
     if request.method == "POST":
         # 收取前端数据
         _id = request.POST.get('id')
+        print(_id)
 
         # 校验数据有效性
         if not _id:
@@ -128,12 +131,12 @@ def deletePcData(request):
 
         # 业务处理
         try:
-            catagory = ProductCategory.objects.filter_without_isdelete().get(id=_id)
-            product_model = ProductModel.objects.filter_without_isdelete().filter(catagory=catagory)
+            category = ProductCategory.objects.filter_without_isdelete().get(id=_id)
+            product_model = ProductModel.objects.filter_without_isdelete().filter(category=category)
             if product_model:
                 return JsonResponse({"ret": False, "errMsg": "该产品类型已创建产品型号，无法删除！", "rows": [], "total": 0})
             else:
-                catagory.delete()
+                category.delete()
         except Exception as e:
             return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
 
@@ -159,6 +162,8 @@ def getPmData(request):
         sortName = request.GET.get('sortName')
         sortOrder = request.GET.get('sortOrder')
         search_kw = request.GET.get('search_kw')
+        init_permission(request, request.user)
+
         if sortOrder == 'asc':
             sort_str = sortName
         else:

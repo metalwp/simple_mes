@@ -37,6 +37,22 @@
                             <div class="columns columns-left btn-group pull-left">
                                 <button id="reset-button" type="button" class="btn btn-primary" onclick="clean()">重置</button>
                             </div>
+
+                            <form id="exportform" method="post" action="{% url 'account:exportMenu' %}">
+                                <div class="columns columns-right btn-group pull-right">
+                                  {% csrf_token %}
+                                  <a onclick="document.getElementById('exportform').submit();" class="btn btn-facebook">导出</a>
+                                </div>
+                            </form>
+                            <form id="uploadForm" >
+                                {% csrf_token %}
+                                <div class="columns columns-right btn-group pull-right">
+                                    <input type="button" class="btn btn-facebook" name="submit" value="导入" id="uploadSubmit">
+                                </div>
+                                <div class="columns columns-right btn-group pull-right">
+                                    <input type="file"  class="form-row" name="uploadFile" id="uploadFile" placeholder="请选择文件">
+                                </div>
+                            </form>
                          <!-- 按钮触发模态框 -->
                             <div class="columns columns-right btn-group pull-right">
                                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addModal">新增记录</button>
@@ -185,12 +201,34 @@
 
         });
 
-    $("#addModal").on("hidden.bs.modal", function() {
-        document.getElementById("addForm").reset();
-    });
+    $("#uploadSubmit").click(function(){
+        var res = window.confirm("导入会覆盖之前的所有数据，是否导入？");
+        if(res===true){
+            var formdata = new FormData(); //ajax上传文件的时候，需要这个类型，它会将添加给它的键值对加工成formdata的类型
+            var token = $("[name='csrfmiddlewaretoken']").val();
+            formdata.append("csrfmiddlewaretoken", token); //别忘了csrf_token
+            formdata.append("uploadFile",$("#uploadFile")[0].files[0]);
+            $.ajax({
+                url:"{% url 'account:uploadMenu'%}",
+                type:"post",
+                data:formdata, //将添加好数据的formdata放到data这里
+                processData: false,    // 不处理数据
+                contentType: false,    // 不设置内容类型
+                dataType: "json",
+                success:function(data){
+                    if (data.ret){
+                        toastr.success("导入成功！");
+                        $('#myTab').bootstrapTable('refresh');
+                        }
+                    else {
+                        toastr.error("错误：" + data.errMsg);
+                    }},
+                error: function(data){
+                    toastr.error('导入异常！')
+                    }
+            })
+        }
 
-    $("#updateModal").on("hidden.bs.modal", function() {
-        document.getElementById("updateForm").reset();
     });
 
     function update() {

@@ -23,6 +23,8 @@ urlpatterns = [
     path('permission/add/', PermissionView.as_view(), name='addPermission'),
     path('permission/update/', PermissionView.as_view(), name='updatePermission'),
     path('permission/delete/', PermissionView.as_view(), name='deletePermission'),
+    path('permission/export/', PermissionView.as_view(), name='exportPermission'),
+    path('permission/upload/', PermissionView.as_view(), name='uploadPermission'),
 
     path('role/', RoleView.as_view(), name='role'),
     path('role/get/', RoleView.as_view(), name='getRole'),
@@ -35,6 +37,8 @@ urlpatterns = [
     path('menu/add/', MenuView.as_view(), name='addMenu'),
     path('menu/update/', MenuView.as_view(), name='updateMenu'),
     path('menu/delete/', MenuView.as_view(), name='deleteMenu'),
+    path('menu/export/', MenuView.as_view(), name='exportMenu'),
+    path('menu/upload/', MenuView.as_view(), name='uploadMenu'),
 
     path('role_permission/', RolePermissionView.as_view(), name='role_permission'),
     path('role_permission/getRole/', RolePermissionView.as_view(), name='getRole2'),

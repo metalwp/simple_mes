@@ -13,6 +13,7 @@ from apps.bom_manager.models import MaterialModel, BOM, Bom_MaterialModel
 from apps.order_manager.models import Order
 from apps.process_manager.models import ProcessStep, ProcessStep_MaterialModel
 from simple_mes import settings
+from apps.account.service.init_permission import init_permission
 
 # Create your views here.
 
@@ -22,6 +23,7 @@ def index(request):
     # boms = BOM.objects.filter_without_isdelete()
     user = request.user
     if user.is_authenticated:
+
         return render(request, "bom_manager/index.html", locals())
     else:
         request.session['errMsg'] = '请先登陆！'
@@ -60,6 +62,7 @@ def getBomData(request):
                              'model_name': obj.product_model.model,
                              'bom_version': obj.version,
                              'remark': obj.remark})
+        init_permission(request, request.user)
         return JsonResponse(data)
 
 
@@ -234,6 +237,7 @@ def get(request, bom_id):
 
         data = {"total": total, "rows": rows}
         # print(data)
+        init_permission(request, request.user)
         return JsonResponse(data)
 
 

@@ -11,14 +11,16 @@ from django.contrib.auth.decorators import login_required
 
 from apps.station_manager.models import Station, Fixture, TestStandard
 from simple_mes import settings
+from apps.account.service.init_permission import init_permission
+
 
 # Create your views here.
 CATEGORY_CHOICE = ((0, 'NON'),
-                                                (1, 'ASY'),
-                                                (2, 'EOL'),
-                                                (3, 'CAL'),
-                                                (4, 'INS'),
-                                                (5, 'OTH'))
+                    (1, 'ASY'),
+                    (2, 'EOL'),
+                    (3, 'CAL'),
+                    (4, 'INS'),
+                    (5, 'OTH'))
 
 
 @login_required
@@ -75,6 +77,8 @@ def getStationData(request):
         sortName = request.GET.get('sortName')
         sortOrder = request.GET.get('sortOrder')
         search_kw = request.GET.get('search_kw')
+        init_permission(request, request.user)
+
         if sortOrder == 'asc':
             sort_str = sortName
         else:
@@ -241,6 +245,8 @@ def getFixtureData(request):
         sortName = request.GET.get('sortName')
         sortOrder = request.GET.get('sortOrder')
         search_kw = request.GET.get('search_kw')
+        init_permission(request, request.user)
+
         if sortOrder == 'asc':
             sort_str = sortName
         else:
@@ -342,6 +348,8 @@ def getTestStandard(request, fixture_id):
         sortName = request.GET.get('sortName')
         sortOrder = request.GET.get('sortOrder')
         search_kw = request.GET.get('search_kw')
+        init_permission(request, request.user)
+
         # if sortOrder == 'asc':
         #     sort_str = sortName
         # else:

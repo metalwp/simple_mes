@@ -22,8 +22,8 @@
 13. （OK）产品型号中不含总称ERP号，总成ERP号改为BOM中的属性--已修改
 14. （OK）产品型号配置中，名称和型号改为不能重复
 15. （OK）标签打印未实现，模板/数据
-16. account中的init_permission在其他模块中调用时有问题
-17. 导出功能未实现
+16. （OK）account中的init_permission在其他模块中调用时有问题--不能放在django返回render前面，只能放在返回JsonResponse前面
+17.  (OK)导出功能未实现--菜单和权限导入导出功能已实现
 18. （OK）服务端的LOG功能
 19. bootstrap-table-resizable 表格可以拖拽宽度
 

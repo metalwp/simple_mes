@@ -1,13 +1,16 @@
 import re
 import json
+import xlwt
+import time
+import os
+import xlrd
 
 from django.shortcuts import render, redirect, reverse
 from django.views.generic import View
 from django.contrib.auth import authenticate, login, logout
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.conf import settings
-
 
 from apps.account.models import User, Role, Permission, Menu
 from apps.account.service.init_permission import init_permission
@@ -418,6 +421,12 @@ class PermissionView(View):
         elif request.path.split('/')[-2] == 'update':
             ret, errMsg, rows, total = self.update(request)
             return JsonResponse({"ret": ret, "errMsg": errMsg, "rows": rows, "total": total})
+        elif request.path.split('/')[-2] == 'export':
+            response = self.export(request)
+            return response
+        elif request.path.split('/')[-2] == 'upload':
+            ret, errMsg, rows, total = self.upload(request)
+            return JsonResponse({"ret": ret, "errMsg": errMsg, "rows": rows, "total": total})
 
     @staticmethod
     def add(request):
@@ -501,7 +510,86 @@ class PermissionView(View):
         obj.menu = menu
         obj.parent = parent
         obj.save()
+        init_permission(request, request.user)
         return True, '', [], 0
+
+    @staticmethod
+    def export(request):
+        response = HttpResponse(content_type='application/ms-excel')
+        response['Content-Disposition'] = 'attachment; filename="permissions-{}.xls"'.format(
+            time.strftime('%Y-%m-%d-%H-%M-%S'))
+        wb = xlwt.Workbook(encoding='utf-8')
+        ws = wb.add_sheet('Permission')
+        # Sheet header, first row
+        row_num = 0
+        font_style = xlwt.XFStyle()
+        font_style.font.bold = True
+        columns = ['title', 'url', 'menu', 'parent']
+        for col_num in range(len(columns)):
+            ws.write(row_num, col_num, columns[col_num], font_style)
+        # Sheet body, remaining rows
+        font_style = xlwt.XFStyle()
+        rows = Permission.objects.all().order_by('id').values_list('title', 'url', 'menu__title', 'parent__title')
+        for row in rows:
+            row_num += 1
+            for col_num in range(len(row)):
+                ws.write(row_num, col_num, row[col_num], font_style)
+        wb.save(response)
+        return response
+
+    @staticmethod
+    def upload(request):
+        file = request.FILES.get('uploadFile')
+
+        if not os.path.exists(settings.UPLOAD_ROOT):
+            os.makedirs(settings.UPLOAD_ROOT)
+        try:
+            if file is None:
+                return_dict = {"ret": False, "errMsg": '请选择文件', "rows": [], "total": 0}
+                return HttpResponse(json.dumps(return_dict))
+            with open(settings.UPLOAD_ROOT + "/" + file.name, 'wb') as f:
+                for i in file.readlines():
+                    f.write(i)
+
+            permissions = Permission.objects.all()
+            for permission in permissions:
+                permission.delete()
+
+            excel = xlrd.open_workbook(settings.UPLOAD_ROOT + "/" + file.name)
+            sheet = excel.sheet_by_name('Permission')
+            nrows = sheet.nrows
+            ncols = sheet.ncols
+
+            for i in range(1, nrows):
+                row = sheet.row_values(i)
+                title = row[0].strip()
+                url = row[1].strip()
+                menu_title = row[2].strip()
+                parent_title = row[3].strip()
+
+                if menu_title:
+                    try:
+                        menu = Menu.objects.get(title=menu_title)
+                    except Menu.DoesNotExist:
+                        return False, "未找到第" + str(i + 1) + "行菜单", [], 0
+                else:
+                    menu = None
+
+                if parent_title:
+                    try:
+                        parent = Permission.objects.get(title=parent_title)
+                    except Permission.DoesNotExist:
+                        return False, "未找到第" + str(i + 1) + "行父权限", [], 0
+                else:
+                    parent = None
+                Permission.objects.create(title=title,
+                                            url=url,
+                                            menu=menu,
+                                            parent=parent)
+
+            return True, '', [], 0
+        except Exception as e:
+            return False, str(e), [], 0
 
 
 class RoleView(View):
@@ -677,6 +765,12 @@ class MenuView(View):
         elif request.path.split('/')[-2] == 'update':
             ret, errMsg, rows, total = self.update(request)
             return JsonResponse({"ret": ret, "errMsg": errMsg, "rows": rows, "total": total})
+        elif request.path.split('/')[-2] == 'export':
+            response = self.export(request)
+            return response
+        elif request.path.split('/')[-2] == 'upload':
+            ret, errMsg, rows, total = self.upload(request)
+            return JsonResponse({"ret": ret, "errMsg": errMsg, "rows": rows, "total": total})
 
     @staticmethod
     def add(request):
@@ -745,7 +839,74 @@ class MenuView(View):
         obj.icon = icon if icon else None
         obj.parent = parent
         obj.save()
+        init_permission(request, request.user)
         return True, '', [], 0
+
+    @staticmethod
+    def export(request):
+        response = HttpResponse(content_type='application/ms-excel')
+        response['Content-Disposition'] = 'attachment; filename="menus-{}.xls"'.format(time.strftime('%Y-%m-%d-%H-%M-%S'))
+        wb = xlwt.Workbook(encoding='utf-8')
+        ws = wb.add_sheet('Menu')
+        # Sheet header, first row
+        row_num = 0
+        font_style = xlwt.XFStyle()
+        font_style.font.bold = True
+        columns = ['title', 'icon', 'parent']
+        for col_num in range(len(columns)):
+            ws.write(row_num, col_num, columns[col_num], font_style)
+        # Sheet body, remaining rows
+        font_style = xlwt.XFStyle()
+        rows = Menu.objects.all().order_by('id').values_list('title', 'icon', 'parent__title')
+        for row in rows:
+            row_num += 1
+            for col_num in range(len(row)):
+                ws.write(row_num, col_num, row[col_num], font_style)
+        wb.save(response)
+        return response
+
+    @staticmethod
+    def upload(request):
+        file = request.FILES.get('uploadFile')
+
+        if not os.path.exists(settings.UPLOAD_ROOT):
+            os.makedirs(settings.UPLOAD_ROOT)
+        try:
+            if file is None:
+                return_dict = {"ret": False, "errMsg": '请选择文件', "rows": [], "total": 0}
+                return HttpResponse(json.dumps(return_dict))
+            with open(settings.UPLOAD_ROOT + "/" + file.name, 'wb') as f:
+                for i in file.readlines():
+                    f.write(i)
+
+            menus = Menu.objects.all()
+            for menu in menus:
+                menu.delete()
+
+            excel = xlrd.open_workbook(settings.UPLOAD_ROOT + "/" + file.name)
+            sheet = excel.sheet_by_name('Menu')
+            nrows = sheet.nrows
+            ncols = sheet.ncols
+
+            for i in range(1, nrows):
+                row = sheet.row_values(i)
+                title = row[0].strip()
+                icon = row[1].strip()
+                parent_title = row[2].strip()
+                if parent_title:
+                    try:
+                        parent = Menu.objects.get(title=parent_title)
+                    except Menu.DoesNotExist:
+                        return False, "未找到第" + str(i+1) + "行父菜单", [], 0
+                else:
+                    parent = None
+                Menu.objects.create(title=title,
+                                    icon=icon if icon else None,
+                                    parent=parent)
+
+            return True, '', [], 0
+        except Exception as e:
+            return False, str(e), [], 0
 
 
 class RolePermissionView(View):
@@ -831,6 +992,7 @@ class RolePermissionView(View):
         role.permissions.clear()
         for p in permission_list:
             role.permissions.add(p)
+        init_permission(request, request.user)
         return True, '', [], 0
 
 

@@ -10,6 +10,7 @@ from django.db.models import Q
 from apps.Inspection.models import Inspection, GeneralMaterial, GMInspectRecord, TraceMaterial, TMInspectRecord
 from apps.bom_manager.models import MaterialModel
 from simple_mes import settings
+from apps.account.service.init_permission import init_permission
 
 # Create your views here.
 
@@ -57,7 +58,7 @@ def getMaterialData(request):
                          'is_traced': obj.is_traced,
                          "is_inspected": obj.is_inspected,
                          })
-
+        init_permission(request, request.user)
         data = {"total": total, "rows": rows}
         return JsonResponse(data)
 
@@ -112,6 +113,7 @@ def getInspectionData(request, material_id):
                          'm_time': obj.m_time.strftime("%Y-%m-%d-%H:%M:%S"),
                          'c_time': obj.c_time.strftime("%Y-%m-%d-%H:%M:%S"),
                          })
+        init_permission(request, request.user)
         return JsonResponse(data)
 
 
@@ -304,7 +306,6 @@ def gminspection_index(request):
         return redirect(reverse('account:login'))
 
 
-
 def getGMaterialInfo(request):
     if request.method == "POST":
         erp_no = request.POST.get('erpInput')
@@ -348,7 +349,7 @@ def getGMaterialInfo(request):
                 }
         rows = []
         data = {"ret": True, "errMsg": "", "total": 0, "rows": rows, 'info': info}
-
+        init_permission(request, request.user)
         return JsonResponse(data)
 
 
@@ -567,7 +568,7 @@ def getTMaterialInfo(request):
                 }
         rows = []
         data = {"ret": True, "errMsg": "", "total": 0, "rows": rows, 'info': info}
-
+        init_permission(request, request.user)
         return JsonResponse(data)
 
 

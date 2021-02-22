@@ -23,7 +23,7 @@ def init_permission(request, user_obj):
         # print(user_obj.username)
         step_name_list = [step.name for step in steps]
 
-    print(step_name_list)
+    # print(step_name_list)
 
     permission_item_list = user_obj.roles.values('permissions__url',
                                                  'permissions__title',

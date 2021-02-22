@@ -13,7 +13,7 @@ from apps.product_manager.models import ProductModel
 from .models import Order, Customer
 from apps.manufacturing.models import Product
 from apps.bom_manager.models import BOM
-from apps.account.service.init_permission import init_permission, refresh_permission
+from apps.account.service.init_permission import init_permission
 # Create your views here.
 
 
@@ -63,6 +63,7 @@ def getCustomerData(request):
                          'contact': obj.contact, 'tel': obj.tel,
                          'zip_code': obj.zip_code, 'email': obj.email,
                          'remark': obj.remark})
+        init_permission(request, request.user)
         return JsonResponse(data)
 
 
@@ -202,6 +203,7 @@ def getOrderData(request):
                         'start_time': start_time,
                         'end_time': end_time,
                         'customer': order.customer.name})
+        init_permission(request, request.user)
         return JsonResponse(data)
 
 

@@ -12,6 +12,8 @@ from apps.manufacturing.models import Product, ProcessRecord, HistoryRecord, Ass
 from apps.Inspection.models import TraceMaterial, Inspection
 from apps.bom_manager.models import MaterialModel, BOM
 from apps.product_manager.models import VinRule, VinRuleItem
+from apps.account.service.init_permission import init_permission
+
 
 # Create your views here.
 
@@ -215,7 +217,7 @@ def getOrderInfo(request, step_id):
     if request.method == "POST":
         vin_or_sn = request.POST.get('snInput')
         current_vin = request.POST.get('product_vin')
-
+        init_permission(request, request.user)
         try:
             order = Order.objects.filter_without_isdelete().get(status=1)
         except Order.DoesNotExist:
