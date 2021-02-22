@@ -100,7 +100,7 @@ DATABASES = {
     # }
     'default': {
         'ENGINE': 'django.db.backends.mysql',  # 指定数据库驱动
-        'NAME': 'simple_mes3',  # 指定的数据库名
+        'NAME': 'simple_mes',  # 指定的数据库名
         'USER': 'root',  # 数据库登录的用户名
         'PASSWORD': '123456@Wp',  # 登录数据库的密码
         'HOST': '127.0.0.1',
