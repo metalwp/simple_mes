@@ -5,9 +5,23 @@ from db.base_model import BaseModel
 # Create your models here.
 
 
+class AssembleLine(BaseModel):
+    name = models.CharField('生产线名称', max_length=100)
+    remark = models.CharField('备注', max_length=200, null=True, blank=True)
+
+    class Meta:
+        verbose_name = '生产线'
+        verbose_name_plural = '生产线'
+        db_table = 'sm_assemble_line'
+
+    def __str__(self):
+        return self.name
+
+
 class ProcessRoute(BaseModel):
     name = models.CharField('工艺路线名称', max_length=100)
-    remark = models.CharField('备注', max_length=200, null=True, blank=True)    
+    assemble_line = models.ForeignKey("AssembleLine", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="生产线")
+    remark = models.CharField('备注', max_length=200, null=True, blank=True)
     
     class Meta:
         verbose_name = '工艺路线'

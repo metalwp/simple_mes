@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 
 from apps.product_manager.models import ProductModel
 from apps.station_manager.models import Station, Fixture
-from apps.process_manager.models import ProcessStep, ProcessRoute, ProcessStep_MaterialModel
+from apps.process_manager.models import ProcessStep, ProcessRoute, ProcessStep_MaterialModel, AssembleLine
 from apps.bom_manager.models import MaterialModel, Bom_MaterialModel, BOM
 from apps.Inspection.models import Inspection
 from apps.account.models import Menu, Permission
@@ -555,6 +555,7 @@ def uploadInspection(request, step_id):
 @login_required
 def pr_index(request):
     product = ProductModel.objects.all()
+    lines = AssembleLine.objects.filter_without_isdelete().all()
     return render(request, "process_manager/pr_index.html", locals())
 
 
@@ -588,6 +589,7 @@ def getPRData(request):
         for obj in objs:
             rows.append({'id': obj.id, 
                                         'name': obj.name,
+                                        'line': obj.assemble_line.name if obj.assemble_line else None,
                                         'remark': obj.remark,
                                         'm_time': obj.m_time.strftime("%Y-%m-%d-%H:%M:%S"), 
                                          'c_time': obj.c_time.strftime("%Y-%m-%d-%H:%M:%S"),
@@ -599,16 +601,22 @@ def addPRData(request):
     model = ProcessRoute
     if request.method == "POST":
         name = request.POST.get('nameInput')
+        line_id = request.POST.get('lineSelect')
         remark = request.POST.get('remarkText')
         # 数据校验
-        if not name:
+        if not all([name, line_id]):
             return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
+
+        try:
+            line = AssembleLine.objects.filter_without_isdelete().get(id=line_id)
+        except AssembleLine.DoesNotExist:
+            return JsonResponse({"ret": False, "errMsg": '未找到此生产线！', "rows": [], "total": 0})
         try:
             tmp = model.objects.filter_without_isdelete().filter(name=name)
             if tmp:
                 return_dict = {"ret": False, "errMsg": "工艺路线名称不能重复！", "rows": [], "total": 0}
                 return JsonResponse(return_dict)
-            model.objects.create(name=name, remark=remark)
+            model.objects.create(name=name, assemble_line=line, remark=remark)
         except Exception as e:
             return JsonResponse({"ret": False, "errMsg": str(e), "rows": [], "total": 0})
         return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
@@ -632,19 +640,26 @@ def updatePRData(request):
     if request.method == 'POST':
         id = request.POST.get('u_idInput')
         name = request.POST.get('u_nameInput')
+        line_id = request.POST.get('u_lineSelect')
         remark = request.POST.get('u_remarkText')
         
         # 数据校验
-        if not all([name,  id]):
+        if not all([name,  id, line_id]):
             return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
-        
+
         try:
-            tmp = model.objects.filter_without_isdelete().filter(name=name)
+            line = AssembleLine.objects.filter_without_isdelete().get(id=line_id)
+        except AssembleLine.DoesNotExist:
+            return JsonResponse({"ret": False, "errMsg": '未找到此生产线！', "rows": [], "total": 0})
+
+        try:
+            tmp = model.objects.filter_without_isdelete().filter(name=name).exclude(id=id)
             if tmp:
                 return_dict = {"ret": False, "errMsg": "工艺路线名称不能重复！", "rows": [], "total": 0}
                 return JsonResponse(return_dict)
             obj = model.objects.filter_without_isdelete().get(id=id)
             obj.name = name
+            obj.assemble_line = line
             obj.remark = remark
             obj.save()
         except Exception as e:
@@ -689,5 +704,117 @@ def pr_edit(request, route_id):
                 return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
                 return JsonResponse(return_dict)
 
+        return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
+        return JsonResponse(return_dict)
+
+
+@login_required
+def assemble_line_index(request):
+    assemble_lines = AssembleLine.objects.filter_without_isdelete()
+    if request.session.get('err'):
+        errMsg = request.session.get('err')
+    return render(request, 'process_manager/assemble_line_index.html', locals())
+
+
+def assemble_line_get(request):
+    model = AssembleLine
+    if request.method == "GET":
+        pageSize = int(request.GET.get('pageSize'))
+        pageNumber = int(request.GET.get('pageNumber'))
+        sortName = request.GET.get('sortName')
+        sortOrder = request.GET.get('sortOrder')
+        search_kw = request.GET.get('search_kw')
+        init_permission(request, request.user)
+        if sortOrder == 'asc':
+            sort_str = sortName
+        else:
+            sort_str = '-' + sortName
+        if not search_kw:
+            total = model.objects.filter_without_isdelete().count()
+            objs = model.objects.filter_without_isdelete().order_by(sort_str)[
+                   (pageNumber - 1) * pageSize:(pageNumber) * pageSize]
+        else:
+            objs = model.objects.filter_without_isdelete().filter(Q(name__contains=search_kw)).order_by(sort_str) \
+                [(pageNumber - 1) * pageSize: pageNumber * pageSize]
+            # 获取查询结果的总条数
+            total = model.objects.filter_without_isdelete().filter(Q(name__contains=search_kw)).order_by(sort_str) \
+                [(pageNumber - 1) * pageSize: pageNumber * pageSize].count()
+
+        rows = []
+        data = {"total": total, "rows": rows}
+        if request.session.get('err'):
+            request.session['err'] = None
+        for obj in objs:
+            rows.append({'id': obj.id,
+                         'name': obj.name,
+                         'remark': obj.remark,
+                         'c_time': obj.c_time.strftime("%Y-%m-%d-%H:%M:%S"),
+                         'm_time': obj.m_time.strftime("%Y-%m-%d-%H:%M:%S")})
+        return JsonResponse(data)
+
+
+def assemble_line_add(request):
+    if request.method == "POST":
+        name = request.POST.get('nameInput')
+        remark = request.POST.get('remarkText')
+
+        try:
+            tmp = AssembleLine.objects.filter_without_isdelete().filter(name=name)
+            if tmp:
+                return_dict = {"ret": False, "errMsg": "名称不能重复！", "rows": [], "total": 0}
+                return JsonResponse(return_dict)
+
+            assemble_line = AssembleLine.objects.create(name=name, remark=remark)
+        except Exception as e:
+            return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
+            return JsonResponse(return_dict)
+
+        return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
+        return JsonResponse(return_dict)
+
+
+def assemble_line_delete(request):
+    return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
+    id = request.POST.get('id')
+
+    #获取客户端的IP地址
+    if request.META.get('HTTP_X_FORWARDED_FOR'):
+        ip = request.META.get('HTTP_X_FORWARDED_FOR')
+    else:
+        ip = request.META['REMOTE_ADDR']
+        #print(request.META)
+
+    try:
+        obj = AssembleLine.objects.filter_without_isdelete().get(id=id)
+        obj.delete()
+        return JsonResponse(return_dict)
+    except Exception as e:
+        return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
+        return JsonResponse(return_dict)
+
+
+def assemble_line_update(request):
+    model = AssembleLine
+    if request.method == 'POST':
+        id = request.POST.get('u_idInput')
+        name = request.POST.get('u_nameInput')
+        remark = request.POST.get('u_remarkText')
+
+        # 数据校验
+        if not all([name, id]):
+            return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
+
+        try:
+            tmp = model.objects.filter_without_isdelete().exclude(id=id).filter(name=name)
+            if tmp:
+                return_dict = {"ret": False, "errMsg": "工艺路线名称不能重复！", "rows": [], "total": 0}
+                return JsonResponse(return_dict)
+            obj = model.objects.filter_without_isdelete().get(id=id)
+            obj.name = name
+            obj.remark = remark
+            obj.save()
+        except Exception as e:
+            return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
+            return JsonResponse(return_dict)
         return_dict = {"ret": True, "errMsg": "", "rows": [], "total": 0}
         return JsonResponse(return_dict)

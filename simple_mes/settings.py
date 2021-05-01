@@ -100,7 +100,7 @@ DATABASES = {
     # }
     'default': {
         'ENGINE': 'django.db.backends.mysql',  # 指定数据库驱动
-        'NAME': 'simple_mes',  # 指定的数据库名
+        'NAME': 'simple_mes3',  # 指定的数据库名
         'USER': 'root',  # 数据库登录的用户名
         'PASSWORD': '123456@Wp',  # 登录数据库的密码
         'HOST': '127.0.0.1',
@@ -204,6 +204,7 @@ LOGGING = {
     },
     # 过滤
     'filters': {
+
     },
     # 定义具体处理日志的方式
     'handlers': {
@@ -248,16 +249,16 @@ LOGGING = {
     'loggers': {
         # 类型 为 django 处理所有类型的日志， 默认调用
         'django': {
-            'handlers': ['default', 'error', 'info', ],
+            'handlers': ['console'],
             # 'handlers': ['default', 'console', 'error', 'info'],
-            'level': 'INFO',
-            'propagate': False
-        },
-        # log 调用时需要当作参数传入
-        'log': {
-            'handlers': ['error', 'info', 'console', 'default'],
             'level': 'INFO',
             'propagate': True
         },
+        # log 调用时需要当作参数传入
+        # 'log': {
+        #     'handlers': ['error', 'info', 'console', 'default'],
+        #     'level': 'INFO',
+        #     'propagate': True
+        # },
     }
 }

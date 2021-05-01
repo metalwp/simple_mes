@@ -32,4 +32,10 @@ urlpatterns = [
     path('process_route/detail/<int:route_id>/', views.pr_detail, name='pr_detail'),
     path('process_route/detail/edit/<int:route_id>/', views.pr_edit, name='pr_edit'),
 
+    path('assemble_line/', views.assemble_line_index, name='assemble_line_index'),
+    path('assemble_line/get/', views.assemble_line_get, name='assemble_line_get'),
+    path('assemble_line/add/', views.assemble_line_add, name='assemble_line_add'),
+    path('assemble_line/delete/', views.assemble_line_delete, name='assemble_line_delete'),
+    path('assemble_line/update/', views.assemble_line_update, name='assemble_line_update'),
+
 ]

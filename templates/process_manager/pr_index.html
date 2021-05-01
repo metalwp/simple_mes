@@ -62,6 +62,17 @@
                                                 </div>
                                             </div>
                                             <div class="form-group">
+                                                <label for="lineSelect" class="col-sm-3 control-label" >生产线</label>
+                                                <div class="col-sm-7">
+                                                    <select class="form-control" name="lineSelect" id="lineSelect" required="required">
+                                                        <option value="" hassubinfo="true">请选择生产线</option>
+                                                        {% for line in lines %}
+                                                        <option value="{{ line.id }}" hassubinfo="true">{{ line.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
                                                 <label for="remarkText" class="col-sm-3 control-label" >备注</label>
                                                 <div class="col-sm-7">
                                                         <textarea class="form-control" name="remarkText" id="remarkText"
@@ -106,6 +117,17 @@
                                                     <div class="col-sm-7">
                                                         <input type="text" class="form-control"  name="u_nameInput" id="u_nameInput" required="required"
                                                             placeholder="请输入工艺路线名称..." style="text-align: left">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="u_lineSelect" class="col-sm-3 control-label" >生产线</label>
+                                                    <div class="col-sm-7">
+                                                        <select class="form-control" name="u_lineSelect" id="u_lineSelect" required="required">
+                                                            <option value="" hassubinfo="true">请选择生产线</option>
+                                                            {% for line in lines %}
+                                                            <option value="{{ line.id }}" hassubinfo="true">{{ line.name }}</option>
+                                                            {% endfor %}
+                                                        </select>
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
@@ -250,6 +272,11 @@
     function EditViewById(index, data){
         $("#u_idInput").val(data.id);
         $("#u_nameInput").val(data.name);
+        $("#u_lineSelect option").each(function () {
+            if (data.line.includes($(this).text())) {
+                $(this).attr('selected', true)
+            }
+        });
         $("#u_remarkText").val(data.remark);
 
         //弹出修改模态框，非新增模态框
@@ -285,6 +312,13 @@
                 formatter: function (value, row, index) {
                 var res = '<a href="../detail/' +row.id+ '"> '+ row.name +'</a>';
                 return res;},
+            },
+            {   field: 'line',
+                title:'生产线',
+                width: '30%',
+                align: 'center',
+                valign: 'middle',
+                sortable: true,
             },
            {   field: 'remark',
                 title:'备注',

@@ -11,17 +11,18 @@ def init_permission(request, user_obj):
     :param user_obj:
     :return:
     """
-    try:
-        order = Order.objects.filter_without_isdelete().get(status=1)
-    except Order.DoesNotExist:
-        order = None
+    # try:
+    #     order = Order.objects.filter_without_isdelete().get(status=1)
+    # except Order.DoesNotExist:
+    #     order = None
+    orders = Order.objects.filter_without_isdelete().filter(status=1)
 
     step_name_list = []
-    if order:
+    for order in orders:
         steps = ProcessStep.objects.filter_without_isdelete().filter(process_route=order.product_model.process_route)
         # print("init_permission")
         # print(user_obj.username)
-        step_name_list = [step.name for step in steps]
+        step_name_list.extend([step.name for step in steps])
 
     # print(step_name_list)
 

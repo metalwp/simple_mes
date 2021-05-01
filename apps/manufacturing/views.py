@@ -21,11 +21,13 @@ from apps.account.service.init_permission import init_permission
 def index(request, step_id):
     if request.method == "GET":
         try:
-            order = Order.objects.filter_without_isdelete().get(status=1)
+            step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
+            process_route = step.process_route
+            order = Order.objects.filter_without_isdelete().filter(product_model__process_route=process_route).get(status=1)
+            # order = Order.objects.filter_without_isdelete().get(status=1)
             categorys = MaterialModel.CATEGORY_CHOICE
             inspection_categorys = Inspection.CATEGORY_CHOICE
             inspection_modes = Inspection.MODE_CHOICE
-            step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
         except Exception as e:
             return HttpResponse(str(e))
         route = order.product_model.process_route
@@ -219,7 +221,10 @@ def getOrderInfo(request, step_id):
         current_vin = request.POST.get('product_vin')
         init_permission(request, request.user)
         try:
-            order = Order.objects.filter_without_isdelete().get(status=1)
+            step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
+            process_route = step.process_route
+            order = Order.objects.filter_without_isdelete().filter(product_model__process_route=process_route).get(status=1)
+            # order = Order.objects.filter_without_isdelete().get(status=1)
         except Order.DoesNotExist:
             return JsonResponse({"ret": False, "errMsg": '订单未打开！', "rows": [], "total": 0})
         # route = order.product_model.process_route
@@ -298,6 +303,8 @@ def assemblyStepMatProcess(sn, current_vin, sequence_no, order):
         material = TraceMaterial.objects.filter_without_isdelete().get(sn=sn)
         if material.is_used:
             return {"ret": False, "errMsg": '该物料已被其他产品使用！', "rows": [], "total": 0}
+        if material.status != 2:
+            return {"ret": False, "errMsg": '该物料未检验OK！', "rows": [], "total": 0}
     except TraceMaterial.DoesNotExist:
         return {"ret": False, "errMsg": '该物料不存在！', "rows": [], "total": 0}
 
@@ -524,11 +531,14 @@ def getInspectionData(request, step_id):
     if request.method == "GET":
         vin = request.GET.get('vin')
         input1 = request.GET.get('input1')
+        step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
+        process_route = step.process_route
         if not vin and not input1:
             return JsonResponse({"ret": True})
         product = Product.objects.filter_without_isdelete().get(vin=vin)
         try:
-            order = Order.objects.filter_without_isdelete().get(status=1)
+            # order = Order.objects.filter_without_isdelete().get(status=1)
+            order = Order.objects.filter_without_isdelete().filter(product_model__process_route=process_route).get(status=1)
         except Order.DoesNotExist:
             return JsonResponse({"ret": False, "errMsg": '无打开工单！', "rows": [], "total": 0})
         route = order.product_model.process_route
@@ -650,7 +660,10 @@ def getProductInfo(request, step_id):
         info = {}
         rows = []
         try:
-            order = Order.objects.filter_without_isdelete().get(status=1)
+            step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
+            process_route = step.process_route
+            order = Order.objects.filter_without_isdelete().filter(product_model__process_route=process_route).get(status=1)
+            # order = Order.objects.filter_without_isdelete().get(status=1)
         except (Order.DoesNotExist, Order.MultipleObjectsReturned):
             errMsg = '无打开订单或打开订单超过1个！'
             return render(request, 'manufacturing/vin_index.html', locals())
@@ -685,7 +698,10 @@ def generateVIN(request, step_id):
     if request.method == "POST":
         info = {}
         try:
-            order = Order.objects.filter_without_isdelete().get(status=1)
+            step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
+            process_route = step.process_route
+            order = Order.objects.filter_without_isdelete().filter(product_model__process_route=process_route).get(status=1)
+            # order = Order.objects.filter_without_isdelete().get(status=1)
         except (Order.DoesNotExist, Order.MultipleObjectsReturned):
             errMsg = '无打开订单或打开订单超过1个！'
             return render(request, 'manufacturing/vin_index.html', locals())

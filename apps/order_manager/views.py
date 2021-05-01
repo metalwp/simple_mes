@@ -271,9 +271,14 @@ def updateOrderData(request):
             return JsonResponse(return_dict)
         if str(status) == "1":
             try:
-                order = Order.objects.filter_without_isdelete().get(status=1)
-                return JsonResponse({"ret": False, "errMsg": order.num + "订单进行中，请先关闭", "rows": [], "total": 0})
+                order = Order.objects.filter_without_isdelete().get(num=num)
             except Order.DoesNotExist:
+                return JsonResponse({"ret": False, "errMsg": "未找到此订单！", "rows": [], "total": 0})
+            line = order.product_model.process_route.assemble_line
+            orders = Order.objects.filter_without_isdelete().filter(status=1).filter(product_model__process_route__assemble_line=line)
+            if orders:
+                return JsonResponse({"ret": False, "errMsg": "存在正在生产的订单，请先关闭！", "rows": [], "total": 0})
+            else:
                 order1 = Order.objects.filter_without_isdelete().get(num=num)
                 if order1.product_model.is_delete:
                     return JsonResponse({"ret": False, "errMsg": "该订单关联的产品已经删除，无法打开该订单！", "rows": [], "total": 0})
@@ -281,6 +286,18 @@ def updateOrderData(request):
                                                                              "quantity": quantity,
                                                                              "delivery_time": dilivery_time,
                                                                              "customer": customer, 'status': status})
+
+            # try:
+            #     order = Order.objects.filter_without_isdelete().filter(status=1)
+            #     return JsonResponse({"ret": False, "errMsg": order.num + "订单进行中，请先关闭", "rows": [], "total": 0})
+            # except Order.DoesNotExist:
+            #     order1 = Order.objects.filter_without_isdelete().get(num=num)
+            #     if order1.product_model.is_delete:
+            #         return JsonResponse({"ret": False, "errMsg": "该订单关联的产品已经删除，无法打开该订单！", "rows": [], "total": 0})
+            #     mat, created = Order.objects.update_or_create(num=num, defaults={"product_model": product,
+            #                                                                  "quantity": quantity,
+            #                                                                  "delivery_time": dilivery_time,
+            #                                                                  "customer": customer, 'status': status})
         else:
             mat, created = Order.objects.update_or_create(num=num, defaults={"product_model": product,
                                                                              "quantity": quantity,
