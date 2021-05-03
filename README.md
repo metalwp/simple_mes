@@ -28,6 +28,10 @@
 19. bootstrap-table-resizable 表格可以拖拽宽度
 20. 工序管理中的VIN生成工序无法修改。---原因时命名中有空格
 
+21. （OK）VIN生成时，订单号需要进行选择
+22.  (OK) 订单号改为自己输入，订单改为可以全部都为进行中
+23.  ()装配工序增加解绑物料的功能
+
 
 
 uwsgi --http :8001 --chdir /home/metalwp/Work/test2/simple_mes/ --home=/home/metalwp/Work/test2/simple_mes/venv/ --module simple_mes.wsgi

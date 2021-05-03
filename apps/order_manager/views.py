@@ -234,13 +234,19 @@ def addOrderData(request):
         # 数据校验
         if not all([num, product_id, quantity, dilivery_str, customer_num]):
             return JsonResponse({"ret": False, "errMsg": '数据不能为空！', "rows": [], "total": 0})
-        
+        try:
+            order = Order.objects.filter_without_isdelete().get(num=num)
+        except Order.DoesNotExist:
+            order = None
+
+        if order:
+            return JsonResponse({"ret": False, "errMsg": '订单号已存在！', "rows": [], "total": 0})
         try:
             # 业务逻辑
             dilivery_time = datetime.datetime.strptime(dilivery_str, '%Y-%m-%d').date()
             product = ProductModel.objects.filter_without_isdelete().get(id=product_id)
             customer = Customer.objects.filter_without_isdelete().get(num=customer_num)
-            Order.objects.create(num=num, product_model=product, quantity=quantity, delivery_time=dilivery_time, customer=customer)
+            Order.objects.create(num=num, product_model=product, quantity=quantity, status=1, delivery_time=dilivery_time, customer=customer)
         except Exception as e:
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
             return JsonResponse(return_dict)
@@ -269,41 +275,34 @@ def updateOrderData(request):
         except Exception as e:
             return_dict = {"ret": False, "errMsg": str(e), "rows": [], "total": 0}
             return JsonResponse(return_dict)
-        if str(status) == "1":
-            try:
-                order = Order.objects.filter_without_isdelete().get(num=num)
-            except Order.DoesNotExist:
-                return JsonResponse({"ret": False, "errMsg": "未找到此订单！", "rows": [], "total": 0})
-            line = order.product_model.process_route.assemble_line
-            orders = Order.objects.filter_without_isdelete().filter(status=1).filter(product_model__process_route__assemble_line=line)
-            if orders:
-                return JsonResponse({"ret": False, "errMsg": "存在正在生产的订单，请先关闭！", "rows": [], "total": 0})
-            else:
-                order1 = Order.objects.filter_without_isdelete().get(num=num)
-                if order1.product_model.is_delete:
-                    return JsonResponse({"ret": False, "errMsg": "该订单关联的产品已经删除，无法打开该订单！", "rows": [], "total": 0})
-                mat, created = Order.objects.update_or_create(num=num, defaults={"product_model": product,
-                                                                             "quantity": quantity,
-                                                                             "delivery_time": dilivery_time,
-                                                                             "customer": customer, 'status': status})
-
-            # try:
-            #     order = Order.objects.filter_without_isdelete().filter(status=1)
-            #     return JsonResponse({"ret": False, "errMsg": order.num + "订单进行中，请先关闭", "rows": [], "total": 0})
-            # except Order.DoesNotExist:
-            #     order1 = Order.objects.filter_without_isdelete().get(num=num)
-            #     if order1.product_model.is_delete:
-            #         return JsonResponse({"ret": False, "errMsg": "该订单关联的产品已经删除，无法打开该订单！", "rows": [], "total": 0})
-            #     mat, created = Order.objects.update_or_create(num=num, defaults={"product_model": product,
-            #                                                                  "quantity": quantity,
-            #                                                                  "delivery_time": dilivery_time,
-            #                                                                  "customer": customer, 'status': status})
-        else:
-            mat, created = Order.objects.update_or_create(num=num, defaults={"product_model": product,
-                                                                             "quantity": quantity,
-                                                                             "delivery_time": dilivery_time,
-                                                                             "customer": customer, 'status': status})
-
+        # if str(status) == "1":
+        #     try:
+        #         order = Order.objects.filter_without_isdelete().get(num=num)
+        #     except Order.DoesNotExist:
+        #         return JsonResponse({"ret": False, "errMsg": "未找到此订单！", "rows": [], "total": 0})
+        #     line = order.product_model.process_route.assemble_line
+        #     orders = Order.objects.filter_without_isdelete().filter(status=1).filter(product_model__process_route__assemble_line=line)
+        #     if orders:
+        #         return JsonResponse({"ret": False, "errMsg": "存在正在生产的订单，请先关闭！", "rows": [], "total": 0})
+        #     else:
+        #         order1 = Order.objects.filter_without_isdelete().get(num=num)
+        #         if order1.product_model.is_delete:
+        #             return JsonResponse({"ret": False, "errMsg": "该订单关联的产品已经删除，无法打开该订单！", "rows": [], "total": 0})
+        #         mat, created = Order.objects.update_or_create(num=num, defaults={"product_model": product,
+        #                                                                      "quantity": quantity,
+        #                                                                      "delivery_time": dilivery_time,
+        #                                                                      "customer": customer, 'status': status})
+        #
+        #
+        # else:
+        #     mat, created = Order.objects.update_or_create(num=num, defaults={"product_model": product,
+        #                                                                      "quantity": quantity,
+        #                                                                      "delivery_time": dilivery_time,
+        #                                                                      "customer": customer, 'status': status})
+        mat, created = Order.objects.update_or_create(num=num, defaults={"product_model": product,
+                                                                         "quantity": quantity,
+                                                                         "delivery_time": dilivery_time,
+                                                                         "customer": customer, 'status': status})
     return_dict = {"ret": True, "errMsg": '', "rows": [], "total": 0}
     return JsonResponse(return_dict)
 

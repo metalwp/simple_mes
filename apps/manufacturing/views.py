@@ -11,7 +11,7 @@ from apps.process_manager.models import ProcessStep, ProcessStep_MaterialModel
 from apps.manufacturing.models import Product, ProcessRecord, HistoryRecord, AssemblyRecord, TestRecord, RepairRecord
 from apps.Inspection.models import TraceMaterial, Inspection
 from apps.bom_manager.models import MaterialModel, BOM
-from apps.product_manager.models import VinRule, VinRuleItem
+from apps.product_manager.models import VinRule, VinRuleItem, ProductModel
 from apps.account.service.init_permission import init_permission
 
 
@@ -23,19 +23,18 @@ def index(request, step_id):
         try:
             step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
             process_route = step.process_route
-            order = Order.objects.filter_without_isdelete().filter(product_model__process_route=process_route).get(status=1)
+            orders = Order.objects.filter_without_isdelete().filter(product_model__process_route=process_route).filter(status=1)
             # order = Order.objects.filter_without_isdelete().get(status=1)
             categorys = MaterialModel.CATEGORY_CHOICE
             inspection_categorys = Inspection.CATEGORY_CHOICE
             inspection_modes = Inspection.MODE_CHOICE
         except Exception as e:
             return HttpResponse(str(e))
-        route = order.product_model.process_route
+        # route = order.product_model.process_route
         # step = ProcessStep.objects.filter_without_isdelete().get(process_route=route, sequence_no=sequence_no)
         # step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
 
         user = request.user
-        print(step.category)
         if user.is_authenticated:
             if step.category == 1:  # 组装
                 return render(request, 'manufacturing/assemble_index.html', locals())
@@ -219,28 +218,45 @@ def getOrderInfo(request, step_id):
     if request.method == "POST":
         vin_or_sn = request.POST.get('snInput')
         current_vin = request.POST.get('product_vin')
+        order_num = request.POST.get("order_num")
+        print(vin_or_sn)
+        # print(order_num)
+
         init_permission(request, request.user)
         try:
             step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
             process_route = step.process_route
-            order = Order.objects.filter_without_isdelete().filter(product_model__process_route=process_route).get(status=1)
-            # order = Order.objects.filter_without_isdelete().get(status=1)
+
         except Order.DoesNotExist:
-            return JsonResponse({"ret": False, "errMsg": '订单未打开！', "rows": [], "total": 0})
+            return JsonResponse({"ret": False, "errMsg": '请选择订单！', "rows": [], "total": 0})
         # route = order.product_model.process_route
-        digit_num = 0
-        re_str = ""
-        vin_rule = order.product_model.vin_rule
+        # digit_num = 0
+        # re_str = ""
+        # vin_rule = order.product_model.vin_rule
+        # vin_rule_items = VinRuleItem.objects.filter_without_isdelete().filter(vin_rule=vin_rule)
+        # for item in vin_rule_items:
+        #     if int(item.rule) == 5:
+        #         re_str = item.content
+        #     elif int(item.rule) == 6:
+        #         digit_num = int(item.content)
+        # step = ProcessStep.objects.filter_without_isdelete().get(process_route=route, sequence_no=sequence_no)
+        step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
+
+        product_model = ProductModel.objects.filter_without_isdelete().get(process_route=step.process_route)
+        vin_rule = product_model.vin_rule
         vin_rule_items = VinRuleItem.objects.filter_without_isdelete().filter(vin_rule=vin_rule)
         for item in vin_rule_items:
             if int(item.rule) == 5:
                 re_str = item.content
             elif int(item.rule) == 6:
                 digit_num = int(item.content)
-        # step = ProcessStep.objects.filter_without_isdelete().get(process_route=route, sequence_no=sequence_no)
-        step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
 
         if step.category == 6:
+            try:
+                order = Order.objects.filter_without_isdelete().filter(product_model__process_route=process_route).get(
+                    num=order_num)
+            except Order.DoesNotExist:
+                return JsonResponse({"ret": False, "errMsg": '请选择订单！', "rows": [], "total": 0})
             data = vinGenStepProcess(order, step.sequence_no)
             return JsonResponse(data)
         else:
@@ -249,9 +265,10 @@ def getOrderInfo(request, step_id):
                 if not re.match(re_str, vin):
                     return JsonResponse({"ret": False, "errMsg": 'VIN格式不正确！', "rows": [], "total": 0})
                 try:
-                    product = Product.objects.filter_without_isdelete().get(vin=vin, order_num=order)
+                    product = Product.objects.filter_without_isdelete().get(vin=vin)
+                    order = product.order_num
                 except Product.DoesNotExist:
-                    return JsonResponse({"ret": False, "errMsg": '该VIN不属于该订单！', "rows": [], "total": 0})
+                    return JsonResponse({"ret": False, "errMsg": '该VIN不存在！', "rows": [], "total": 0})
 
                 if step.process_lock and (int(step.sequence_no) > 1):
                     try:
@@ -267,7 +284,7 @@ def getOrderInfo(request, step_id):
 
                 elif step.category == 3 or step.category == 4:  # 标定或检验工序
 
-                    data = inspectStepProcesss(vin, order, product, step, step.sequence_no)
+                    data = inspectStepProcesss(vin, product, step, step.sequence_no)
                     return JsonResponse(data)
                 elif step.category == 5:  # 标签打印
                     data = printLabel(vin, order, product, step, step.sequence_no)
@@ -275,23 +292,23 @@ def getOrderInfo(request, step_id):
 
             elif len(vin_or_sn) == 23:
                 sn = vin_or_sn
-                data = assemblyStepMatProcess(sn, current_vin, step.sequence_no, order)
+                data = assemblyStepMatProcess(sn, current_vin, step.sequence_no)
                 return JsonResponse(data)
 
             else:
                 if current_vin:
                     try:
-                        product = Product.objects.filter_without_isdelete().get(vin=current_vin, order_num=order)
+                        product = Product.objects.filter_without_isdelete().get(vin=current_vin)
                     except Product.DoesNotExist:
                         return JsonResponse({"ret": False, "errMsg": '该VIN不属于该订单！', "rows": [], "total": 0})
-                    data = inspectStepProcesss(current_vin, order, product, step, step.sequence_no)
+                    data = inspectStepProcesss(current_vin, product, step, step.sequence_no)
                     return JsonResponse(data)
                 else:
                     # return JsonResponse({"ret": False, "errMsg": '输入长度不正确！', "rows": [], "total": 0})
                     return JsonResponse({"ret": True})
 
 
-def assemblyStepMatProcess(sn, current_vin, sequence_no, order):
+def assemblyStepMatProcess(sn, current_vin, sequence_no,):
     info = {}
     rows = []
     # 检验sn格式是否合法
@@ -368,16 +385,16 @@ def assemblyStepMatProcess(sn, current_vin, sequence_no, order):
             info['status'] = '已完成'
             process_record.save()
 
-        product_model = order.product_model
-        bom = BOM.objects.filter_without_isdelete().filter(product_model=order.product_model).order_by(
+        product_model = product.order_num.product_model
+        bom = BOM.objects.filter_without_isdelete().filter(product_model=product_model).order_by(
             "-erp_no").first()
         info['product_erp'] = bom.erp_no
         info['product_name'] = product_model.name
         info['product_model'] = product_model.model
-        info['order_num'] = order.num
-        info['order_quantity'] = order.quantity
+        info['order_num'] = product.order_num.num
+        info['order_quantity'] = product.order_num.quantity
 
-        products = Product.objects.filter_without_isdelete().filter(order_num=order.num)
+        products = Product.objects.filter_without_isdelete().filter(order_num=product.order_num.num)
         step_pass_quantity = 0
         for product in products:
             try:
@@ -387,7 +404,7 @@ def assemblyStepMatProcess(sn, current_vin, sequence_no, order):
                 continue
 
         info['finish_quantity'] = step_pass_quantity
-        info['finish_rate'] = '{:.2%}'.format(step_pass_quantity / order.quantity)
+        info['finish_rate'] = '{:.2%}'.format(step_pass_quantity / product.order_num.quantity)
         info['user'] = 'user'
 
         data = {"ret": True, "errMsg": "", "total": 0, "rows": rows, 'info': info}
@@ -397,7 +414,7 @@ def assemblyStepMatProcess(sn, current_vin, sequence_no, order):
         return {"ret": False, "errMsg": '请先输入VIN！', "rows": [], "total": 0}
 
 
-def inspectStepProcesss(vin, order, product, step, sequence_no):
+def inspectStepProcesss(vin, product, step, sequence_no):
     info = {}
     rows = []
     try:
@@ -424,16 +441,16 @@ def inspectStepProcesss(vin, order, product, step, sequence_no):
 
     info['product_vin'] = vin
     info['date'] = process_record.m_time
-    product_model = order.product_model
-    bom = BOM.objects.filter_without_isdelete().filter(product_model=order.product_model).order_by(
+    product_model = product.order_num.product_model
+    bom = BOM.objects.filter_without_isdelete().filter(product_model=product_model).order_by(
         "-erp_no").first()
     info['product_erp'] = bom.erp_no
     info['product_name'] = product_model.name
     info['product_model'] = product_model.model
-    info['order_num'] = order.num
-    info['order_quantity'] = order.quantity
+    info['order_num'] = product.order_num.num
+    info['order_quantity'] = product.order_num.quantity
 
-    products = Product.objects.filter_without_isdelete().filter(order_num=order.num)
+    products = Product.objects.filter_without_isdelete().filter(order_num=product.order_num.num)
     step_pass_quantity = 0
     for product in products:
         try:
@@ -443,7 +460,7 @@ def inspectStepProcesss(vin, order, product, step, sequence_no):
             continue
     info['date'] = process_record.m_time
     info['finish_quantity'] = step_pass_quantity
-    info['finish_rate'] = '{:.2%}'.format(step_pass_quantity / order.quantity)
+    info['finish_rate'] = '{:.2%}'.format(step_pass_quantity / product.order_num.quantity)
     info['user'] = 'user'
 
     data = {"ret": True, "errMsg": "", "total": 0, "rows": rows, 'info': info}
@@ -536,11 +553,12 @@ def getInspectionData(request, step_id):
         if not vin and not input1:
             return JsonResponse({"ret": True})
         product = Product.objects.filter_without_isdelete().get(vin=vin)
-        try:
-            # order = Order.objects.filter_without_isdelete().get(status=1)
-            order = Order.objects.filter_without_isdelete().filter(product_model__process_route=process_route).get(status=1)
-        except Order.DoesNotExist:
-            return JsonResponse({"ret": False, "errMsg": '无打开工单！', "rows": [], "total": 0})
+        order = product.order_num
+        # try:
+        #     # order = Order.objects.filter_without_isdelete().get(status=1)
+        #     order = Order.objects.filter_without_isdelete().filter(product_model__process_route=process_route).get(status=1)
+        # except Order.DoesNotExist:
+        #     return JsonResponse({"ret": False, "errMsg": '无打开工单！', "rows": [], "total": 0})
         route = order.product_model.process_route
         # step = ProcessStep.objects.filter_without_isdelete().get(process_route=route, sequence_no=sequence_no)
         step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
@@ -655,14 +673,58 @@ def saveInspectionData(request, step_id):
         return JsonResponse({"ret": True, "errMsg": "", "total": 0, "rows": rows})
 
 
+def unbundle(request, step_id):
+    if request.method == 'POST':
+        print(request.body.decode())
+        old_record = json.loads(request.body.decode())
+        vin = old_record.get("vin")
+        sn = old_record.get("sn")
+        erp_no = old_record.get("erp_no")
+        id = old_record.get("id")
+        try:
+            product = Product.objects.filter_without_isdelete().get(vin=vin)
+        except Product.DoesNotExist:
+            return JsonResponse({"ret": False, "errMsg": '无此VIN的产品！', "rows": [], "total": 0})
+
+        try:
+            material_model = MaterialModel.objects.filter_without_isdelete().get(erp_no=erp_no)
+        except MaterialModel.DoesNotExist:
+            return JsonResponse({"ret": False, "errMsg": '此物料ERP号不存在！', "rows": [], "total": 0})
+
+        try:
+            old_material = TraceMaterial.objects.filter_without_isdelete().get(sn=sn)
+        except TraceMaterial.DoesNotExist:
+            return JsonResponse({"ret": False, "errMsg": '旧SN未找到！', "rows": [], "total": 0})
+
+        try:
+            assembly_record = AssemblyRecord.objects.filter_without_isdelete(). \
+                get(id=id, sn=sn, material_model=material_model)
+            assembly_record.sn = None
+            assembly_record.save()
+            old_material.is_used = 0
+            old_material.save()
+        except AssemblyRecord.DoesNotExist:
+            return JsonResponse({"ret": False, "errMsg": '未找到旧SN装配记录！', "rows": [], "total": 0})
+
+        RepairRecord.objects.create(product=product,
+                                    category=0,
+                                    origin_sn=sn,
+                                    new_sn=None,
+                                    record="线上返修",
+                                    material_model=material_model)
+        return JsonResponse({"ret": True, "errMsg": '', "rows": [], "total": 0})
+
+
+
 def getProductInfo(request, step_id):
     if request.method == "GET":
         info = {}
         rows = []
+        order_num = request.GET.get("order_num")
         try:
             step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
             process_route = step.process_route
-            order = Order.objects.filter_without_isdelete().filter(product_model__process_route=process_route).get(status=1)
+            order = Order.objects.filter_without_isdelete().filter(product_model__process_route=process_route).get(num=order_num)
             # order = Order.objects.filter_without_isdelete().get(status=1)
         except (Order.DoesNotExist, Order.MultipleObjectsReturned):
             errMsg = '无打开订单或打开订单超过1个！'
@@ -696,11 +758,12 @@ def getProductInfo(request, step_id):
 
 def generateVIN(request, step_id):
     if request.method == "POST":
+        order_num = request.POST.get("order_num")
         info = {}
         try:
             step = ProcessStep.objects.filter_without_isdelete().get(id=step_id)
             process_route = step.process_route
-            order = Order.objects.filter_without_isdelete().filter(product_model__process_route=process_route).get(status=1)
+            order = Order.objects.filter_without_isdelete().filter(product_model__process_route=process_route).get(num=order_num)
             # order = Order.objects.filter_without_isdelete().get(status=1)
         except (Order.DoesNotExist, Order.MultipleObjectsReturned):
             errMsg = '无打开订单或打开订单超过1个！'
@@ -734,7 +797,6 @@ def get_vin(order):
     year = datetime.datetime.now().year
     month = datetime.datetime.now().month
     day = datetime.datetime.now().day
-    print(year, month, day)
     for item in vin_rule_items:
         if item.rule == 0:
             # 无

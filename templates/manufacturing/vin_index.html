@@ -43,6 +43,29 @@
                                                                     height: 100%;
                                                                     min-height: 40px;
                                                                     font-size: 20px;
+                                                                    margin: 5px;">订单号:</label>
+                                <select class="form-control" name="orderSelect" id="orderSelect" required="required" style="width: 100%;
+                                                                                        min-width: 200px;
+                                                                                        max-width: 500px;
+                                                                                        height: 100%;
+                                                                                        min-height: 40px;
+                                                                                        font-size: 20px;
+                                                                                        margin: 5px;">
+                                                            <option value="">请选择项目</option>
+                                                            {% for order in orders %}
+                                                            <option value="{{ order.num }}" hassubinfo="true">{{ order.num }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                <button id="search" style="margin-left: 5px;" type="button" class="btn btn-lg btn-default" onclick="search()">查询订单</button>
+
+                            </div>
+                            <div class="form-inline col-xs-12" style="margin: 5px;margin-bottom: 20px;">
+                                <label class="control-label" style="width: 100%;
+                                                                    min-width: 100px;
+                                                                    max-width: 150px;
+                                                                    height: 100%;
+                                                                    min-height: 40px;
+                                                                    font-size: 20px;
                                                                     margin: 5px;">VIN:</label>
                                 <label id="product_vin" class="control-label" style="width: 100%;
                                                                                         min-width: 200px;
@@ -52,8 +75,7 @@
                                                                                         font-size: 20px;
                                                                                         margin: 5px;"></label>
 
-                                <button id="search" style="margin-left: 5px;" type="button" class="btn btn-lg btn-default" onclick="search()">查询订单情况</button>
-                                <button id="generate" style="margin-left: 5px;" type="button" class="btn btn-lg btn-primary" onclick="generate()">查询并生成VIN</button>
+                                <button id="generate" style="margin-left: 5px;" type="button" class="btn btn-lg btn-primary" onclick="generate()">生成VIN</button>
                             </div>
                             <div class="col-xs-4">
                                 <div class="form-inline form-group">
@@ -150,10 +172,16 @@
         obj["{{category.0}}"]= "{{ category.1 }}";
     {% endfor %}
 
+    $("#orderSelect").change(function () {
+            search()
+        }
+    )
+
     function search() {
         var formdata = new FormData(); //ajax上传文件的时候，需要这个类型，它会将添加给它的键值对加工成formdata的类型
         var token = $("[name='csrfmiddlewaretoken']").val();
         {#formdata.append("csrfmiddlewaretoken", token); //别忘了csrf_token#}
+        formdata.append("order_num", $("#orderSelect").val());
         $.ajax(
             {
                 //几个参数需要注意一下
@@ -192,13 +220,15 @@
     }
 
     function generate() {
-        data = {};
-        var json_data = JSON.stringify(data);
+        var formdata = new FormData(); //ajax上传文件的时候，需要这个类型，它会将添加给它的键值对加工成formdata的类型
+        formdata.append("order_num", $("#orderSelect").val());
+        //data = {};
+        //var json_data = JSON.stringify(data);
         $.ajax({
             url:"{% url 'manufacturing:generateVIN' step.id %}",
             headers:{"X-CSRFToken":$.cookie("csrftoken")},
             type:"post",
-            data:json_data, //将添加好数据的formdata放到data这里
+            data:formdata, //将添加好数据的formdata放到data这里
             processData: false,    // 不处理数据
             contentType: false,    // 不设置内容类型
             dataType: "json",
@@ -335,8 +365,52 @@
 
         ];
     var urls = "{% url 'manufacturing:getProductInfo' step.id %}";
+
+    function tableFresh2(columns, urls, pk){
+    $('table').bootstrapTable({
+        url:urls,    //请求后台的URL（*）
+        method: 'GET',   //请求方式（*）
+        dataType: "json",
+        uniqueId: pk,
+        striped: true, //间隔行颜色
+        cache: false,
+        sortName: pk,
+        sortable: true,
+        sortOrder: 'desc',
+        sidePagination: "server",
+        undefinedText: '--',
+        singleSelect: false,
+        toolbar: '#soft-toolbar',
+        search: false,
+        strictSearch: true,
+        clickToSelect: true,
+        pagination: false,
+        pageNumber: 1,
+        pageSize: 20,
+        pageList: [20, 50, 100],
+        paginationPreText: "上一页",
+        paginationNextText: "下一页",
+        queryParamsType: "",
+        queryParams : function (params){
+            var temp = {
+
+                order_num: $('#orderSelect').val(), // 请求时向服务端传递的参数
+
+            };
+            return temp;
+        },
+        columns: columns,
+        onLoadSuccess: function(data) {
+            },
+        onLoadError: function () {
+        },
+        onClickRow: function (row, $element) {
+            //    EditViewById(id, 'view');
+        }
+    });
+}
     tableFresh2(columns, urls, 'id');
-    search()
+    {#search()#}
 
 
 </script>

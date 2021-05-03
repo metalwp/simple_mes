@@ -12,6 +12,7 @@ urlpatterns = [
     path('assemble/generateVIN/<int:step_id>/', views.generateVIN, name='generateVIN'),
     path('assemble/getInspectionData/<int:step_id>/', views.getInspectionData, name='getInspectionData'),
     path('assemble/saveInspectionData/<int:step_id>/', views.saveInspectionData, name='saveInspectionData'),
+    path('assemble/unbundle/<int:step_id>/', views.unbundle, name='unbundle'),
 
     path('assemble/getAssembleRecord/<int:step_id>/', views.getAssembleRecord, name='getAssembleRecord'),
 

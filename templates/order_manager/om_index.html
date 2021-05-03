@@ -46,7 +46,9 @@
                             <!-- 按钮触发模态框 -->
                             <div class="columns columns-right btn-group pull-right">
 {#                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addModal">新增记录</button>#}
-                                <button type="button" class="btn btn-primary" onclick="showAddModal()">新增记录</button>
+{#                                <button type="button" class="btn btn-primary" onclick="showAddModal()">新增记录</button>#}
+                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addModal">新增记录</button>
+
                             </div>
 
                             <!-- 新增模态框（Modal） -->
@@ -67,7 +69,9 @@
                                                 <div class="form-group">
                                                     <label for="numInput" class="col-sm-3 control-label" >订单号</label>
                                                     <div class="input-group col-sm-7">
-                                                        <input type="text" class="form-control"  name="numInput" id="numInput" required="required" disabled="disabled"
+{#                                                        <input type="text" class="form-control"  name="numInput" id="numInput" required="required" disabled="disabled"#}
+{#                                                             style="text-align: left">#}
+                                                         <input type="text" class="form-control"  name="numInput" id="numInput" required="required"
                                                              style="text-align: left">
                                                     </div>
                                                 </div>
@@ -377,9 +381,9 @@
         }
     
     function add() {
-        $('#numInput').removeAttr('disabled');
+        //$('#numInput').removeAttr('disabled');
         var data1 = $('#addForm').serialize();
-        $('#numInput').attr('disabled', 'disabled');
+        //$('#numInput').attr('disabled', 'disabled');
         $.ajax({
         //几个参数需要注意一下
             cache:false,
